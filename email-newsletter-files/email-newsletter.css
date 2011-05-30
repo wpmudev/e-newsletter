@@ -1,0 +1,390 @@
+/*
+
+Email-Newsletter CSS Styles
+
+*/
+
+
+/* tooltip styling. by default the element to be styled is .tooltip  */
+.tooltip {
+    display:none;
+    background:transparent url(images/black_arrow_big.png);
+    font-size:12px;
+    height:166px;
+    width:320px;
+    padding:25px;
+    color:#fff;
+}
+
+
+/* tooltip styling. by default the element to be styled is .tooltip  */
+.tooltip_img {
+    vertical-align: middle;
+}
+
+
+
+
+.red {
+    color: red;
+}
+
+.settings-form td {
+    padding: 8px 10px;
+}
+
+#toplevel_page_newsletters-settings .wp-menu-image a img,
+#toplevel_page_newsletters-subscribes .wp-menu-image a img,
+#toplevel_page_newsletters-dashboard .wp-menu-image a img {
+    display: none;
+}
+
+#toplevel_page_newsletters-settings div.wp-menu-image,
+#toplevel_page_newsletters-subscribes div.wp-menu-image,
+#toplevel_page_newsletters-dashboard div.wp-menu-image {
+    background: url("images/icon.png") no-repeat scroll 0px 0px transparent;
+}
+
+#toplevel_page_newsletters-settings:hover div.wp-menu-image,
+#toplevel_page_newsletters-subscribes:hover div.wp-menu-image,
+#toplevel_page_newsletters-dashboard:hover div.wp-menu-image {
+    background: url("images/icon.png") no-repeat scroll 0px -32px transparent;
+}
+
+#toplevel_page_newsletters-settings.current div.wp-menu-image,
+#toplevel_page_newsletters-subscribes.current div.wp-menu-image,
+#toplevel_page_newsletters-dashboard.current div.wp-menu-image {
+    background: url("images/icon.png") no-repeat scroll 0px -32px transparent;
+}
+
+
+.updated {
+    background-color: #FFFFE0;
+    border-color: #E6DB55;
+    margin: 5px 0 15px;
+    -moz-border-radius: 3px 3px 3px 3px;
+    border-style: solid;
+    border-width: 1px;
+    padding: 0 0.6em;
+}
+
+
+#newsletter-tabs .ui-widget-header {
+ /*   border: 1px solid #ffffff;
+    background: #464646 url(images/464646_40x100_textures_01_flat_100.png) 50% 50% repeat-x;           */
+    color: #ffffff;
+    font-weight: bold;
+    height: 36px;
+    padding: 0px 0px 1px 0px;
+}
+
+
+
+#newsletter-tabs .ui-state-hover,
+#newsletter-tabs .ui-widget-content .ui-state-hover,
+#newsletter-tabs .ui-state-focus,
+#newsletter-tabs .ui-widget-content .ui-state-focus {
+    background: url("images/444444_40x100_textures_03_highlight_soft_60.png") repeat-x scroll 50% 50% #444444;
+    border: 1px solid #666666;
+    color: #FFFFFF;
+    font-weight: normal;
+    outline: medium none;
+}
+
+#newsletter-tabs .ui-state-hover a {
+    color: #FFFFFF;
+    outline: medium none;
+    text-decoration: none;
+}
+
+
+
+#newsletter-tabs .ui-state-default {
+    border: 1px solid #666666;
+    background: #555555
+    url(images/555555_40x100_textures_03_highlight_soft_75.png) 50% 50% repeat-x;
+    font-weight: normal;
+    color: #ffffff;
+    outline: none;
+}
+
+#newsletter-tabs .ui-corner-top {
+    -moz-border-radius-topleft: 4px;
+    -moz-border-radius-topright: 4px;
+}
+#newsletter-tabs .ui-tabs-nav li {
+    margin: 5px 5px 0 0;
+}
+#newsletter-tabs .ui-state-active {
+    border: 1px solid #666666;
+    background: #ffffff url(images/ffffff_40x100_textures_01_flat_65.png) 50% 50% repeat-x !important;
+    font-weight: normal;
+    color: #fff;
+    outline: none;
+}
+#newsletter-tabs .ui-state-active a {
+    color: #000 !important;
+}
+
+#newsletter-tabs .ui-corner-bottom {
+    -moz-border-radius-bottomleft: 4px;
+    -moz-border-radius-bottomright: 4px;
+    -moz-border-radius-topright: 4px;
+}
+
+
+#newsletter-tabs .ui-widget-content {
+/*    background: url("images/ffffff_40x100_textures_01_flat_75.png") repeat-x scroll 50% 50% #FFFFFF;*/
+/*    border: 0px solid #000;*/
+    color: #fff;
+}
+
+
+#newsletter-tabs .ui-tabs-panel {
+    background: none repeat scroll 0 0 #fff;
+    border: 1px solid #666666;
+/*    border-top: 0px solid #000;*/
+    display: block;
+    color: #000000;
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 5px 9px 20px 9px;
+    margin: -1px 0 0;
+}
+
+
+
+
+
+.ui-tabs {
+    position: relative;
+    padding: .2em; zoom: 1;
+} /* position: relative prevents IE scroll bug (element with position: relative inside container with overflow: auto appear as "fixed") */
+.ui-tabs .ui-tabs-nav {
+    margin: 0;
+    padding: .2em .2em 0;
+}
+.ui-tabs .ui-tabs-nav li {
+    list-style: none;
+    float: left;
+    position: relative;
+    top: 1px;
+    margin: 0 .2em 1px 0;
+    border-bottom: 0 !important;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.ui-tabs .ui-tabs-nav li a {
+    float: left;
+    padding: .5em 1em;
+    text-decoration: none;
+}
+
+.ui-tabs .ui-tabs-nav li.ui-tabs-selected {
+    margin-bottom: 0;
+    padding-bottom: 1px;
+}
+
+.ui-tabs .ui-tabs-nav li.ui-tabs-selected a,
+.ui-tabs .ui-tabs-nav li.ui-state-disabled a,
+.ui-tabs .ui-tabs-nav li.ui-state-processing a {
+    cursor: text;
+    color: #000;
+}
+
+.ui-tabs .ui-tabs-nav li a,
+.ui-tabs.ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-selected a {
+    cursor: pointer;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* first selector in group seems obsolete, but required to overcome bug in Opera applying cursor: text overall if defined elsewhere... */
+
+.ui-tabs .ui-tabs-panel {
+    display: block;
+    border-width: 0;
+    padding: 1em 1.4em;
+    background: none;
+}
+
+.ui-tabs .ui-tabs-hide {
+    display: none !important;
+}
+
+
+/* Page create-newsletter*/
+
+
+#largeImg {
+    border: solid 1px #ccc;
+    width: 550px;
+    padding: 5px;
+}
+
+
+.newsletter-templates {
+    display: table-cell;
+}
+
+.preview-template {
+    display: table-cell;
+    vertical-align: top;
+}
+
+
+.newsletter-templates .template {
+    background-color: #EFEFEF;
+    border: 3px solid #FFFFFF;
+    cursor: pointer;
+    height: 120px;
+    margin: 5px;
+    text-align: center;
+    width: 100px;
+    float: left;
+    text-decoration: none;
+}
+
+.newsletter-templates .template.selected {
+    border: 3px solid #515151 !important;
+}
+
+.newsletter-templates .template-name {
+    background: url("images/555555_40x100_textures_03_highlight_soft_75.png") repeat-x scroll 50% 50% #555555;
+    color: #FFFFFF;
+    font-weight: bold;
+    clear:both;
+    padding:5px;
+    table-layout: inherit;
+}
+
+#selected_temp {
+    margin: 0px 0px 0px 20px;
+}
+
+#preview_block {
+    margin: 10px 0px 0px 0px;
+}
+
+
+/* end Page create-newsletter*/
+
+
+
+/* file-uploader */
+
+
+
+.qq-uploader { position:relative; width: 100%;}
+
+.qq-upload-button {
+    display:block; /* or inline-block */
+    width: 210px;
+    padding: 7px 0;
+    text-align:center;
+    font-weight: bold;
+    background: #555555 url(images/555555_40x100_textures_03_highlight_soft_75.png) 50% 50% repeat-x;
+    border: 1px solid #666666;
+    color:#fff;
+    -moz-border-radius: 4px;
+
+}
+.qq-upload-button-hover {
+    background: url("images/444444_40x100_textures_03_highlight_soft_60.png") repeat-x scroll 50% 50% #444444;
+}
+
+.qq-upload-button-focus {outline:1px dotted black;}
+
+.qq-upload-drop-area {
+    position:absolute; top:0; left:0; width:100%; height:100%; min-height: 70px; z-index:2;
+    background:#FF9797; text-align:center;
+}
+.qq-upload-drop-area span {
+    display:block; position:absolute; top: 50%; width:100%; margin-top:-8px; font-size:16px;
+}
+.qq-upload-drop-area-active {background:#FF7171;}
+
+.qq-upload-list {margin:15px 35px; padding:0; list-style:disc;}
+.qq-upload-list li { margin:0; padding:0; line-height:15px; font-size:12px;}
+.qq-upload-file, .qq-upload-spinner, .qq-upload-size, .qq-upload-cancel, .qq-upload-failed-text {
+    margin-right: 7px;
+}
+
+.qq-upload-file {}
+.qq-upload-spinner {display:inline-block; background: url("images/loading.gif"); width:15px; height:15px; vertical-align:text-bottom;}
+.qq-upload-size,.qq-upload-cancel {font-size:11px;}
+
+.qq-upload-failed-text {display:none;}
+.qq-upload-fail .qq-upload-failed-text {display:inline;}
+
+/* End file-uploader */
+
+
+/* Add member block */
+
+#panel {
+    background: #F9F9F9;
+    border-bottom: solid 4px #555;
+    -moz-border-radius-bottomleft: 4px;
+    -moz-border-radius-bottomright: 4px;
+    display: none;
+    width: 95%;
+
+}
+
+#panel form {
+    border-right: solid 4px #555;
+    border-left: solid 4px #555;
+    padding: 20px;
+
+
+}
+.slide {
+    margin: 0;
+    padding: 0;
+    border-bottom: solid 4px #555;
+    background: none transparent no-repeat center top;
+    width: 95%;
+}
+
+.btn-slide {
+    background: #555555 url(images/555555_40x100_textures_03_highlight_soft_75.png) 50% 50% repeat-x;
+    border: 1px solid #666666 !important;
+
+    height: 31px;
+    margin: 0 auto;
+    display: block;
+    color: #fff !important;
+    font-weight: bold;
+
+}
+
+.btn-slide:hover {
+    background: url("images/444444_40x100_textures_03_highlight_soft_60.png") repeat-x scroll 50% 50% #444444;
+    border: 1px solid #666666;
+}
+
+/* End Add member block */
+
+th.check-column {
+padding: 0px 0px 0px 0px !important;
+vertical-align: middle !important;
+}
+
+#send_form table td {
+    padding: 20px 30px 20px 30px;
+}
+
+#send_form #send {
+    margin: 20px 30px 20px 30px;
+}
+
+.sent_count {
+    margin: 20px 30px 20px 30px;
+}
+
+.contact-information {
+    width: 300px;
+    height: 100px;
+}
