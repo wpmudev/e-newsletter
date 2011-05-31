@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI:
 Description: E-Newsletter
-Version: 1.0 Beta 1
+Version: 1.0 Beta 2
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 218
@@ -1181,7 +1181,10 @@ class Email_Newsletter {
             $result = $wpdb->query( $enewsletter_table );
 
             //Sync exist wp users
-            $users = get_users();
+            $arg = array (
+                'blog_id' => ''
+            );
+            $users = get_users( $arg );
             if ( $users )
                 foreach( $users as $user ) {
                     $unsubscribe_code = $this->gen_unsubscribe_code();
