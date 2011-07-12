@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: WordPress VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-05-30 11:44+0200\n"
-"PO-Revision-Date: 2011-05-30 11:44+0200\n"
+"POT-Creation-Date: 2011-07-13 00:17+0200\n"
+"PO-Revision-Date: 2011-07-13 00:18+0200\n"
 "Last-Translator: Andrey Shipilov\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -22,199 +22,242 @@ msgstr ""
 msgid "Please install the latest version of <a href=\"http://premium.wpmudev.org/project/update-notifications/\" title=\"Download Now &raquo;\">our free Update Notifications plugin</a> which helps you stay up-to-date with the most stable, secure versions of WPMU DEV themes and plugins. <a href=\"http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/\">More information &raquo;</a>"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:114
+#: c:\e-newsletter/e-newsletter.php:134
 msgid "There was an issue determining where WPMU DEV Update Notifications is installed. Please reinstall."
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:265
+#: c:\e-newsletter/e-newsletter.php:303
 msgid "The Group already exist!!!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:274
+#: c:\e-newsletter/e-newsletter.php:312
 msgid "Changes of Group were saved!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:279
+#: c:\e-newsletter/e-newsletter.php:317
 msgid "The Group was created!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:308
+#: c:\e-newsletter/e-newsletter.php:346
 msgid "Group was deleted!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:331
+#: c:\e-newsletter/e-newsletter.php:369
 msgid "Groups was changed!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:368
-#: c:\e-newsletter/e-newsletter.php:371
+#: c:\e-newsletter/e-newsletter.php:406
+#: c:\e-newsletter/e-newsletter.php:409
 msgid "Subscribes were saved!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:393
-#: c:\e-newsletter/e-newsletter.php:396
+#: c:\e-newsletter/e-newsletter.php:431
+#: c:\e-newsletter/e-newsletter.php:434
 msgid "You was subscribed!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:417
-#: c:\e-newsletter/e-newsletter.php:420
+#: c:\e-newsletter/e-newsletter.php:455
+#: c:\e-newsletter/e-newsletter.php:458
 msgid "You was unsubscribed!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:461
+#: c:\e-newsletter/e-newsletter.php:499
 msgid "User with this email already exist! Please login on site."
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:468
+#: c:\e-newsletter/e-newsletter.php:506
 msgid "User with this email already subscribed!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:508
+#: c:\e-newsletter/e-newsletter.php:546
 msgid "The new Member was added!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:533
+#: c:\e-newsletter/e-newsletter.php:571
 msgid "Members were deleted!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:669
+#: c:\e-newsletter/e-newsletter.php:709
 msgid "The Newsletter was deleted!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:717
-#: c:\e-newsletter/e-newsletter.php:721
+#: c:\e-newsletter/e-newsletter.php:757
+#: c:\e-newsletter/e-newsletter.php:761
 msgid "The Newsletter was Saved!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:794
+#: c:\e-newsletter/e-newsletter.php:891
 msgid "The Plugin was installed!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:797
+#: c:\e-newsletter/e-newsletter.php:894
 msgid "The Settings was saved!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:878
+#: c:\e-newsletter/e-newsletter.php:975
 msgid "Wrong Subscribe data!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:892
+#: c:\e-newsletter/e-newsletter.php:989
 msgid "Subscribe Successful!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:906
+#: c:\e-newsletter/e-newsletter.php:1003
 msgid "Select Groups for this user:"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:918
+#: c:\e-newsletter/e-newsletter.php:1015
 msgid "Please create any groups."
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1320
+#: c:\e-newsletter/e-newsletter.php:1109
+msgid "All members already received it!"
+msgstr ""
+
+#: c:\e-newsletter/e-newsletter.php:1112
+#: c:\e-newsletter/e-newsletter.php:1130
+msgid "members were added to CRON list"
+msgstr ""
+
+#: c:\e-newsletter/e-newsletter.php:1537
+msgid "Connecting successful!"
+msgstr ""
+
+#: c:\e-newsletter/e-newsletter.php:1542
+msgid "Connection failed!"
+msgstr ""
+
+#: c:\e-newsletter/e-newsletter.php:1698
+msgid "every 5 min"
+msgstr ""
+
+#: c:\e-newsletter/e-newsletter.php:1703
+msgid "every 10 min"
+msgstr ""
+
+#: c:\e-newsletter/e-newsletter.php:1708
+msgid "every 15 min"
+msgstr ""
+
+#: c:\e-newsletter/e-newsletter.php:1713
+msgid "every 30 min"
+msgstr ""
+
+#: c:\e-newsletter/e-newsletter.php:1718
+msgid "every 3 hour"
+msgstr ""
+
+#: c:\e-newsletter/e-newsletter.php:1723
+msgid "every 6 hour"
+msgstr ""
+
+#: c:\e-newsletter/e-newsletter.php:1997
 msgid "Select an image"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1468
-#: c:\e-newsletter/e-newsletter.php:1479
-#: c:\e-newsletter/e-newsletter.php:1484
+#: c:\e-newsletter/e-newsletter.php:2056
+#: c:\e-newsletter/e-newsletter.php:2067
+#: c:\e-newsletter/e-newsletter.php:2072
 msgid "eNewsletter"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1469
+#: c:\e-newsletter/e-newsletter.php:2057
 msgid "Dashboard"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1470
+#: c:\e-newsletter/e-newsletter.php:2058
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:25
 #: c:\e-newsletter/email-newsletter-files/page-newsletters.php:13
 msgid "Newsletters"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1471
+#: c:\e-newsletter/e-newsletter.php:2059
 #: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:27
 msgid "Create Newsletter"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1472
+#: c:\e-newsletter/e-newsletter.php:2060
 msgid "Member Groups"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1473
+#: c:\e-newsletter/e-newsletter.php:2061
 #: c:\e-newsletter/email-newsletter-files/page-members.php:137
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:28
 msgid "Members"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1474
-#: c:\e-newsletter/e-newsletter.php:1480
+#: c:\e-newsletter/e-newsletter.php:2062
+#: c:\e-newsletter/e-newsletter.php:2068
 #: c:\e-newsletter/email-newsletter-files/page-subscribe.php:41
 msgid "My Subscriptions"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1475
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:378
+#: c:\e-newsletter/e-newsletter.php:2063
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:403
 msgid "Settings"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1485
+#: c:\e-newsletter/e-newsletter.php:2073
 msgid "Install Settings"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1568
+#: c:\e-newsletter/e-newsletter.php:2156
 msgid "Allow people to subscribe to your newsletter database. (creates a wordpress user account for them)"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1569
+#: c:\e-newsletter/e-newsletter.php:2157
 msgid "Newsletters: Subscribe"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1614
+#: c:\e-newsletter/e-newsletter.php:2202
 msgid "Please write your Email!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1654
+#: c:\e-newsletter/e-newsletter.php:2242
 msgid "Your Email:"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1661
+#: c:\e-newsletter/e-newsletter.php:2249
 msgid "Your Name:"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1668
-#: c:\e-newsletter/e-newsletter.php:1699
+#: c:\e-newsletter/e-newsletter.php:2256
+#: c:\e-newsletter/e-newsletter.php:2287
 msgid "Subscribe to:"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1688
+#: c:\e-newsletter/e-newsletter.php:2276
 msgid "Subscribe"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1721
+#: c:\e-newsletter/e-newsletter.php:2309
 #: c:\e-newsletter/email-newsletter-files/page-subscribe.php:71
 msgid "Save Subscribes"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1723
+#: c:\e-newsletter/e-newsletter.php:2311
 #: c:\e-newsletter/email-newsletter-files/page-subscribe.php:72
 msgid "Unsubscribe"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1729
+#: c:\e-newsletter/e-newsletter.php:2317
 #: c:\e-newsletter/email-newsletter-files/page-subscribe.php:79
 msgid "Subscribe on Newsletters"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1755
+#: c:\e-newsletter/e-newsletter.php:2343
 msgid "Subscribe to our newsletters"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1763
+#: c:\e-newsletter/e-newsletter.php:2351
 msgid "Title"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1769
+#: c:\e-newsletter/e-newsletter.php:2357
 msgid "Ask for name?"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1775
+#: c:\e-newsletter/e-newsletter.php:2363
 msgid "Show Groups?"
 msgstr ""
 
@@ -222,120 +265,118 @@ msgstr ""
 msgid "Edit Newsletter"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:92
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:96
 msgid "Please write some content!"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:367
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:392
 msgid "On this page you can create/edit Newsletters."
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:377
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:36
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:29
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:402
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:27
 msgid "Template"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:379
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:404
 msgid "Content"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:380
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:405
 msgid "Preview"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:381
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:406
 #: c:\e-newsletter/email-newsletter-files/page-groups.php:133
 #: c:\e-newsletter/email-newsletter-files/page-members.php:237
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:39
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:107
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:38
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:93
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:39
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:300
 msgid "Actions"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:385
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:410
 msgid "Template of Newsletter:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:408
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:433
 msgid "Settings of Newsletter:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:412
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:437
 msgid "Email Subject:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:420
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:445
 msgid "From Name:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:428
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:453
 msgid "From Email:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:434
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:459
 msgid "Attention! You uses SMTP method for sending  email - please use only emails related with your SMTP server!"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:440
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:99
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:465
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:168
 msgid "Contact information:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:445
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:470
 msgid "Will be added to the bottom of emails"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:452
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:477
 msgid "Content of Newsletter:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:461
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:486
 msgid "Insert images from server:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:467
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:492
 msgid "Upload images on Server:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:481
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:506
 msgid "Preview of Newsletter:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:482
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:507
 msgid "Preview in Email:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:484
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:509
 msgid "Send Preview"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:490
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:515
 msgid "Save the Newsletter:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:491
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:516
 msgid "Save Newsletter"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:494
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:519
 msgid "or"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:497
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:522
 msgid "Save Newsletter, and go on Send page"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:503
+#: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:528
 msgid "Delete Newsletter"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-groups.php:31
 #: c:\e-newsletter/email-newsletter-files/page-groups.php:60
 #: c:\e-newsletter/email-newsletter-files/page-groups.php:167
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:65
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:140
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:70
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:129
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:74
 msgid "Edit"
 msgstr ""
 
@@ -351,7 +392,8 @@ msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-groups.php:94
 #: c:\e-newsletter/email-newsletter-files/page-members.php:234
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:175
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:31
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:172
 msgid "Groups"
 msgstr ""
 
@@ -368,7 +410,7 @@ msgid "Group Name:"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-groups.php:106
-msgid "public users can join this group"
+msgid "public users can join to this group"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-groups.php:108
@@ -380,7 +422,7 @@ msgid "List of Groups:"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-groups.php:124
-msgid "Group Namee"
+msgid "Group Name"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-groups.php:127
@@ -393,9 +435,8 @@ msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-groups.php:169
 #: c:\e-newsletter/email-newsletter-files/page-members.php:305
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:68
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:143
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:73
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:132
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:77
 msgid "Delete"
 msgstr ""
 
@@ -448,39 +489,39 @@ msgid "Add Member"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-members.php:205
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:160
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:157
 msgid "Email Address"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-members.php:211
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:163
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:160
 msgid "Name"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-members.php:217
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:166
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:163
 msgid "Join Date"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-members.php:223
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:169
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:166
 msgid "Number Sent"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-members.php:229
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:172
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:169
 msgid "Number Opened"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-members.php:269
 #: c:\e-newsletter/email-newsletter-files/page-members.php:272
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:200
 #: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:203
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:206
 msgid "newsletters"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-members.php:288
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:221
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:218
 msgid "Unsubscribed"
 msgstr ""
 
@@ -492,65 +533,83 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:24
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:20
 msgid "Newsletters Dashboard"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:25
-msgid "5 Not yet Sent Newsletters:"
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:34
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:297
+msgid "Sent"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:30
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:23
-msgid "Created Date"
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:37
+msgid "Waiting"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:33
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:95
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:26
-msgid "Email Subject"
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:40
+msgid "CRON"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:71
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:146
-msgid "Send Page"
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:41
+msgid "enabled"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:81
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:16
-msgid "Create New Newsletter"
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:41
+msgid "disabled"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:87
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:70
 msgid "5 Latest Sent Newsletters:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:92
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:75
 msgid "Date of Last Send"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:98
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:78
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:24
+msgid "Email Subject"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:81
 msgid "Sent From"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:101
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:32
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:84
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:33
 msgid "Sent To"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:104
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:35
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:87
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:30
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:294
+msgid "Bounced"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:90
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:36
 msgid "Opened by"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:133
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:136
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:63
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:66
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:119
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:122
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:125
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:64
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:67
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:70
 msgid "members"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:155
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:135
+msgid "Send Page"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:147
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:15
+msgid "Create New Newsletter"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:152
 msgid "5 Latest Members:"
 msgstr ""
 
@@ -558,43 +617,110 @@ msgstr ""
 msgid "This page contains an list of all Newsletters."
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:76
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:21
+msgid "Created Date"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-newsletters.php:80
 msgid "Send"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:58
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:49
 msgid "Please select members."
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:70
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:66
 msgid "Send Newsletter:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:71
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:67
 msgid "On this page you can send newsletter to selected groups."
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:115
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:80
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:116
+msgid "Sending"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:86
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:117
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:122
+msgid "Pause"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:87
+msgid "Pause, and send by WP-CRON"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:88
+msgid "Cancel"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:123
+msgid "Continue"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:153
+msgid "Done"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:210
 msgid "Not sent (People already received):"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:132
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:228
 msgid "Tick which groups you would like to send to:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:139
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:235
 msgid "All Members"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:164
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:260
 msgid "Don't send to people who've already received this:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:5
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:266
+msgid "Send Newsletter"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:267
+msgid "Add Newsletter to CRON list"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:279
+msgid "Previous sending:"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:285
+msgid "Start Date"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:288
+msgid "Waiting send (manualy)"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:291
+msgid "Waiting send (cron)"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:347
+msgid "Add to CRON list"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:350
+msgid "Continue Send"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-send-newsletter.php:363
+msgid "Total:"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:6
 msgid "Settings of eNewsletter plugin"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:8
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:9
 msgid "Install Settings of eNewsletter plugin"
 msgstr ""
 
@@ -602,88 +728,160 @@ msgstr ""
 msgid "Please write SMTP Outgoing Server, or select another Sending Method!"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:68
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:131
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:137
 msgid "General Settings"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:72
-msgid "Double Opt In:"
-msgstr ""
-
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:76
-msgid "Yes, members will get confirmation email upon signing up to newsletters (only for not registered users)"
-msgstr ""
-
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:81
-msgid "From email:"
-msgstr ""
-
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:85
-msgid "Default \"from\" email address when sending newsletters."
-msgstr ""
-
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:90
-msgid "From name:"
-msgstr ""
-
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:94
-msgid "Default \"from\" name when sending newsletters."
-msgstr ""
-
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:104
-msgid "Default contact information will be added to the bottom of each email"
-msgstr ""
-
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:133
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:132
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:180
 msgid "Outgoing Email Settings"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:138
-msgid "Email Sending Method:"
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:133
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:259
+msgid "Bounce Settings"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:142
-msgid "SMTP (recommended)"
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:141
+msgid "Double Opt In:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:143
-msgid "The SMTP method allows you to use your SMTP server (or Gmail, Yahoo, Hotmail etc. ) for sending newsletters and emails. It's usually the best choice, especially if your host has restrictions on sending email and to help you to avoid being blacklisted as a SPAM sender."
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:145
+msgid "Yes, members will get confirmation email upon signing up to newsletters (only for not registered users)"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:147
-msgid "php mail"
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:150
+msgid "From email:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:148
-msgid "This method uses php functions for sending newsletters and emails. Be careful because some hosts may set restrictions on using this method. If you can't edit settings of your server, we recomended using the SMTP method for optimal results!"
-msgstr ""
-
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:156
-msgid "SMTP Outgoing Server"
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:154
+msgid "Default \"from\" email address when sending newsletters."
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-settings.php:159
-msgid "(eg: relay-hosting.secureserver.net, mail.yoursite.com:1234, ssl://smtp.gmail.com:465)"
+msgid "From name:"
 msgstr ""
 
 #: c:\e-newsletter/email-newsletter-files/page-settings.php:163
+msgid "Default \"from\" name when sending newsletters."
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:173
+msgid "Default contact information will be added to the bottom of each email"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:185
+msgid "Email Sending Method:"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:189
+msgid "SMTP (recommended)"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:190
+msgid "The SMTP method allows you to use your SMTP server (or Gmail, Yahoo, Hotmail etc. ) for sending newsletters and emails. It's usually the best choice, especially if your host has restrictions on sending email and to help you to avoid being blacklisted as a SPAM sender."
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:194
+msgid "php mail"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:195
+msgid "This method uses php functions for sending newsletters and emails. Be careful because some hosts may set restrictions on using this method. If you can't edit settings of your server, we recomended using the SMTP method for optimal results!"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:203
+msgid "SMTP Outgoing Server"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:206
+msgid "(eg: ssl://smtp.gmail.com:465)"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:210
 msgid "SMTP Username:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:166
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:173
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:213
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:220
 msgid "(leave blank for none)"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:170
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:217
 msgid "SMTP Password:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:184
-msgid "Save Settings"
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:226
+msgid "Limit send:"
 msgstr ""
 
-#: c:\e-newsletter/email-newsletter-files/page-settings.php:186
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:227
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:237
+msgid " (CRON)"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:231
+msgid "(0 or blank for unlimited)"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:236
+msgid "Emails per"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:252
+msgid "('Never' - not use CRON for send emails)"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:260
+msgid "This controls how bounce emails are handled by the system. Please create a new separate POP3 email account (contact your hosting provider if you cannot do this yourself) to handle bounce emails. Enter these POP3 email details below (just like entering details into Microsoft Outlook or similar)."
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:264
+msgid "Email Address:"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:267
+msgid "full email address where bounce emails will be sent by default"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:271
+msgid "POP3 Host:"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:275
+msgid "the hostname for the POP3 account, eg: mail."
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:279
+msgid "POP3 Username:"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:282
+msgid "username for this bounce email account (usually the same as the above email address) "
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:286
+msgid "POP3 Password:"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:289
+msgid "password to access this bounce email account"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:296
+msgid "Test Connection"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:297
+msgid "We will send test email on Bounce address and will try read this email"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:311
+msgid "Save all Settings"
+msgstr ""
+
+#: c:\e-newsletter/email-newsletter-files/page-settings.php:313
 msgid "Save and Continue"
 msgstr ""
 
