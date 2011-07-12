@@ -43,7 +43,7 @@
                         jQuery( "#public_block_" + id ).html( '<input type="checkbox" name="edit_public" id="public" value="1" />' );
 
 
-                    jQuery( "#edit_group input[type=button]" ).attr( 'disabled', true );
+                    jQuery( '#edit_group input[type="button"]' ).attr( 'disabled', true );
 
                     jQuery( this ).val('<?php _e( 'Close', 'email-newsletter' ) ?>');
                     jQuery( this ).attr( 'disabled', false );
@@ -58,7 +58,7 @@
                     jQuery( "#public_block_" + id ).html( group_public );
 
                     jQuery( this ).val('<?php _e( 'Edit', 'email-newsletter' ) ?>');
-                    jQuery( "#edit_group input[type=button]" ).attr( 'disabled', false );
+                    jQuery( '#edit_group input[type="button"]' ).attr( 'disabled', false );
 
                      jQuery( "#save_block_" + id ).html( '' );
 
@@ -103,7 +103,7 @@
                         <?php _e( 'Group Name:', 'email-newsletter' ) ?><span class="required">*</span>
                         <input type="text" class="input" name="group_name" id="group_name" value="<?php echo htmlspecialchars($newsletter_data['subject']);?>" size="30" />
                         <label>
-                            <input type="checkbox" name="public" id="public" value="1" /> <?php _e( 'public users can join this group', 'email-newsletter' ) ?>
+                            <input type="checkbox" name="public" id="public" value="1" /> <?php _e( 'public users can join to this group', 'email-newsletter' ) ?>
                         </label>
                         <input type="button" name="save" id="add_group" value="<?php _e( 'Add Group', 'email-newsletter' ) ?>" />
                     </td>
@@ -121,7 +121,7 @@
                 <thead>
                     <tr>
                         <th>
-                            <?php _e( 'Group Namee', 'email-newsletter' ) ?>
+                            <?php _e( 'Group Name', 'email-newsletter' ) ?>
                         </th>
                         <th>
                             <?php _e( 'Public', 'email-newsletter' ) ?>

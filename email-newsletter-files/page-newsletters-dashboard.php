@@ -1,9 +1,5 @@
 <?php
 
-    $newsletters = $this->get_not_sent_newsletters();
-    if ( 5 < count( $newsletters ) )
-        $newsletters = array_slice ( $newsletters, 0, 5 );
-
     $newsletters_sent = $this->get_sent_newsletters();
     if ( 5 < count( $newsletters_sent ) )
         $newsletters_sent = array_slice ( $newsletters_sent, 0, 5 );
@@ -22,70 +18,57 @@
 
     <div class="wrap">
         <h2><?php _e( 'Newsletters Dashboard', 'email-newsletter' ) ?></h2>
-        <h3><?php _e( '5 Not yet Sent Newsletters:', 'email-newsletter' ) ?></h3>
-        <table width="700px" class="widefat post fixed" style="width:95%;">
+        <table width="700px" class="widefat post newsletter_table_center" style="width:95%;">
             <thead>
                 <tr>
                     <th>
-                        <?php _e( 'Created Date', 'email-newsletter' ) ?>
+                        <?php _e( 'Newsletters', 'email-newsletter' ) ?>
                     </th>
                     <th>
-                        <?php _e( 'Email Subject', 'email-newsletter' ) ?>
+                        <?php _e( 'Members', 'email-newsletter' ) ?>
                     </th>
                     <th>
-                        <?php _e( 'Template', 'email-newsletter' ) ?>
+                        <?php _e( 'Groups', 'email-newsletter' ) ?>
                     </th>
                     <th>
-                        <?php _e( 'Actions', 'email-newsletter' ) ?>
+                        <?php _e( 'Sent', 'email-newsletter' ) ?>
+                    </th>
+                    <th>
+                        <?php _e( 'Waiting', 'email-newsletter' ) ?>
+                    </th>
+                    <th>
+                        <?php _e( 'CRON', 'email-newsletter' ) ?>
+                        (<?php echo wp_next_scheduled( 'e_newsletter_cron_action' ) ? __( 'enabled', 'email-newsletter') : __( 'disabled', 'email-newsletter'); ?>)
+
                     </th>
                 </tr>
             </thead>
-        <?php
-        $i = 0;
-        if ( $newsletters )
-            foreach( $newsletters as $newsletter ) {
-                if ( $i % 2 == 0 )
-                    echo "<tr class='alternate'>";
-                else
-                    echo "<tr class='' >";
 
-                $i++;
-        ?>
-                <td style="vertical-align: middle;">
-                   <?php echo date( $this->settings['date_format'] . " h:i:s", $newsletter['create_date'] ); ?>
+            <tr class='alternate'>
+                <td>
+                    <?php echo $this->get_count_newsletters(); ?>
                 </td>
-                <td style="vertical-align: middle;">
-                    <?php echo $newsletter['subject']; ?>
+                <td>
+                    <?php echo $this->get_count_members(); ?>
                 </td>
-                <td style="vertical-align: middle;">
-                    <?php echo $newsletter['template']; ?>
+                <td>
+                    <?php echo $this->get_count_groups(); ?>
                 </td>
-                <td style="vertical-align: middle;">
-                    <a href="?page=newsletters-create&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
-                        <input type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
-                    </a>
-                    <a href="?page=newsletters-dashboard&newsletter_action=delete_newsletter&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
-                        <input type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" />
-                    </a>
-                    <a href="?page=newsletters-dashboard&newsletter_action=send_newsletter&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
-                        <input type="button" value="<?php _e( 'Send Page', 'email-newsletter' ) ?>" />
-                    </a>
+                <td>
+                    <?php echo $this->get_count_sent(); ?>
                 </td>
-            </tr>
-        <?php
-            }
-        ?>
-            <tr>
-                <td style="vertical-align: middle;" align="center"  colspan="4">
-                    <a href="?page=newsletters-create" >
-                        <input type="button" value="<?php _e( 'Create New Newsletter', 'email-newsletter' ) ?>" />
-                    </a>
+                <td>
+                    <?php echo $this->get_count_send_members( '', 'waiting_send' ); ?>
+                </td>
+                <td>
+                    <?php echo $this->get_count_send_members( '', 'by_cron' ); ?>
                 </td>
             </tr>
         </table>
+        <br clear="all"/>
 
         <h3><?php _e( '5 Latest Sent Newsletters:', 'email-newsletter' ) ?></h3>
-        <table width="700px" class="widefat post" style="width:95%;">
+        <table width="700px" class="widefat post newsletter_table_center" style="width:95%;">
             <thead>
                 <tr>
                     <th>
@@ -99,6 +82,9 @@
                     </th>
                     <th>
                         <?php _e( 'Sent To', 'email-newsletter' ) ?>
+                    </th>
+                    <th>
+                        <?php _e( 'Bounced', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Opened by', 'email-newsletter' ) ?>
@@ -119,23 +105,26 @@
 
                 $i++;
         ?>
-                <td style="vertical-align: middle;">
+                <td>
                    <?php echo date( $this->settings['date_format'] . " h:i:s", $one_sent['last_sent_time'] ); ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td style="text-align: left;">
                     <?php echo $one_sent['subject']; ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td style="text-align: left;">
                     &lt;<?php echo $one_sent['from_name']; ?>&gt;
                     <?php echo $one_sent['from_email']; ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td>
                      <?php echo $one_sent['count_sent']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td>
+                     <?php echo $one_sent['count_bounced']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
+                </td>
+                <td>
                      <?php echo $one_sent['count_opened']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td style="width: 280px;">
                     <a href="?page=newsletters-create&newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
                         <input type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
                     </a>
@@ -150,10 +139,18 @@
         <?php
             }
         ?>
+
         </table>
+        <br clear="all"/>
+        <center>
+            <a href="?page=newsletters-create" style="text-decoration: none;" >
+                <input type="button" value="<?php _e( 'Create New Newsletter', 'email-newsletter' ) ?>" />
+            </a>
+        </center>
+        <br clear="all"/>
 
         <h3><?php _e( '5 Latest Members:', 'email-newsletter' ) ?></h3>
-        <table width="700px" class="widefat post" style="width:95%; table-layout: inherit;">
+        <table width="700px" class="widefat post newsletter_table_center" style="width:95%; table-layout: inherit;">
             <thead>
                 <tr>
                     <th>
@@ -190,22 +187,22 @@
                 $member['member_nicename'] = $member['member_fname'];
                 $member['member_nicename'] .= $member['member_lname'] ? ' ' . $member['member_lname'] : '';
         ?>
-                <td style="vertical-align: middle;">
+                <td style="text-align: left;">
                    <?php echo $member['member_email']; ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td style="text-align: left;">
                     <?php echo $member['member_nicename']; ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td>
                     <?php echo date( $this->settings['date_format'] . " h:i:s", $member['join_date'] ); ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td>
                     <?php echo $this->get_count_sent_to_user( $member['member_id'] ); ?> <?php _e( 'newsletters', 'email-newsletter' ) ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td>
                     <?php echo $this->get_count_opened_by_user( $member['member_id'] ); ?> <?php _e( 'newsletters', 'email-newsletter' ) ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td>
                 <?php
                     if ( "" != $member['unsubscribe_code'] ) {
                         $groups_id = $this->get_memeber_groups( $member['member_id'] );

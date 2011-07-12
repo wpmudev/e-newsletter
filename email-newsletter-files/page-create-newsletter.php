@@ -78,14 +78,18 @@ TinyMCE_Compressor::renderTag(array(
                 }
 
                 if ( "" != content ) {
-//                    jQuery( "#send_preview" ).attr( 'disabled', true );
+                    jQuery( "#send_preview" ).attr( 'disabled', true );
+                    jQuery( "#send_preview" ).attr( 'value', 'Sending...' );
+                    jQuery( "body" ).css( "cursor", "wait" );
                     jQuery.ajax({
                         type: "POST",
                         url: "<?php echo $siteurl;?>/wp-admin/admin-ajax.php",
                         data: "action=send_preview&template=" + template + "&subject=" + subject + "&from_name=" + from_name + "&from_email=" + from_email + "&contact_info=" + contact_info + "&preview_email=" + preview_email + "&content=" + content,
                         success: function(html){
+                            jQuery( "body" ).css( "cursor", "default" );
+                             jQuery( "#send_preview" ).attr( 'value', 'Send Preview' );
                             alert( html );
-//                            jQuery( "#send_preview" ).attr( 'disabled', false );
+                            jQuery( "#send_preview" ).attr( 'disabled', false );
                         }
                      });
                 } else {
@@ -114,7 +118,28 @@ TinyMCE_Compressor::renderTag(array(
                 content             = content.replace(/\+/g, "-");
 
 
-                jQuery( "#preview_block" ).html( "<iframe frameborder='0' style='border:1px solid #CCCCCC; width: 100%; height: 450px;' src='<?php echo $siteurl;?>/wp-admin/admin-ajax.php?action=show_preview&template=" + template + "&subject=" + subject + "&from_name=" + from_name + "&from_email=" + from_email + "&contact_info=" + contact_info + "&content=" + content + "'  ></iframe>" );
+//              old preview iframe  - can be deleted in future
+//                jQuery( "#preview_block" ).html( "<iframe frameborder='0' style='border:1px solid #CCCCCC; width: 100%; height: 450px;' src='<?php echo $siteurl;?>/wp-admin/admin-ajax.php?action=show_preview&template=" + template + "&subject=" + subject + "&from_name=" + from_name + "&from_email=" + from_email + "&contact_info=" + contact_info + "&content=" + content + "'  ></iframe>" );
+
+//             iframe for show Newsletter Preview
+               jQuery( "#preview_block" ).html( "<iframe frameborder='0' name='preview_iframe' style='border:1px solid #CCCCCC; width: 100%; height: 450px;' src=''  ></iframe>" );
+
+//             create for hidden form for send POST request for iframe for show Newsletter Preview
+               preview_form = '';
+               preview_form = preview_form + '<form method="POST" id="newsletter_preview_send_post" target="preview_iframe" action="<?php echo $siteurl;?>/wp-admin/admin-ajax.php" style="display: none;" >';
+               preview_form = preview_form + '<input type="hidden" name="action" value="show_preview" />';
+               preview_form = preview_form + '<input type="hidden" name="template" value="' + template + '" />';
+               preview_form = preview_form + '<input type="hidden" name="subject" value="' + subject + '" />';
+               preview_form = preview_form + '<input type="hidden" name="from_name" value="' + from_name + '" />';
+               preview_form = preview_form + '<input type="hidden" name="from_email" value="' + from_email + '" />';
+               preview_form = preview_form + '<input type="hidden" name="contact_info" value="' + contact_info + '" />';
+               preview_form = preview_form + '<input type="hidden" name="content" value="' + content + '" />';
+               preview_form = preview_form + '</form>';
+
+               jQuery( "#for_newsletter_preview_form" ).html( preview_form );
+               jQuery( "#newsletter_preview_send_post" ).submit( );
+               jQuery( "#for_newsletter_preview_form" ).html( '' );
+
             });
 
             //Save Newsletter action
@@ -366,149 +391,152 @@ TinyMCE_Compressor::renderTag(array(
         <h2><?php echo $page_title; ?></h2>
         <p><?php _e( 'On this page you can create/edit Newsletters.', 'email-newsletter' ) ?></p>
         <form method="post" action="" id="create_newsletter">
-        <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
-        <input type="hidden" name="send" id="send" value="" />
-        <input type="hidden" name="content_ecoded" id="content_ecoded" value="" />
-        <input type="hidden" name="newsletter_id" id="newsletter_id" value="<?php echo $newsletter_data['newsletter_id']; ?>" />
-        <input type="hidden" name="newsletter_template" id="newsletter_template" value="<?php echo $newsletter_data['template']; ?>" />
-        <div id="newsletter-tabs">
-            <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
-                <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
-                    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-1"><?php _e( 'Template', 'email-newsletter' ) ?></a></li>
-                    <li class="ui-state-default ui-corner-top"><a href="#tabs-2"><?php _e( 'Settings', 'email-newsletter' ) ?></a></li>
-                    <li class="ui-state-default ui-corner-top"><a href="#tabs-3"><?php _e( 'Content', 'email-newsletter' ) ?></a></li>
-                    <li class="ui-state-default ui-corner-top"><a href="#tabs-4" id="newsletter_preview"><?php _e( 'Preview', 'email-newsletter' ) ?></a></li>
-                    <li class="ui-state-default ui-corner-top"><a href="#tabs-5"><?php _e( 'Actions', 'email-newsletter' ) ?></a></li>
-                </ul>
+            <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
+            <input type="hidden" name="send" id="send" value="" />
+            <input type="hidden" name="content_ecoded" id="content_ecoded" value="" />
+            <input type="hidden" name="newsletter_id" id="newsletter_id" value="<?php echo $newsletter_data['newsletter_id']; ?>" />
+            <input type="hidden" name="newsletter_template" id="newsletter_template" value="<?php echo $newsletter_data['template']; ?>" />
+            <div id="newsletter-tabs">
+                <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
+                    <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+                        <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-1"><?php _e( 'Template', 'email-newsletter' ) ?></a></li>
+                        <li class="ui-state-default ui-corner-top"><a href="#tabs-2"><?php _e( 'Settings', 'email-newsletter' ) ?></a></li>
+                        <li class="ui-state-default ui-corner-top"><a href="#tabs-3"><?php _e( 'Content', 'email-newsletter' ) ?></a></li>
+                        <li class="ui-state-default ui-corner-top"><a href="#tabs-4" id="newsletter_preview"><?php _e( 'Preview', 'email-newsletter' ) ?></a></li>
+                        <li class="ui-state-default ui-corner-top"><a href="#tabs-5"><?php _e( 'Actions', 'email-newsletter' ) ?></a></li>
+                    </ul>
 
-                <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-1">
-                    <h2><?php _e( 'Template of Newsletter:', 'email-newsletter' ) ?><span id="selected_temp"><?php echo $newsletter_data['template'] ;?></span></h2>
+                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-1">
+                        <h2><?php _e( 'Template of Newsletter:', 'email-newsletter' ) ?><span id="selected_temp"><?php echo $newsletter_data['template'] ;?></span></h2>
 
-                    <div class="newsletter-templates">
-                        <?php
-                        foreach( $templates as $template ){
-                        ?>
-                        <a href="<?php echo $this->plugin_url . 'email-newsletter-files/templates/'.basename($template['dir']);?>/preview_big.jpg"  class="template<?php echo ( $newsletter_data['template'] == $template['name'] ) ? ' selected':'';?>" rel="<?php echo $template['name'];?>" title="<?php echo $template['name'];?>">
-                            <div style="height:94px;">
-                                <img  src="<?php echo $this->plugin_url . 'email-newsletter-files/templates/'.basename($template['dir']);?>/preview.jpg" border="0" alt="template preview">
-                            </div>
-                            <div class="template-name"><?php echo $template['name'];?></div>
-                        </a>
-                        <?php } ?>
-                    </div>
-                    <div class="preview-template">
-                        <p>
-                            <img id="largeImg" src="<?php echo $this->plugin_url . 'email-newsletter-files/templates/'.basename( $newsletter_data['template'] );?>/preview_big.jpg" alt="<?php echo $template['name'];?>">
-                        </p>
-                    </div>
-
-                </div>
-
-                <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-2">
-                    <h2><?php _e( 'Settings of Newsletter:', 'email-newsletter' ) ?></h2>
-                    <table class="form-table" style="width: auto;">
-                        <tr>
-                            <td>
-                                <?php _e( 'Email Subject:', 'email-newsletter' ) ?><span class="required">*</span>
-                            </td>
-                            <td>
-                                <input type="text" class="input" name="subject" id="subject" value="<?php echo htmlspecialchars( $newsletter_data['subject'] );?>" size="30" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <?php _e( 'From Name:', 'email-newsletter' ) ?><span class="required">*</span>
-                            </td>
-                            <td>
-                                <input type="text" class="input" name="from_name" id="from_name" value="<?php echo htmlspecialchars( $newsletter_data['from_name'] );?>" size="30" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <?php _e( 'From Email:', 'email-newsletter' ) ?><span class="required">*</span>
-                            </td>
-                            <td>
-                                <input type="text" class="input" name="from_email" id="from_email" value="<?php echo htmlspecialchars( $newsletter_data['from_email'] );?>" size="30" />
-                                <?php
-                                if ( "smtp" == $this->settings['outbound_type'] )
-                                    echo '<span class="red">' . __( 'Attention! You uses SMTP method for sending  email - please use only emails related with your SMTP server!', 'email-newsletter' ) . '</span>';
-                                ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <?php _e( 'Contact information:', 'email-newsletter' ) ?>
-                            </td>
-                            <td>
-                                <textarea name="contact_info" id="contact_info" class="contact-information" ><?php echo $newsletter_data['contact_info'];?></textarea>
-                                <br />
-                                <span class="description"><?php _e( 'Will be added to the bottom of emails', 'email-newsletter' ) ?></span>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-3">
-                    <h2><?php _e( 'Content of Newsletter:', 'email-newsletter' ) ?></h2>
-                    <table width="100%">
-                        <tr>
-                            <td>
-                                <textarea name="newsletter_content" id="newsletter_content" style="width:100%"><?php echo htmlspecialchars( $newsletter_data['content'] );?></textarea>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <h4><?php _e( 'Insert images from server:', 'email-newsletter' ) ?> </h4>
-                                <select name="uploads_images" id="uploads_images">
-                                <?php echo $this->get_uploads(); ?>
-                                </select>
-                                <input type="text" name="image_alt" id="image_alt" value="Image Description" onfocus="if(this.value=='Image Description')this.value='';">
-                                <input type="button" name="image_insert" onclick="jQuery(this).insertImage();" value="Insert Image" />
-                                <h4><?php _e( 'Upload images on Server:', 'email-newsletter' ) ?> </h4>
-                                <div id="file-uploader">
-                                    <noscript>
-                                        <p>Please enable JavaScript to use file uploader.</p>
-                                        <!-- or put a simple form for upload here -->
-                                    </noscript>
+                        <div class="newsletter-templates">
+                            <?php
+                            foreach( $templates as $template ){
+                            ?>
+                            <a href="<?php echo $this->plugin_url . 'email-newsletter-files/templates/'.basename($template['dir']);?>/preview_big.jpg"  class="template<?php echo ( $newsletter_data['template'] == $template['name'] ) ? ' selected':'';?>" rel="<?php echo $template['name'];?>" title="<?php echo $template['name'];?>">
+                                <div style="height:94px;">
+                                    <img  src="<?php echo $this->plugin_url . 'email-newsletter-files/templates/'.basename($template['dir']);?>/preview.jpg" border="0" alt="template preview">
                                 </div>
-                            </td>
-                        </tr>
-                    </table>
+                                <div class="template-name"><?php echo $template['name'];?></div>
+                            </a>
+                            <?php } ?>
+                        </div>
+                        <div class="preview-template">
+                            <p>
+                                <img id="largeImg" src="<?php echo $this->plugin_url . 'email-newsletter-files/templates/'.basename( $newsletter_data['template'] );?>/preview_big.jpg" alt="<?php echo $template['name'];?>">
+                            </p>
+                        </div>
 
-                </div>
-
-                <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-4">
-                    <h2><?php _e( 'Preview of Newsletter:', 'email-newsletter' ) ?></h2>
-                    <?php _e( 'Preview in Email:', 'email-newsletter' ) ?>
-                    <input type="text" name="preview_email" id="preview_email" value="" />
-                    <input type="button" id="send_preview" value="<?php _e( 'Send Preview', 'email-newsletter' ) ?>" />
-                    <div id="preview_block">
                     </div>
-                </div>
 
-                <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-5">
-                    <h2><?php _e( 'Save the Newsletter:', 'email-newsletter' ) ?></h2>
-                    <input type="button" id="newsletter_save" value="<?php _e( 'Save Newsletter', 'email-newsletter' ) ?>" />
-                    <br />
-                    <?php
-                    _e( 'or', 'email-newsletter' ) ;
-                     ?>
-                    <br />
-                    <input type="button" id="newsletter_save_send" value="<?php _e( 'Save Newsletter, and go on Send page', 'email-newsletter' ) ?>" />
-                    <?php
-                    if ( "create" != $mode) {
-                    ?>
-                    <br />
-                    <br />
-                    <input type="button" id="newsletter_delete" value="<?php _e( 'Delete Newsletter', 'email-newsletter' ) ?>" />
-                    <?php
-                    }
-                    ?>
-                </div>
+                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-2">
+                        <h2><?php _e( 'Settings of Newsletter:', 'email-newsletter' ) ?></h2>
+                        <table class="form-table" style="width: auto;">
+                            <tr>
+                                <td>
+                                    <?php _e( 'Email Subject:', 'email-newsletter' ) ?><span class="required">*</span>
+                                </td>
+                                <td>
+                                    <input type="text" class="input" name="subject" id="subject" value="<?php echo htmlspecialchars( $newsletter_data['subject'] );?>" size="30" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <?php _e( 'From Name:', 'email-newsletter' ) ?><span class="required">*</span>
+                                </td>
+                                <td>
+                                    <input type="text" class="input" name="from_name" id="from_name" value="<?php echo htmlspecialchars( $newsletter_data['from_name'] );?>" size="30" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <?php _e( 'From Email:', 'email-newsletter' ) ?><span class="required">*</span>
+                                </td>
+                                <td>
+                                    <input type="text" class="input" name="from_email" id="from_email" value="<?php echo htmlspecialchars( $newsletter_data['from_email'] );?>" size="30" />
+                                    <?php
+                                    if ( "smtp" == $this->settings['outbound_type'] )
+                                        echo '<span class="red">' . __( 'Attention! You uses SMTP method for sending  email - please use only emails related with your SMTP server!', 'email-newsletter' ) . '</span>';
+                                    ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <?php _e( 'Contact information:', 'email-newsletter' ) ?>
+                                </td>
+                                <td>
+                                    <textarea name="contact_info" id="contact_info" class="contact-information" ><?php echo $newsletter_data['contact_info'];?></textarea>
+                                    <br />
+                                    <span class="description"><?php _e( 'Will be added to the bottom of emails', 'email-newsletter' ) ?></span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
 
-            </div><!--/#tabs-->
+                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-3">
+                        <h2><?php _e( 'Content of Newsletter:', 'email-newsletter' ) ?></h2>
+                        <table width="100%">
+                            <tr>
+                                <td>
+                                    <textarea name="newsletter_content" id="newsletter_content" style="width:100%"><?php echo htmlspecialchars( $newsletter_data['content'] );?></textarea>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <h4><?php _e( 'Insert images from server:', 'email-newsletter' ) ?> </h4>
+                                    <select name="uploads_images" id="uploads_images">
+                                    <?php echo $this->get_uploads(); ?>
+                                    </select>
+                                    <input type="text" name="image_alt" id="image_alt" value="Image Description" onfocus="if(this.value=='Image Description')this.value='';">
+                                    <input type="button" name="image_insert" onclick="jQuery(this).insertImage();" value="Insert Image" />
+                                    <h4><?php _e( 'Upload images on Server:', 'email-newsletter' ) ?> </h4>
+                                    <div id="file-uploader">
+                                        <noscript>
+                                            <p>Please enable JavaScript to use file uploader.</p>
+                                            <!-- or put a simple form for upload here -->
+                                        </noscript>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
 
-        </div><!--/#newsletter-tabs-->
-          </form>
+                    </div>
+
+                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-4">
+                        <h2><?php _e( 'Preview of Newsletter:', 'email-newsletter' ) ?></h2>
+                        <?php _e( 'Preview in Email:', 'email-newsletter' ) ?>
+                        <input type="text" name="preview_email" id="preview_email" value="" />
+                        <input type="button" id="send_preview" value="<?php _e( 'Send Preview', 'email-newsletter' ) ?>" />
+                        <div id="preview_block">
+                        </div>
+                    </div>
+
+                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-5">
+                        <h2><?php _e( 'Save the Newsletter:', 'email-newsletter' ) ?></h2>
+                        <input type="button" id="newsletter_save" value="<?php _e( 'Save Newsletter', 'email-newsletter' ) ?>" />
+                        <br />
+                        <?php
+                        _e( 'or', 'email-newsletter' ) ;
+                         ?>
+                        <br />
+                        <input type="button" id="newsletter_save_send" value="<?php _e( 'Save Newsletter, and go on Send page', 'email-newsletter' ) ?>" />
+                        <?php
+                        if ( "create" != $mode) {
+                        ?>
+                        <br />
+                        <br />
+                        <input type="button" id="newsletter_delete" value="<?php _e( 'Delete Newsletter', 'email-newsletter' ) ?>" />
+                        <?php
+                        }
+                        ?>
+                    </div>
+
+                </div><!--/#tabs-->
+
+            </div><!--/#newsletter-tabs-->
+
+        </form>
+
+        <div id="for_newsletter_preview_form"></div>
 
     </div><!--/wrap-->

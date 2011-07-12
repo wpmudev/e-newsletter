@@ -12,11 +12,9 @@
     <div class="wrap">
         <h2><?php _e( 'Newsletters', 'email-newsletter' ) ?></h2>
         <p><?php _e( 'This page contains an list of all Newsletters.', 'email-newsletter' ) ?></p>
-        <a href="?page=newsletters-create" >
-            <?php _e( 'Create New Newsletter', 'email-newsletter' ) ?>
-        </a>
+        <a href="?page=newsletters-create" ><?php _e( 'Create New Newsletter', 'email-newsletter' ) ?></a>
         <br /><br />
-        <table width="700px" class="widefat post fixed" style="width:95%;">
+        <table width="700px" class="widefat post" style="width:95%;">
             <thead>
                 <tr>
                     <th>
@@ -27,6 +25,9 @@
                     </th>
                     <th>
                         <?php _e( 'Template', 'email-newsletter' ) ?>
+                    </th>
+                    <th>
+                        <?php _e( 'Bounced', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Sent To', 'email-newsletter' ) ?>
@@ -60,12 +61,15 @@
                     <?php echo $newsletter['template']; ?>
                 </td>
                 <td style="vertical-align: middle;">
+                    <?php echo $this->get_count_bounced( $newsletter['newsletter_id'] ); ?> <?php _e( 'members', 'email-newsletter' ) ?>
+                </td>
+                <td style="vertical-align: middle;">
                     <?php echo $this->get_count_sent( $newsletter['newsletter_id'] ); ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
                 <td style="vertical-align: middle;">
                     <?php echo $this->get_count_opened( $newsletter['newsletter_id'] ); ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td style="vertical-align: middle; width: 140px;">
                     <a href="?page=newsletters-create&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
                         <input type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
                     </a>
