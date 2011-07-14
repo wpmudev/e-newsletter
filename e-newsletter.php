@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI:
 Description: E-Newsletter
-Version: 1.0.0
+Version: 1.0.1
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -136,27 +136,39 @@ class Email_Newsletter {
 
         //including JS scripts
         wp_enqueue_script( 'jquery' );
-        wp_enqueue_script( 'jquery-ui-tabs' );
-        wp_enqueue_script( 'jquery-ui-core' );
 
-        //including JS scripts for Create/Edit Newsletter page
-        if ( "newsletters-create" == $_REQUEST['page'] ) {
+        //including JS scripts for Newsletter pageS
+        if ( "newsletters-dashboard"    == $_REQUEST['page'] ||
+             "newsletters"              == $_REQUEST['page'] ||
+             "newsletters-create"       == $_REQUEST['page'] ||
+             "newsletters-groups"       == $_REQUEST['page'] ||
+             "newsletters-members"      == $_REQUEST['page'] ||
+             "newsletters-subscribes"   == $_REQUEST['page'] ||
+             "newsletters-settings"     == $_REQUEST['page'] ) {
+
+            //including JS scripts
+            wp_enqueue_script( 'jquery-ui-tabs' );
+            wp_enqueue_script( 'jquery-ui-core' );
+
             wp_register_script( 'newsletter_tiny_mce', $this->plugin_url . 'email-newsletter-files/js/tiny_mce/tiny_mce.js' );
             wp_enqueue_script( 'newsletter_tiny_mce' );
+
             wp_register_script( 'newsletter_fileuploader', $this->plugin_url . 'email-newsletter-files/js/fileuploader/fileuploader.js' );
             wp_enqueue_script( 'newsletter_fileuploader' );
+
+            //including JS scripts for tooltips
+            wp_register_script( 'jquery_tooltips', $this->plugin_url . 'email-newsletter-files/js/jquery.tools.min.js' );
+            wp_enqueue_script( 'jquery_tooltips' );
+
+            //including JS scripts for progressbar
+            wp_register_script( 'jquery_ui_widget', $this->plugin_url . 'email-newsletter-files/js/ui.widget.js' );
+            wp_enqueue_script( 'jquery_ui_widget' );
+
+            //including JS scripts for progressbar
+            wp_register_script( 'jquery_progressbar', $this->plugin_url . 'email-newsletter-files/js/jquery.ui.progressbar.js' );
+            wp_enqueue_script( 'jquery_progressbar' );
         }
-        //including JS scripts for tooltips
-        wp_register_script( 'jquery_tooltips', $this->plugin_url . 'email-newsletter-files/js/jquery.tools.min.js' );
-        wp_enqueue_script( 'jquery_tooltips' );
 
-        //including JS scripts for progressbar
-        wp_register_script( 'jquery_ui_widget', $this->plugin_url . 'email-newsletter-files/js/ui.widget.js' );
-        wp_enqueue_script( 'jquery_ui_widget' );
-
-        //including JS scripts for progressbar
-        wp_register_script( 'jquery_progressbar', $this->plugin_url . 'email-newsletter-files/js/jquery.ui.progressbar.js' );
-        wp_enqueue_script( 'jquery_progressbar' );
 
 	}
 
