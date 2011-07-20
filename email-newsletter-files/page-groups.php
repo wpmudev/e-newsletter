@@ -127,7 +127,7 @@
                             <?php _e( 'Public', 'email-newsletter' ) ?>
                         </th>
                         <th>
-                            <?php _e( 'Memebers', 'email-newsletter' ) ?>
+                            <?php _e( 'Members', 'email-newsletter' ) ?>
                         </th>
                         <th>
                             <?php _e( 'Actions', 'email-newsletter' ) ?>
