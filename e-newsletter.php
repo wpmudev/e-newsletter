@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI:
 Description: E-Newsletter
-Version: 1.0.2
+Version: 1.0.3
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
