@@ -1,0 +1,23 @@
+=== e-newsletter ===
+Authors: Andrey Shipilov (Incsub)
+Plugin Page: http://premium.wpmudev.org/project/e-newsletter    
+
+ 
+== Changelog ==
+
+= 1.0.4 =
+* fixed problem of creating extra tables when activating the plugin not for all sites of the network;
+* added the "changelog.txt" file :) ;
+* some text changes;
+
+= 1.0.3 =
+* fixed problem with tiny_mce;
+
+= 1.0.2 =
+* changed logic for MultiSite (separate for sites);
+
+= 1.0.1 =
+* fixed include of JS; 
+
+= 1.0.0 =
+* Initial Release;

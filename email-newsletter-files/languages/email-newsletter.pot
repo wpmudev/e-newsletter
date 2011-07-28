@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: WordPress VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-07-20 15:25+0200\n"
-"PO-Revision-Date: 2011-07-20 15:26+0200\n"
+"POT-Creation-Date: 2011-07-28 18:34+0200\n"
+"PO-Revision-Date: 2011-07-28 18:34+0200\n"
 "Last-Translator: Andrey Shipilov\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -22,243 +22,246 @@ msgstr ""
 msgid "Please install the latest version of <a href=\"http://premium.wpmudev.org/project/update-notifications/\" title=\"Download Now &raquo;\">our free Update Notifications plugin</a> which helps you stay up-to-date with the most stable, secure versions of WPMU DEV themes and plugins. <a href=\"http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/\">More information &raquo;</a>"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:155
+#: c:\e-newsletter/e-newsletter.php:157
 msgid "There was an issue determining where WPMU DEV Update Notifications is installed. Please reinstall."
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:333
+#: c:\e-newsletter/e-newsletter.php:335
 msgid "The Group already exist!!!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:342
+#: c:\e-newsletter/e-newsletter.php:344
 msgid "Changes of Group were saved!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:347
+#: c:\e-newsletter/e-newsletter.php:349
 msgid "The Group was created!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:376
+#: c:\e-newsletter/e-newsletter.php:378
 msgid "Group was deleted!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:399
+#: c:\e-newsletter/e-newsletter.php:401
 msgid "Groups was changed!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:436
-#: c:\e-newsletter/e-newsletter.php:439
+#: c:\e-newsletter/e-newsletter.php:438
+#: c:\e-newsletter/e-newsletter.php:441
 msgid "Subscribes were saved!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:461
-#: c:\e-newsletter/e-newsletter.php:464
+#: c:\e-newsletter/e-newsletter.php:463
+#: c:\e-newsletter/e-newsletter.php:466
 msgid "You was subscribed!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:485
-#: c:\e-newsletter/e-newsletter.php:488
+#: c:\e-newsletter/e-newsletter.php:487
 msgid "You was unsubscribed!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:529
+#: c:\e-newsletter/e-newsletter.php:490
+msgid "You were unsubscribed!"
+msgstr ""
+
+#: c:\e-newsletter/e-newsletter.php:531
 msgid "User with this email already exist! Please login on site."
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:536
+#: c:\e-newsletter/e-newsletter.php:538
 msgid "User with this email already subscribed!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:576
+#: c:\e-newsletter/e-newsletter.php:578
 msgid "The new Member was added!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:601
+#: c:\e-newsletter/e-newsletter.php:603
 msgid "Members were deleted!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:778
+#: c:\e-newsletter/e-newsletter.php:781
 msgid "The Newsletter was deleted!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:826
-#: c:\e-newsletter/e-newsletter.php:830
+#: c:\e-newsletter/e-newsletter.php:829
+#: c:\e-newsletter/e-newsletter.php:833
 msgid "The Newsletter was Saved!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:960
+#: c:\e-newsletter/e-newsletter.php:963
 msgid "The Plugin was installed!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:963
+#: c:\e-newsletter/e-newsletter.php:966
 msgid "The Settings was saved!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1044
+#: c:\e-newsletter/e-newsletter.php:1047
 msgid "Wrong Subscribe data!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1058
+#: c:\e-newsletter/e-newsletter.php:1061
 msgid "Subscribe Successful!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1072
+#: c:\e-newsletter/e-newsletter.php:1075
 msgid "Select Groups for this user:"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1084
+#: c:\e-newsletter/e-newsletter.php:1087
 msgid "Please create any groups."
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1178
+#: c:\e-newsletter/e-newsletter.php:1181
 msgid "All members already received it!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1181
-#: c:\e-newsletter/e-newsletter.php:1199
+#: c:\e-newsletter/e-newsletter.php:1184
+#: c:\e-newsletter/e-newsletter.php:1202
 msgid "members were added to CRON list"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1606
+#: c:\e-newsletter/e-newsletter.php:1609
 msgid "Connecting successful!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1611
+#: c:\e-newsletter/e-newsletter.php:1614
 msgid "Connection failed!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1767
+#: c:\e-newsletter/e-newsletter.php:1770
 msgid "every 5 min"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1772
+#: c:\e-newsletter/e-newsletter.php:1775
 msgid "every 10 min"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1777
+#: c:\e-newsletter/e-newsletter.php:1780
 msgid "every 15 min"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1782
+#: c:\e-newsletter/e-newsletter.php:1785
 msgid "every 30 min"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1787
+#: c:\e-newsletter/e-newsletter.php:1790
 msgid "every 3 hour"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:1792
+#: c:\e-newsletter/e-newsletter.php:1795
 msgid "every 6 hour"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2115
+#: c:\e-newsletter/e-newsletter.php:2111
 msgid "Select an image"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2174
-#: c:\e-newsletter/e-newsletter.php:2185
-#: c:\e-newsletter/e-newsletter.php:2190
+#: c:\e-newsletter/e-newsletter.php:2170
+#: c:\e-newsletter/e-newsletter.php:2181
+#: c:\e-newsletter/e-newsletter.php:2186
 msgid "eNewsletter"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2175
+#: c:\e-newsletter/e-newsletter.php:2171
 msgid "Dashboard"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2176
+#: c:\e-newsletter/e-newsletter.php:2172
 #: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:25
 #: c:\e-newsletter/email-newsletter-files/page-newsletters.php:13
 msgid "Newsletters"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2177
+#: c:\e-newsletter/e-newsletter.php:2173
 #: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:27
 msgid "Create Newsletter"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2178
+#: c:\e-newsletter/e-newsletter.php:2174
 msgid "Member Groups"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2179
+#: c:\e-newsletter/e-newsletter.php:2175
 #: c:\e-newsletter/email-newsletter-files/page-groups.php:130
 #: c:\e-newsletter/email-newsletter-files/page-members.php:137
 #: c:\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:28
 msgid "Members"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2180
-#: c:\e-newsletter/e-newsletter.php:2186
+#: c:\e-newsletter/e-newsletter.php:2176
+#: c:\e-newsletter/e-newsletter.php:2182
 #: c:\e-newsletter/email-newsletter-files/page-subscribe.php:41
 msgid "My Subscriptions"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2181
+#: c:\e-newsletter/e-newsletter.php:2177
 #: c:\e-newsletter/email-newsletter-files/page-create-newsletter.php:403
 msgid "Settings"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2191
+#: c:\e-newsletter/e-newsletter.php:2187
 msgid "Install Settings"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2274
+#: c:\e-newsletter/e-newsletter.php:2270
 msgid "Allow people to subscribe to your newsletter database. (creates a wordpress user account for them)"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2275
+#: c:\e-newsletter/e-newsletter.php:2271
 msgid "Newsletters: Subscribe"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2320
+#: c:\e-newsletter/e-newsletter.php:2316
 msgid "Please write your Email!"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2360
+#: c:\e-newsletter/e-newsletter.php:2356
 msgid "Your Email:"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2367
+#: c:\e-newsletter/e-newsletter.php:2363
 msgid "Your Name:"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2374
-#: c:\e-newsletter/e-newsletter.php:2405
+#: c:\e-newsletter/e-newsletter.php:2370
+#: c:\e-newsletter/e-newsletter.php:2401
 msgid "Subscribe to:"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2394
+#: c:\e-newsletter/e-newsletter.php:2390
 msgid "Subscribe"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2427
+#: c:\e-newsletter/e-newsletter.php:2423
 #: c:\e-newsletter/email-newsletter-files/page-subscribe.php:71
 msgid "Save Subscribes"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2429
+#: c:\e-newsletter/e-newsletter.php:2425
 #: c:\e-newsletter/email-newsletter-files/page-subscribe.php:72
 msgid "Unsubscribe"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2435
+#: c:\e-newsletter/e-newsletter.php:2431
 #: c:\e-newsletter/email-newsletter-files/page-subscribe.php:79
 msgid "Subscribe on Newsletters"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2461
+#: c:\e-newsletter/e-newsletter.php:2457
 msgid "Subscribe to our newsletters"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2469
+#: c:\e-newsletter/e-newsletter.php:2465
 msgid "Title"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2475
+#: c:\e-newsletter/e-newsletter.php:2471
 msgid "Ask for name?"
 msgstr ""
 
-#: c:\e-newsletter/e-newsletter.php:2481
+#: c:\e-newsletter/e-newsletter.php:2477
 msgid "Show Groups?"
 msgstr ""
 

@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: E-Newsletter
-Plugin URI:
+Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.0.3
+Version: 1.0.4
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -487,7 +487,7 @@ class Email_Newsletter {
                     wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'dmsg' => urlencode( __( 'You was unsubscribed!', 'email-newsletter' ) ) ), 'admin.php' ) );
                     exit;
                 } else {
-                    $_SESSION['newsletter_widget_status'] = __( 'You was unsubscribed!', 'email-newsletter' );
+                    $_SESSION['newsletter_widget_status'] = __( 'You were unsubscribed!', 'email-newsletter' );
                     wp_redirect( $redirect_to );
                     exit;
                 }
@@ -1804,11 +1804,11 @@ class Email_Newsletter {
     function activation( $blog_id = '' ) {
         global $wpdb;
 
-        if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id ) {
+        if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id && $_GET['networkwide'] == 1 ) {
                 $blogids = $wpdb->get_col( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs" ) );
         } else {
             if ( 0 !== $blog_id )
-                $blogids[] = 1;
+                $blogids[] = $wpdb->blogid;
             else
                 $blogids[] = $blog_id;
         }
@@ -1941,11 +1941,11 @@ class Email_Newsletter {
     function deactivation( $blog_id = '' ) {
         global $wpdb;
 
-        if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id ) {
+        if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id  && $_GET['networkwide'] == 1 ) {
                 $blogids = $wpdb->get_col( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs" ) );
         } else {
             if ( 0 !== $blog_id )
-                $blogids[] = 1;
+                $blogids[] = $wpdb->blogid;
             else
                 $blogids[] = $blog_id;
         }
