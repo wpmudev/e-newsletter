@@ -5,6 +5,9 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.0.5 =
+* fixed problem with tiny_mce (deleted function of compression to the gzip file);
+
 = 1.0.4 =
 * fixed problem of creating extra tables when activating the plugin not for all sites of the network;
 * added the "changelog.txt" file :) ;

@@ -29,22 +29,6 @@
         $mode = "create";
     }
 
-
-require_once( $this->plugin_dir . "email-newsletter-files/js/tiny_mce/tiny_mce_gzip.php");
-
-TinyMCE_Compressor::renderTag(array(
-    "url" => $this->plugin_url."email-newsletter-files/js/tiny_mce/tiny_mce_gzip.php",
-    "plugins" => "safari,pagebreak,style,layer,table,advhr,advimage,advlink,iespell,insertdatetime,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,visualchars,nonbreaking,xhtmlxtras,inlinepopups",
-    "themes" => "advanced",
-    "languages" => "en",
-    "editor_selector" => "tinymce_data"
-));
-
-
-
-
-
-
     //Display status message
     if ( isset( $_GET['updated'] ) ) {
         ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['dmsg'] ); ?></p></div><?php
