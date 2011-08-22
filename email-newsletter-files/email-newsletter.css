@@ -5,63 +5,59 @@ Email-Newsletter CSS Styles
 */
 
 
-
 /*  Progressbar */
-
-.ui-corner-all,
-.ui-corner-bottom,
-.ui-corner-right,
-.ui-corner-br {
+.enewsletter_progressbar .ui-corner-all,
+.enewsletter_progressbar .ui-corner-bottom,
+.enewsletter_progressbar .ui-corner-right,
+.enewsletter_progressbar .ui-corner-br {
     -moz-border-radius-bottomright: 4px;
 }
 
-.ui-corner-all,
-.ui-corner-bottom,
-.ui-corner-left,
-.ui-corner-bl {
+.enewsletter_progressbar .ui-corner-all,
+.enewsletter_progressbar .ui-corner-bottom,
+.enewsletter_progressbar .ui-corner-left,
+.enewsletter_progressbar .ui-corner-bl {
     -moz-border-radius-bottomleft: 4px;
 }
 
-.ui-corner-all,
-.ui-corner-top,
-.ui-corner-right,
-.ui-corner-tr {
+.enewsletter_progressbar .ui-corner-all,
+.enewsletter_progressbar .ui-corner-top,
+.enewsletter_progressbar .ui-corner-right,
+.enewsletter_progressbar .ui-corner-tr {
     -moz-border-radius-topright: 4px;
 }
 
-.ui-corner-all,
-.ui-corner-top,
-.ui-corner-left,
-.ui-corner-tl {
+.enewsletter_progressbar .ui-corner-all,
+.enewsletter_progressbar .ui-corner-top,
+.enewsletter_progressbar .ui-corner-left,
+.enewsletter_progressbar .ui-corner-tl {
     -moz-border-radius-topleft: 4px;
 }
 
-.ui-widget-content {
-/*    background: url("images/ui-bg_flat_75_ffffff_40x100.png") repeat-x scroll 50% 50% #FFFFFF;*/
+.enewsletter_progressbar .ui-widget-content {
     border: 1px solid #AAAAAA;
     color: #222222;
 }
 
-.ui-progressbar {
+.enewsletter_progressbar .ui-progressbar {
     width: 500px;
     height: 22px;
     text-align: left;
 }
 
-.ui-progressbar
-.ui-progressbar-value {
+.enewsletter_progressbar .ui-progressbar .ui-progressbar-value {
     margin: 0px;
     height:100%;
 }
 
-.ui-progressbar-value {
+.enewsletter_progressbar .ui-progressbar-value {
     background-image: url(images/pbar-ani.gif);
 }
 
-#progressbar {
+.enewsletter_progressbar #progressbar {
     position: relative;
 }
-#progressbar_text {
+.enewsletter_progressbar #progressbar_text {
     font-weight: bold;
     position: absolute;
     left: 45%;
@@ -70,7 +66,6 @@ Email-Newsletter CSS Styles
 }
 
 /* End of Progressbar */
-
 
 
 /* tooltip styling. by default the element to be styled is .tooltip  */

@@ -77,15 +77,21 @@
         ?>
             <center>
                 <p>The Newsletter was sent to <span id="count_sent">0</span> out of <?php echo $count_send_members; ?> members</p>
-                <div id="progressbar"><span id="progressbar_text"><?php echo _e( "Sending", 'email-newsletter' ) ?></span></div>
+                <div class="enewsletter_progressbar">
+                    <div id="progressbar">
+                        <span id="progressbar_text">
+                            <?php echo _e( "Sending", 'email-newsletter' ) ?>
+                        </span>
+                    </div>
+                </div>
                 <form method="post" action="" id="sending_form" >
                     <input type="hidden" name="newsletter_id" value="<?php echo $newsletter_id; ?>">
                     <input type="hidden" name="send_id" value="<?php echo $send_id; ?>">
                     <input type="hidden" name="action" value="send_newsletter">
                     <input type="hidden" name="cron" value="add_to_cron" />
-                    <input type="button" id="send_pause" value="<?php echo _e( "Pause", 'email-newsletter' ) ?>" />
-                    <input type="button" id="send_cron" value="<?php echo _e( "Pause, and send by WP-CRON", 'email-newsletter' ) ?>" />
-                    <input type="button" id="send_cancel" value="<?php echo _e( "Cancel", 'email-newsletter' ) ?>" />
+                    <input type="button" id="send_pause" value="<?php echo _e( 'Pause', 'email-newsletter' ) ?>" />
+                    <input type="button" id="send_cron" value="<?php echo _e( 'Pause, and send by WP-CRON', 'email-newsletter' ) ?>" />
+                    <input type="button" id="send_cancel" value="<?php echo _e( 'Cancel', 'email-newsletter' ) ?>" />
                 </form>
             </center>
 
@@ -113,13 +119,13 @@
                         if ( 1 == pause ) {
                             pause = 0;
 //                            jQuery( "#send_cancel" ).attr( 'disabled', true );
-                            jQuery( "#progressbar_text" ).html( '<?php echo _e( "Sending", 'email-newsletter' ) ?>' );
+                            jQuery( "#progressbar_text" ).html( '<?php echo _e( 'Sending', 'email-newsletter' ) ?>' );
                             jQuery( this ).val( '<?php echo _e( "Pause", 'email-newsletter' ) ?>' );
                             jQuery( this ).send_email();
                         } else {
                             pause = 1;
 //                            jQuery( "#send_cancel" ).attr( 'disabled', false );
-                            jQuery( "#progressbar_text" ).html( '<?php echo _e( "Pause", 'email-newsletter' ) ?>' );
+                            jQuery( "#progressbar_text" ).html( '<?php echo _e( 'Pause', 'email-newsletter' ) ?>' );
                             jQuery( this ).val( '<?php echo _e( "Continue", 'email-newsletter' ) ?>' );
                         }
 
@@ -150,9 +156,9 @@
 
 
                                 } else if ( 'end' == html) {
-                                     jQuery( "#progressbar_text" ).html( '<?php echo _e( "Done", 'email-newsletter' ) ?>' );
                                      jQuery( "#send_pause" ).hide();
                                      jQuery( "#send_cron" ).hide();
+                                     jQuery( "#progressbar_text" ).html( '<?php echo _e( 'Done', 'email-newsletter' ) ?>' );
                                 } else {
                                     alert( html );
                                 }
@@ -166,54 +172,9 @@
 
             </script>
 
-            <?php
-
-            exit;
-            global $wpdb;
-
-            $count_duplicate    = 0;
-            $count_errors       = 0;
-            $errors_text        = "";
-            $newsletter_id      = $_REQUEST['newsletter_id'];
-
-            foreach ( $members_id as $member_id ) {
-
-                if ( ! ( "1" == $_REQUEST['dont_send_duplicate'] && $this->check_duplicate_send( $newsletter_id, $member_id ) ) )
-                    $wpdb->query( $wpdb->prepare( "INSERT INTO {$wpdb->base_prefix}enewsletter_send SET send_id = '%d', newsletter_id = '%d', member_id = '%d', sent_time = '', status = 1 ", 1, $newsletter_id, $member_id ) );
-            }
-
-
-            foreach ( $members_id as $member_id ) {
-
-                if ( ! ( "1" == $_REQUEST['dont_send_duplicate'] && $this->check_duplicate_send( $newsletter_id, $member_id ) ) ) {
-                    $send_email = $this->send_email_newsletter( $newsletter_id, $member_id );
-                    if ( true === $send_email ) {
-
-            ?>
-                    <script language="javascript">
-                        i = i + 1;
-                        //alert(i);
-                        jQuery( "#count_sent" ).html( i );
-
-                    </script>
-
         <?php
-                    } else {
-                        $count_errors++;
-                        $errors_text = $send_email . "<br />";
-                    }
-                } else {
-                    $count_duplicate++;
-                }
-            }
-            if ( 0 < $count_duplicate )
-                echo __( 'Not sent (People already received):', 'email-newsletter' ) . $count_duplicate . "<br />";
 
-            if ( 0 < $count_errors ) {
-                echo "Errors: " . $count_errors . "<br />";
-                echo $errors_text;
-            }
-
+        exit;
         }
         ?>
         <form action="" method="post" id="send_form">
@@ -263,8 +224,8 @@
                 </tr>
                 <tr>
                     <td>
-                        <input type="submit" name="send" value="<?php echo _e( "Send Newsletter", 'email-newsletter' ) ?>" />
-                        <input type="button" name="send" id="add_cron" value="<?php echo _e( "Add Newsletter to CRON list", 'email-newsletter' ) ?>" />
+                        <input type="submit" name="send" value="<?php echo _e( 'Send Newsletter', 'email-newsletter' ) ?>" />
+                        <input type="button" name="send" id="add_cron" value="<?php echo _e( 'Add Newsletter to CRON list', 'email-newsletter' ) ?>" />
                     </td>
                 </tr>
             </table>

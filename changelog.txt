@@ -5,6 +5,9 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.0.6 =
+* include of JS and CSS only on plugins pages;
+
 = 1.0.5 =
 * fixed problem with tiny_mce (deleted function of compression to the gzip file);
 

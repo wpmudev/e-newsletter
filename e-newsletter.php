@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.0.5
+Version: 1.0.6
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -157,17 +157,9 @@ class Email_Newsletter {
             wp_die( __('There was an issue determining where WPMU DEV Update Notifications is installed. Please reinstall.', 'email-newsletter' ) );
         }
 
-        //including JS scripts
-        wp_enqueue_script( 'jquery' );
-
         //including JS scripts for Newsletter pages
-        if ( "newsletters-dashboard"    == $_REQUEST['page'] ||
-             "newsletters"              == $_REQUEST['page'] ||
-             "newsletters-create"       == $_REQUEST['page'] ||
-             "newsletters-groups"       == $_REQUEST['page'] ||
-             "newsletters-members"      == $_REQUEST['page'] ||
-             "newsletters-subscribes"   == $_REQUEST['page'] ||
-             "newsletters-settings"     == $_REQUEST['page'] ) {
+        if ( 1 == $this->is_enewsletter_page( $_REQUEST['page'] ) ) {
+            wp_enqueue_script( 'jquery' );
 
             //including JS scripts
             wp_enqueue_script( 'jquery-ui-tabs' );
@@ -200,8 +192,10 @@ class Email_Newsletter {
      **/
     function init() {
         // Including CSS file
-        wp_register_style( 'emailNewsletterStyle', $this->plugin_url . 'email-newsletter-files/email-newsletter.css' );
-        wp_enqueue_style( 'emailNewsletterStyle' );
+        if ( 1 == $this->is_enewsletter_page( $_REQUEST['page'] ) ) {
+            wp_register_style( 'emailNewsletterStyle', $this->plugin_url . 'email-newsletter-files/email-newsletter.css' );
+            wp_enqueue_style( 'emailNewsletterStyle' );
+        }
 
         //private actions of the plugin
         if ( current_user_can('manage_network_options') || current_user_can('manage_options') ) {
@@ -275,10 +269,8 @@ class Email_Newsletter {
      * init for all users
      **/
     function init_for_all() {
-
         //public actions of the plugin
         switch( $_REQUEST[ 'newsletter_action' ] ) {
-
             //action for save selected groups of subscribe
             case "save_subscribes":
                 $redirect_to = $_SERVER['HTTP_REFERER'];
@@ -1799,6 +1791,27 @@ class Email_Newsletter {
 
 
     /**
+     * checks that current page is e-newsletter's page
+     **/
+    function is_enewsletter_page ( $page = '' ) {
+        switch ( $page ) {
+            case 'newsletters':
+            case 'newsletters-dashboard':
+            case 'newsletters-create':
+            case 'newsletters-groups':
+            case 'newsletters-members':
+            case 'newsletters-subscribes':
+            case 'newsletters-settings':
+                return 1;
+                break;
+            default:
+                return 0;
+
+        }
+    }
+
+
+    /**
      * Install of plugin
      **/
     function activation( $blog_id = '' ) {
@@ -2308,34 +2321,31 @@ class e_newsletter_subscribe extends WP_Widget {
         ?>
 
     <script language="JavaScript">
-        jQuery( document ).ready( function() {
+        function new_subscibes()
+        {
+            if ( "" == document.getElementById( "e_newsletter_email" ).value )
+            {
+                alert('<?php _e( 'Please write your Email!', 'email-newsletter' ) ?>');
+                return false;
+            }
+            document.subscribes_form.newsletter_action = "new_subscribe";
+            document.subscribes_form.submit();
+            return false;
+        }
 
-            //New Subscibes
-            jQuery( "#new_subscribe" ).click( function() {
-                if ( "" == jQuery( "#e_newsletter_email" ).val() ) {
-                    alert('<?php _e( 'Please write your Email!', 'email-newsletter' ) ?>');
-                    return false;
-                }
+        function save_subscribes()
+        {
+            document.subscribes_form.newsletter_action = "save_subscribes";
+            document.subscribes_form.submit();
+            return false;
+        }
 
-                jQuery( "#newsletter_action" ).val( 'new_subscribe' );
-                jQuery( "#subscribes_form" ).submit();
-
-            });
-
-            //Save Subscibes
-            jQuery( "#save_subscribes" ).click( function() {
-                jQuery( "#newsletter_action" ).val( 'save_subscribes' );
-                jQuery( "#subscribes_form" ).submit();
-
-            });
-
-            //Unsubscribes
-            jQuery( "#unsubscribe" ).click( function() {
-                jQuery( "#newsletter_action" ).val( 'unsubscribe' );
-                jQuery( "#subscribes_form" ).submit();
-
-            });
-        });
+        function unsubscribe()
+        {
+            document.subscribes_form.newsletter_action = "unsubscribe";
+            document.subscribes_form.submit();
+            return false;
+        }
     </script>
 
     <div class="e-newsletter-widget">
@@ -2387,7 +2397,7 @@ class e_newsletter_subscribe extends WP_Widget {
                 }
                 ?>
 
-                <input type="button" id="new_subscribe" value="<?php _e( 'Subscribe', 'email-newsletter' ) ?>" />
+                <input type="button" id="new_subscribe" onclick="new_subscibes()" value="<?php _e( 'Subscribe', 'email-newsletter' ) ?>" />
 
 
             <?php
@@ -2420,9 +2430,9 @@ class e_newsletter_subscribe extends WP_Widget {
                 <?php
                 }
                 ?>
-                <input type="button" id="save_subscribes" value="<?php _e( 'Save Subscribes', 'email-newsletter' ) ?>" />
+                <input type="button" id="save_subscribes" onclick="save_subscribes()" value="<?php _e( 'Save Subscribes', 'email-newsletter' ) ?>" />
                 <br />
-                <a href="javascript:;" id="unsubscribe" ><?php _e( 'Unsubscribe', 'email-newsletter' ) ?></a>
+                <a href="javascript:;" id="unsubscribe" onclick="unsubscribe()" ><?php _e( 'Unsubscribe', 'email-newsletter' ) ?></a>
 
             <?php
             } else if ( 0 < $current_user->data->ID ) {
