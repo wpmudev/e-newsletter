@@ -21,14 +21,14 @@
     <script language="JavaScript">
         jQuery( document ).ready( function() {
 
-            //Add new member
+            //save subscribes
             jQuery( "#save_subscribes" ).click( function() {
                 jQuery( "#newsletter_action" ).val( 'save_subscribes' );
                 jQuery( "#subscribes_form" ).submit();
 
             });
 
-            //Add new member
+            //unsubscribe
             jQuery( "#unsubscribe" ).click( function() {
                 jQuery( "#newsletter_action" ).val( 'unsubscribe' );
                 jQuery( "#subscribes_form" ).submit();
