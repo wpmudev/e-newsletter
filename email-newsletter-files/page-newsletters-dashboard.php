@@ -72,7 +72,7 @@
             <thead>
                 <tr>
                     <th>
-                        <?php _e( 'Date of Last Send', 'email-newsletter' ) ?>
+                        <?php _e( 'Date of Last Sent', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Email Subject', 'email-newsletter' ) ?>
@@ -87,7 +87,7 @@
                         <?php _e( 'Bounced', 'email-newsletter' ) ?>
                     </th>
                     <th>
-                        <?php _e( 'Opened by', 'email-newsletter' ) ?>
+                        <?php _e( 'Opened', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Actions', 'email-newsletter' ) ?>

@@ -33,8 +33,18 @@
     if ( isset( $_GET['updated'] ) ) {
         ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['dmsg'] ); ?></p></div><?php
     }
+
+    //Creating WYSIWYG editor
+    wp_tiny_mce( false ,
+        array(
+            "editor_selector" => "newsletter_content",
+        )
+    );
+
+
 ?>
     <script language="JavaScript">
+
         jQuery( document ).ready( function() {
 
             //Creating tabs
@@ -160,8 +170,6 @@
             });
 
 
-
-
             //Creating WYSIWYG editor
             tinyMCE.init({
                     // General options
@@ -174,12 +182,12 @@
 //                    remove_script_host : true,
                     convert_urls : false,
 
-                    plugins : "autolink,lists,spellchecker,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template",
+                    plugins : "autolink,lists,spellchecker,table,advhr,wpeditimage,advlink,iespell,inlinepopups,contextmenu,paste,fullscreen,noneditable,visualchars,nonbreaking",
 
                     // Theme options
                     theme_advanced_buttons1 : "undo,redo,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,formatselect,fontselect,fontsizeselect",
-                    theme_advanced_buttons2 : "cut,copy,paste,pastetext,pasteword,|,bullist,numlist,|,link,unlink,anchor,image,cleanup,code,|,forecolor,backcolor",
-                    theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,charmap,emotions,iespell",
+                    theme_advanced_buttons2 : "cut,copy,paste,pastetext,pasteword,|,bullist,numlist,|,link,unlink,anchor,image,cleanup,code,|,forecolor,backcolor,|,fullscreen,nonbreaking,spellchecker,visualchars",
+                    theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,charmap,iespell",
                     theme_advanced_toolbar_location : "top",
                     theme_advanced_toolbar_align : "left",
                     theme_advanced_statusbar_location : "bottom",
@@ -190,24 +198,7 @@
                     skin : "o2k7",
                     skin_variant : "silver",
 
-                    // Example content CSS (should be your site CSS)
-                    content_css : "css/example.css",
-
-                    // Drop lists for link/image/media/template dialogs
-                    template_external_list_url : "js/template_list.js",
-                    external_link_list_url : "js/link_list.js",
-                    external_image_list_url : "js/image_list.js",
-                    media_external_list_url : "js/media_list.js",
-
-                    // Replace values for the template plugin
-                    template_replace_values : {
-                            username : "Some User",
-                            staffid : "991234"
-                    }
             });
-
-
-
 
 
             //function base64 encode
@@ -312,17 +303,12 @@
 
            //upload  image on server
             var uploader = new qq.FileUploader({
-                // pass the dom node (ex. $(selector)[0] for jQuery users)
                 element: document.getElementById('file-uploader'),
-                // path to server-side upload script
                 action: '<?php echo $siteurl;?>/wp-admin/admin-ajax.php',
                 params: {
                     action: 'file_upload'
                 },
-                // validation
                 allowedExtensions: ['jpg', 'jpeg', 'png', 'gif'],
-                // each file size limit in bytes
-                // this option isn't supported in all browsers
                 sizeLimit: 2097152, // max size
                 minSizeLimit: 0 // min size
 
@@ -336,9 +322,7 @@
                 var alt = jQuery( '#image_alt' ).val();
                 if ( alt == 'Image Description' ) alt = '';
                 jQuery( '#image_alt' ).val( 'Image Description' );
-                // validation:
                 if( !src || src == '' )return;
-                // is the user currently clicking on an image:
 
                 var imghtml = '<img src="' + src + '" alt="'+alt+'"';
                 imghtml += ' />';
@@ -433,7 +417,7 @@
                                     <input type="text" class="input" name="from_email" id="from_email" value="<?php echo htmlspecialchars( $newsletter_data['from_email'] );?>" size="30" />
                                     <?php
                                     if ( "smtp" == $this->settings['outbound_type'] )
-                                        echo '<span class="red">' . __( 'Attention! You uses SMTP method for sending  email - please use only emails related with your SMTP server!', 'email-newsletter' ) . '</span>';
+                                        echo '<span class="red">' . __( 'Attention! You use SMTP method for sending email - please use only emails related with your SMTP server!', 'email-newsletter' ) . '</span>';
                                     ?>
                                 </td>
                             </tr>
@@ -466,11 +450,10 @@
                                     </select>
                                     <input type="text" name="image_alt" id="image_alt" value="Image Description" onfocus="if(this.value=='Image Description')this.value='';">
                                     <input type="button" name="image_insert" onclick="jQuery(this).insertImage();" value="Insert Image" />
-                                    <h4><?php _e( 'Upload images on Server:', 'email-newsletter' ) ?> </h4>
+                                    <h4><?php _e( 'Upload images to server:', 'email-newsletter' ) ?> </h4>
                                     <div id="file-uploader">
                                         <noscript>
                                             <p>Please enable JavaScript to use file uploader.</p>
-                                            <!-- or put a simple form for upload here -->
                                         </noscript>
                                     </div>
                                 </td>
@@ -490,13 +473,13 @@
 
                     <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-5">
                         <h2><?php _e( 'Save the Newsletter:', 'email-newsletter' ) ?></h2>
-                        <input type="button" id="newsletter_save" value="<?php _e( 'Save Newsletter', 'email-newsletter' ) ?>" />
+                        <input type="button" id="newsletter_save" value="<?php _e( 'Save', 'email-newsletter' ) ?>" />
                         <br />
                         <?php
                         _e( 'or', 'email-newsletter' ) ;
                          ?>
                         <br />
-                        <input type="button" id="newsletter_save_send" value="<?php _e( 'Save Newsletter, and go on Send page', 'email-newsletter' ) ?>" />
+                        <input type="button" id="newsletter_save_send" value="<?php _e( 'Save, and go to Send page', 'email-newsletter' ) ?>" />
                         <?php
                         if ( "create" != $mode) {
                         ?>

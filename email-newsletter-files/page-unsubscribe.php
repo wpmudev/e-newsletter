@@ -16,7 +16,7 @@ if ( 0 < get_query_var( 'unsubscribe_member_id' ) ) {
 //    $email_newsletter =& new Email_Newsletter();
 //    $email_newsletter->unsubscribe( get_query_var( 'code'), 'http://localhost/wpblog32_1/e-newsletter/unsubscribe/78880970f028f5d/0/' );
     }
-    echo "<center><br /><br /><br /><h2 style='color: #ff0000;'>" . __( 'You are already unsubscribed or no subscribed!', 'email-newsletter' ) . "</h2></center>";
+    echo "<center><br /><br /><br /><h2 style='color: #ff0000;'>" . __( 'You are already unsubscribed or are not subscribed yet!', 'email-newsletter' ) . "</h2></center>";
 }
 
 exit;

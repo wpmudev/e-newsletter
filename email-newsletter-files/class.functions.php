@@ -444,10 +444,10 @@ class Email_Newsletter_functions {
 
         if ( "install" == $_REQUEST['mode']) {
             // first setup of plugin
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-dashboard', 'updated' => 'true', 'dmsg' => urlencode( __( 'The Plugin was installed!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-dashboard', 'updated' => 'true', 'dmsg' => urlencode( __( 'The Plugin is installed!', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         } else {
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-settings', 'updated' => 'true', 'dmsg' => urlencode( __( 'The Settings was saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-settings', 'updated' => 'true', 'dmsg' => urlencode( __( 'The Settings are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         }
     }
@@ -656,7 +656,7 @@ class Email_Newsletter_functions {
 
             } else {
                 //if group exist with other ID
-                wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'The Group already exist!!!', 'email-newsletter' ) ) ), 'admin.php' ) );
+                wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'The Group already exists!!!', 'email-newsletter' ) ) ), 'admin.php' ) );
                 exit;
             }
         }
@@ -665,12 +665,12 @@ class Email_Newsletter_functions {
         if ( "0" != $group_id ) {
             //update when edit group
             $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_groups SET group_name = '%s', public = '%s' WHERE group_id = %d", trim( $group_name ), $public, $group_id ) );
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'Changes of Group were saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'The changes of the group are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         } else {
             //create new group
             $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_groups SET group_name = '%s', public = '%s'", trim( $group_name), $public ) );
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'The Group was created!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'Group is created!', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         }
     }
@@ -699,7 +699,7 @@ class Email_Newsletter_functions {
     function delete_group( $group_id ) {
         global $wpdb;
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_groups WHERE group_id = %d", $group_id ) );
-        wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'Group was deleted!', 'email-newsletter' ) ) ), 'admin.php' ) );
+        wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'Group is deleted!', 'email-newsletter' ) ) ), 'admin.php' ) );
         exit;
     }
 
@@ -722,7 +722,7 @@ class Email_Newsletter_functions {
             foreach( ( array ) $groups_id as $group_id )
                 $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
 
-        wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( __( 'Groups was changed!', 'email-newsletter' ) ) ), 'admin.php' ) );
+        wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( __( 'Groups are changed!', 'email-newsletter' ) ) ), 'admin.php' ) );
         exit;
     }
 
@@ -738,7 +738,52 @@ class Email_Newsletter_functions {
         return $groups;
     }
 
+    /**
+     * Get all groups for memeber
+     **/
+    function my_tinymce_plugins( $plugin_array ) {
+        $plugin_array['autolink']           = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/autolink/editor_plugin.js';
+        $plugin_array['lists']              = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/lists/editor_plugin.js';
+        $plugin_array['table']              = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/table/editor_plugin.js';
+        $plugin_array['advhr']              = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/advhr/editor_plugin.js';
+        $plugin_array['advlink']            = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/advlink/editor_plugin.js';
+        $plugin_array['iespell']            = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/iespell/editor_plugin.js';
+        $plugin_array['inlinepopups']       = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/inlinepopups/editor_plugin.js';
+        $plugin_array['contextmenu']        = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/contextmenu/editor_plugin.js';
+        $plugin_array['paste']              = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/paste/editor_plugin.js';
+        $plugin_array['fullscreen']         = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/fullscreen/editor_plugin.js';
+        $plugin_array['noneditable']        = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/noneditable/editor_plugin.js';
+        $plugin_array['visualchars']        = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/visualchars/editor_plugin.js';
+        $plugin_array['nonbreaking']        = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/nonbreaking/editor_plugin.js';
+        $plugin_array['wordcount']          = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/wordcount/editor_plugin.js';
 
+        return $plugin_array;
+    }
+
+    /**
+     * change plugin's icon
+     **/
+    function change_icon( $plugin_array ) {
+       ?>
+        <style type="text/css">
+            #toplevel_page_newsletters-dashboard .wp-menu-image a img {
+                display: none;
+            }
+
+            #toplevel_page_newsletters-dashboard div.wp-menu-image {
+                background: url("<?php echo $this->plugin_url; ?>email-newsletter-files/images/icon.png") no-repeat scroll 0px 0px transparent;
+            }
+
+            #toplevel_page_newsletters-dashboard:hover div.wp-menu-image {
+                background: url("<?php echo $this->plugin_url; ?>email-newsletter-files/images/icon.png") no-repeat scroll 0px -32px transparent;
+            }
+
+            #toplevel_page_newsletters-dashboard.wp-has-current-submenu div.wp-menu-image {
+                background: url("<?php echo $this->plugin_url; ?>email-newsletter-files/images/icon.png") no-repeat scroll 0px -32px transparent;
+            }
+        </style>
+    <?php
+    }
 
 
 }

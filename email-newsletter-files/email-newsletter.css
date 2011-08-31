@@ -96,30 +96,6 @@ Email-Newsletter CSS Styles
     padding: 8px 10px;
 }
 
-#toplevel_page_newsletters-settings .wp-menu-image a img,
-#toplevel_page_newsletters-subscribes .wp-menu-image a img,
-#toplevel_page_newsletters-dashboard .wp-menu-image a img {
-    display: none;
-}
-
-#toplevel_page_newsletters-settings div.wp-menu-image,
-#toplevel_page_newsletters-subscribes div.wp-menu-image,
-#toplevel_page_newsletters-dashboard div.wp-menu-image {
-    background: url("images/icon.png") no-repeat scroll 0px 0px transparent;
-}
-
-#toplevel_page_newsletters-settings:hover div.wp-menu-image,
-#toplevel_page_newsletters-subscribes:hover div.wp-menu-image,
-#toplevel_page_newsletters-dashboard:hover div.wp-menu-image {
-    background: url("images/icon.png") no-repeat scroll 0px -32px transparent;
-}
-
-#toplevel_page_newsletters-settings.current div.wp-menu-image,
-#toplevel_page_newsletters-subscribes.current div.wp-menu-image,
-#toplevel_page_newsletters-dashboard.current div.wp-menu-image {
-    background: url("images/icon.png") no-repeat scroll 0px -32px transparent;
-}
-
 
 .updated {
     background-color: #FFFFE0;
@@ -133,8 +109,6 @@ Email-Newsletter CSS Styles
 
 
 #newsletter-tabs .ui-widget-header {
- /*   border: 1px solid #ffffff;
-    background: #464646 url(images/464646_40x100_textures_01_flat_100.png) 50% 50% repeat-x;           */
     color: #ffffff;
     font-weight: bold;
     height: 36px;
@@ -197,8 +171,6 @@ Email-Newsletter CSS Styles
 
 
 #newsletter-tabs .ui-widget-content {
-/*    background: url("images/ffffff_40x100_textures_01_flat_75.png") repeat-x scroll 50% 50% #FFFFFF;*/
-/*    border: 0px solid #000;*/
     color: #fff;
 }
 
@@ -206,13 +178,16 @@ Email-Newsletter CSS Styles
 #newsletter-tabs .ui-tabs-panel {
     background: none repeat scroll 0 0 #fff;
     border: 1px solid #666666;
-/*    border-top: 0px solid #000;*/
     display: block;
     color: #000000;
     font-size: 12px;
     line-height: 1.4;
     padding: 5px 9px 20px 9px;
-    margin: -1px 0 0;
+    margin: 1px 0px 0px 0px;
+}
+
+.newsletter-settings-tabs .ui-tabs-panel {
+    margin: -1px 0px 0px 0px !important;
 }
 
 
@@ -222,7 +197,8 @@ Email-Newsletter CSS Styles
 .ui-tabs {
     position: relative;
     padding: .2em; zoom: 1;
-} /* position: relative prevents IE scroll bug (element with position: relative inside container with overflow: auto appear as "fixed") */
+}
+/* position: relative prevents IE scroll bug (element with position: relative inside container with overflow: auto appear as "fixed") */
 .ui-tabs .ui-tabs-nav {
     margin: 0;
     padding: .2em .2em 0;

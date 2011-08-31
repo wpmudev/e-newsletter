@@ -5,6 +5,12 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.0.7 =
+* changed page of unsubscription
+* changed WYSIWYG editor
+* fixed JS conflict problem
+* corrected some texts
+
 = 1.0.6 =
 * include of JS and CSS only on plugins pages;
 

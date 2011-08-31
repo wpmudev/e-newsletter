@@ -64,7 +64,7 @@
 
     <div class="wrap">
         <h2><?php _e( 'Send Newsletter:', 'email-newsletter' ) ?> "<?php echo htmlspecialchars( $newsletter_data['subject'] );?>"</h2>
-        <p><?php _e( 'On this page you can send newsletter to selected groups.', 'email-newsletter' ) ?></p>
+        <p><?php _e( 'At this page you can send newsletter to the selected groups.', 'email-newsletter' ) ?></p>
 
         <?php
 
@@ -186,7 +186,7 @@
                 <thead><tr>
 
                         <th>
-                            <?php _e( 'Tick which groups you would like to send to:', 'email-newsletter' ) ?>
+                            <?php _e( 'Select which groups you would like to send to:', 'email-newsletter' ) ?>
                         </th>
 
                 </tr></thead>

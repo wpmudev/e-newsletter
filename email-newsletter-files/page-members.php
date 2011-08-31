@@ -98,7 +98,7 @@
             //Add new member
             jQuery( "#add_member" ).click( function() {
                 if ( "" == jQuery( "#member_email" ).val() ) {
-                    alert('<?php _e( 'Please write Email of member', 'email-newsletter' ) ?>');
+                    alert('<?php _e( 'Please write Email of the member', 'email-newsletter' ) ?>');
                     return false;
                 }
                 jQuery( "#newsletter_action2" ).val( 'add_member' );
@@ -121,10 +121,10 @@
             jQuery(".btn-slide").click(function(){
                 jQuery("#panel").slideToggle("slow");
 
-                if ( "<?php _e( 'Show Add Member form', 'email-newsletter' ) ?>" == jQuery(this).val() )
-                    jQuery(this).val( '<?php _e( 'Close Add Member form', 'email-newsletter' ) ?>' );
+                if ( "<?php _e( 'Show the New Member form', 'email-newsletter' ) ?>" == jQuery(this).val() )
+                    jQuery(this).val( '<?php _e( 'Close the New Member form', 'email-newsletter' ) ?>' );
                 else
-                    jQuery(this).val( '<?php _e( 'Show Add Member form', 'email-newsletter' ) ?>' );
+                    jQuery(this).val( '<?php _e( 'Show the New Member form', 'email-newsletter' ) ?>' );
 
                 return false;
             });
@@ -135,11 +135,11 @@
 
     <div class="wrap">
         <h2><?php _e( 'Members', 'email-newsletter' ) ?></h2>
-        <p><?php _e( 'On this page you can add or remove members from groups.', 'email-newsletter' ) ?></p>
+        <p><?php _e( 'At this page you can add or remove members from groups.', 'email-newsletter' ) ?></p>
 
 
         <p class="slide">
-            <input type="button" class="btn-slide" id="show_add_form" value="<?php _e( 'Show Add Member form', 'email-newsletter' ) ?>" />
+            <input type="button" class="btn-slide" id="show_add_form" value="<?php _e( 'Show the New Member form', 'email-newsletter' ) ?>" />
         </p>
         <div id="panel">
             <form action="" method="post" name="add_new_member" id="add_new_member" >

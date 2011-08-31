@@ -92,7 +92,7 @@
 
     <div class="wrap">
         <h2><?php _e( 'Groups', 'email-newsletter' ) ?></h2>
-        <p><?php _e( 'This page contains an list of all Groups.', 'email-newsletter' ) ?></p>
+        <p><?php _e( 'This page contains the list of all groups.', 'email-newsletter' ) ?></p>
 
         <h3><?php _e( 'Create New Group', 'email-newsletter' ) ?></h3>
         <form method="post" action="" name="create_group" id="create_group" >
@@ -103,7 +103,7 @@
                         <?php _e( 'Group Name:', 'email-newsletter' ) ?><span class="required">*</span>
                         <input type="text" class="input" name="group_name" id="group_name" value="<?php echo htmlspecialchars($newsletter_data['subject']);?>" size="30" />
                         <label>
-                            <input type="checkbox" name="public" id="public" value="1" /> <?php _e( 'public users can join to this group', 'email-newsletter' ) ?>
+                            <input type="checkbox" name="public" id="public" value="1" /> <?php _e( 'public users can join this group', 'email-newsletter' ) ?>
                         </label>
                         <input type="button" name="save" id="add_group" value="<?php _e( 'Add Group', 'email-newsletter' ) ?>" />
                     </td>

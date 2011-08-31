@@ -125,7 +125,7 @@
         <form method="post" action="" name="settings_form" id="settings_form" >
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
             <input type="hidden" name="mode"  value="<?php echo $mode; ?>" />
-            <div id="newsletter-tabs">
+            <div id="newsletter-tabs" class="newsletter-settings-tabs">
                 <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
                     <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
                         <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-1"><?php _e( 'General Settings', 'email-newsletter' ) ?></a></li>
@@ -142,7 +142,7 @@
                                 </td>
                                 <td>
                                     <input type="checkbox" name="settings[double_opt_in]" value="1" <?php echo (isset($settings['double_opt_in'])&&$settings['double_opt_in']) ? ' checked':'';?> />
-                                    <span class="description"><?php _e( 'Yes, members will get confirmation email upon signing up to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
+                                    <span class="description"><?php _e( 'Yes, members will get confirmation email to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
                             <tr>
@@ -192,7 +192,7 @@
                                         &nbsp;&nbsp;&nbsp;
                                         <label>
                                             <input type="radio" name="settings[outbound_type]" value="mail" class="email_out_type" <?php echo $settings['outbound_type'] == 'mail' ? 'checked="checked"' : '';?> /><?php echo _e( 'php mail', 'email-newsletter' );?>
-                                            <img class="tooltip_img" src="<?php echo $this->plugin_url . "email-newsletter-files/images/"; ?>info_small.png" title="<?php echo _e( "This method uses php functions for sending newsletters and emails. Be careful because some hosts may set restrictions on using this method. If you can't edit settings of your server, we recomended using the SMTP method for optimal results!", 'email-newsletter' );?>"/>
+                                            <img class="tooltip_img" src="<?php echo $this->plugin_url . "email-newsletter-files/images/"; ?>info_small.png" title="<?php echo _e( "This method uses php functions for sending newsletters and emails. Be careful because some hosts may set restrictions on using this method. If you can't edit settings of your server, we recommend to use the SMTP method for optimal results!", 'email-newsletter' );?>"/>
                                         </label>
                                     </td>
                                 </tr>
@@ -249,7 +249,7 @@
                                             <option value="9" <?php echo ( 9 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >12 hours</option>
                                             <option value="10" <?php echo ( 10 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >1 day</option>
                                         </select>
-                                        <span class="description"><?php _e( "('Never' - not use CRON for send emails)", 'email-newsletter' ) ?></span>
+                                        <span class="description"><?php _e( "('Never' - not use CRON for sending emails)", 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                         </table>
@@ -257,14 +257,14 @@
 
                     <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-3">
                         <h3><?php _e( 'Bounce Settings', 'email-newsletter' ) ?></h3>
-                        <p><?php _e( 'This controls how bounce emails are handled by the system. Please create a new separate POP3 email account (contact your hosting provider if you cannot do this yourself) to handle bounce emails. Enter these POP3 email details below (just like entering details into Microsoft Outlook or similar).', 'email-newsletter' ) ?></p>
+                        <p><?php _e( 'This controls how bounce emails are handled by the system. Please create a new separate POP3 email account to handle bounce emails. Enter these POP3 email details below.', 'email-newsletter' ) ?></p>
                         <table cellpadding="5">
                             <tbody>
                                 <tr>
                                     <td><?php _e( 'Email Address:', 'email-newsletter' ) ?></td>
                                     <td>
                                         <input type="text" name="settings[bounce_email]" id="bounce_email" value="<?php echo htmlspecialchars($settings['bounce_email']);?>" />
-                                        <span class="description"><?php _e( 'full email address where bounce emails will be sent by default', 'email-newsletter' ) ?></span>
+                                        <span class="description"><?php _e( 'email address where bounce emails will be sent by default', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr>
