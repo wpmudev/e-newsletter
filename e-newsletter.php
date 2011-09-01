@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.0.7
+Version: 1.0.7.1
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -1633,7 +1633,7 @@ class e_newsletter_subscribe extends WP_Widget {
                 <?php
                 }
                 ?>
-                <input type="button" id="save_subscribes" onclick="save_subscribe()" value="<?php _e( 'Save Subscribtions', 'email-newsletter' ) ?>" />
+                <input type="button" id="save_subscribes" onclick="save_subscribe()" value="<?php _e( 'Save Subscriptions', 'email-newsletter' ) ?>" />
                 <br />
                 <a href="javascript:;" id="unsubscribe" onclick="unsubscribe()" ><?php _e( 'Unsubscribe', 'email-newsletter' ) ?></a>
 
