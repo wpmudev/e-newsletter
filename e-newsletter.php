@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.0.7.1
+Version: 1.0.7.2
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -647,6 +647,16 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $content = fread( $handle, filesize( $filename ) );
         fclose( $handle );
         die($content);
+    }
+
+    /**
+     * file_upload_ajax
+     **/
+    function file_upload_ajax() {
+        global $wpdb;
+        require_once( $plugin_dir . "email-newsletter-files/file-uploader.php" );
+
+        die("");
     }
 
     /**

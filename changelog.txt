@@ -5,6 +5,9 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.0.7.2 =
+* fixed upload file 
+
 = 1.0.7.1 =
 * fixed text of button
 

@@ -52,16 +52,6 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * file_upload_ajax
-     **/
-    function file_upload_ajax() {
-        global $wpdb;
-        require_once( $plugin_dir . "email-newsletter-files/file-uploader.php" );
-
-        die("");
-    }
-
-    /**
      * function for sorting an array of arrays by volue of field
      **/
     function sort_array_by_field ( $array, $field, $sort = "asc" ) {
