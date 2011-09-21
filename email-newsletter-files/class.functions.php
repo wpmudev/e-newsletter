@@ -447,21 +447,22 @@ class Email_Newsletter_functions {
      **/
     function get_settings() {
         global $wpdb;
+        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$this->tb_prefix}enewsletter_settings'" ) == "{$this->tb_prefix}enewsletter_settings" ) {
+            $results = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_settings ORDER BY `key`", "ARRAY_A" );
 
-        $results = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_settings ORDER BY `key`", "ARRAY_A");
+            if ( $results ) {
+                foreach( $results as $setting )
+                    $this->settings[$setting['key']] = $setting['value'];
 
-        if ( $results ) {
-            foreach( $results as $setting )
-                $this->settings[$setting['key']] = $setting['value'];
+                //Set date format
+                $date_format = get_option( 'date_format' );
+                if ( $date_format )
+                    $this->settings['date_format'] = $date_format;
+                else
+                    $this->settings['date_format'] = "Y-m-d";
 
-            //Set date format
-            $date_format = get_option( 'date_format' );
-            if ( $date_format )
-                $this->settings['date_format'] = $date_format;
-            else
-                $this->settings['date_format'] = "Y-m-d";
-
-            return $this->settings;
+                return $this->settings;
+            }
         }
         return false;
     }
@@ -472,6 +473,7 @@ class Email_Newsletter_functions {
      **/
     function get_sends( $newsletter_id ) {
         global $wpdb;
+        $sends = NULL;
         $results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE newsletter_id = %d ORDER BY start_time DESC", $newsletter_id ), "ARRAY_A");
 
         foreach( $results as $result ){
@@ -503,7 +505,9 @@ class Email_Newsletter_functions {
      **/
     function get_sent_newsletters() {
         global $wpdb;
+        $newsletters = NULL;
         $results = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_newsletters WHERE newsletter_id IN (SELECT newsletter_id FROM {$this->tb_prefix}enewsletter_send GROUP BY newsletter_id)", "ARRAY_A");
+
         foreach( $results as $result ){
 
             //count of sent email
@@ -520,6 +524,7 @@ class Email_Newsletter_functions {
 
             $newsletters[] = $result;
         }
+
         return $newsletters;
     }
 
@@ -539,14 +544,6 @@ class Email_Newsletter_functions {
         global $wpdb;
         $newsletters = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_newsletters", "ARRAY_A");
         return $newsletters;
-    }
-
-    /**
-     * Get users by Role
-     **/
-    function get_users_by_role( $role ) {
-        $wp_user_search = new WP_User_Search( "", "", $role );
-        return $wp_user_search->get_results();
     }
 
     /**
@@ -597,7 +594,7 @@ class Email_Newsletter_functions {
 
         $orderby = "";
 
-        if ( $arg['orderby'] ) {
+        if ( isset( $arg['orderby'] ) ) {
             $orderby = "ORDER BY ". $arg['orderby'];
             if ( $arg['order'] )
                 $orderby .= " ". $arg['order'];
@@ -612,7 +609,7 @@ class Email_Newsletter_functions {
                     $members[] = $member;
                 }
 
-        if ( $arg['sortby'] )
+        if ( isset( $arg['sortby'] ) )
             $members = $this->sort_array_by_field( $members, $arg['sortby'], $arg['order'] );
 
         return $members;
@@ -623,6 +620,7 @@ class Email_Newsletter_functions {
      **/
     function get_members_of_group( $group_id ) {
         global $wpdb;
+        $members = NULL;
         $results =  $wpdb->get_results( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_member_group WHERE group_id = %d", $group_id ), "ARRAY_A" );
         foreach( $results as $member ){
             $members[] = $member['member_id'];
@@ -635,9 +633,6 @@ class Email_Newsletter_functions {
      **/
     function create_group( $group_name, $public, $group_id = "0" ) {
         global $wpdb;
-
-        if ( "1" != $public )
-            $public = '0';
 
         //checking that group not exist other ID
         $result = $wpdb->get_row( $wpdb->prepare( "SELECT group_id FROM {$this->tb_prefix}enewsletter_groups WHERE LOWER(group_name) = '%s'",  strtolower( $group_name ) ), "ARRAY_A");
@@ -721,6 +716,7 @@ class Email_Newsletter_functions {
      **/
      function get_memeber_groups( $member_id ) {
         global $wpdb;
+        $groups = NULL;
         $results = $wpdb->get_results( $wpdb->prepare( "SELECT group_id FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ), "ARRAY_A");
         foreach( $results as $group ){
             $groups[] = $group['group_id'];
@@ -756,19 +752,23 @@ class Email_Newsletter_functions {
     function change_icon( $plugin_array ) {
        ?>
         <style type="text/css">
-            #toplevel_page_newsletters-dashboard .wp-menu-image a img {
+            #toplevel_page_newsletters-dashboard .wp-menu-image a img,
+            #toplevel_page_newsletters-settings .wp-menu-image a img {
                 display: none;
             }
 
-            #toplevel_page_newsletters-dashboard div.wp-menu-image {
+            #toplevel_page_newsletters-dashboard div.wp-menu-image,
+            #toplevel_page_newsletters-settings div.wp-menu-image {
                 background: url("<?php echo $this->plugin_url; ?>email-newsletter-files/images/icon.png") no-repeat scroll 0px 0px transparent;
             }
 
-            #toplevel_page_newsletters-dashboard:hover div.wp-menu-image {
+            #toplevel_page_newsletters-dashboard:hover div.wp-menu-image,
+            #toplevel_page_newsletters-settings:hover div.wp-menu-image {
                 background: url("<?php echo $this->plugin_url; ?>email-newsletter-files/images/icon.png") no-repeat scroll 0px -32px transparent;
             }
 
-            #toplevel_page_newsletters-dashboard.wp-has-current-submenu div.wp-menu-image {
+            #toplevel_page_newsletters-dashboard.wp-has-current-submenu div.wp-menu-image,
+            #toplevel_page_newsletters-settings.wp-has-current-submenu div.wp-menu-image {
                 background: url("<?php echo $this->plugin_url; ?>email-newsletter-files/images/icon.png") no-repeat scroll 0px -32px transparent;
             }
         </style>

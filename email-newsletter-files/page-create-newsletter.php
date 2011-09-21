@@ -5,17 +5,18 @@
 
     $siteurl = get_option( 'siteurl' );
 
-    $newsletter_id = $_REQUEST['newsletter_id'];
+    //get data of newsletter
+    if ( isset( $_REQUEST['newsletter_id'] ) ) {
+        $newsletter_id = $_REQUEST['newsletter_id'];
+        $newsletter_data = $this->get_newsletter_data( $newsletter_id );
+    }
 
     $templates = $this->get_templates();
-
-    //get data of newsletter
-    $newsletter_data = $this->get_newsletter_data( $newsletter_id );
 
     $page_title =  __( 'Edit Newsletter', 'email-newsletter' );
 
     //set data by default if we create new newsletter
-    if ( ! $newsletter_data ) {
+    if ( ! isset( $newsletter_data ) ) {
         $newsletter_data['subject']         = "Newsletter";
         $newsletter_data['template']        = $templates['0']['name'];
         $newsletter_data['from_name']       = $settings['from_name'] ? $settings['from_name'] : get_option( 'blogname' );
@@ -43,7 +44,7 @@
 
 
 ?>
-    <script language="JavaScript">
+    <script type="text/javascript">
 
         jQuery( document ).ready( function() {
 
@@ -355,7 +356,7 @@
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
             <input type="hidden" name="send" id="send" value="" />
             <input type="hidden" name="content_ecoded" id="content_ecoded" value="" />
-            <input type="hidden" name="newsletter_id" id="newsletter_id" value="<?php echo $newsletter_data['newsletter_id']; ?>" />
+            <input type="hidden" name="newsletter_id" id="newsletter_id" value="<?php echo ( isset( $newsletter_data['newsletter_id'] ) ) ? $newsletter_data['newsletter_id'] : ''; ?>" />
             <input type="hidden" name="newsletter_template" id="newsletter_template" value="<?php echo $newsletter_data['template']; ?>" />
             <div id="newsletter-tabs">
                 <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
@@ -439,7 +440,7 @@
                         <table width="100%">
                             <tr>
                                 <td>
-                                    <textarea name="newsletter_content" id="newsletter_content" style="width:100%"><?php echo htmlspecialchars( $newsletter_data['content'] );?></textarea>
+                                    <textarea name="newsletter_content" id="newsletter_content" style="width:100%"><?php echo htmlspecialchars( ( isset( $newsletter_data['content'] ) ) ? $newsletter_data['content'] : '' );?></textarea>
                                 </td>
                             </tr>
                             <tr>
@@ -481,7 +482,7 @@
                         <br />
                         <input type="button" id="newsletter_save_send" value="<?php _e( 'Save, and go to Send page', 'email-newsletter' ) ?>" />
                         <?php
-                        if ( "create" != $mode) {
+                        if ( isset( $mode ) && "create" != $mode) {
                         ?>
                         <br />
                         <br />

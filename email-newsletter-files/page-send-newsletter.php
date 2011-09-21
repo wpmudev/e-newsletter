@@ -7,7 +7,7 @@
 
 
     //send newsletter
-    if ( ! $_REQUEST['send_id'] ) {
+    if ( ! isset( $_REQUEST['send_id'] ) ) {
         $check_key = substr( md5( uniqid( rand(), true ) ), 0, 7);
         $_SESSION['check_key'] = $check_key;
     }
@@ -19,7 +19,7 @@
 
 ?>
 
-     <script language="JavaScript">
+     <script type="text/javascript">
         jQuery( document ).ready( function() {
             var cron = 0;
 
@@ -68,12 +68,11 @@
 
         <?php
 
-        if ( 0 < $_REQUEST['send_id'] ) {
+        if ( isset( $_REQUEST['send_id'] ) && 0 < $_REQUEST['send_id'] ) {
             $send_id        = $_REQUEST['send_id'];
             $newsletter_id  = $_REQUEST['newsletter_id'];
 
             $count_send_members = $this->get_count_send_members( $send_id );
-
         ?>
             <center>
                 <p>The Newsletter was sent to <span id="count_sent">0</span> out of <?php echo $count_send_members; ?> members</p>
@@ -95,7 +94,7 @@
                 </form>
             </center>
 
-            <script language="javascript">
+            <script type="text/javascript">
                 jQuery( document ).ready( function() {
                     var pause = 0;
 
@@ -173,10 +172,9 @@
             </script>
 
         <?php
-
-        exit;
-        }
+        } else {
         ?>
+
         <form action="" method="post" id="send_form">
             <input type="hidden" name="newsletter_id" value="<?php echo $newsletter_data["newsletter_id"];?>">
             <input type="hidden" name="cron" id="cron" value="">
@@ -196,10 +194,10 @@
                         <label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members', 'email-newsletter' ) ?></strong> (<?php echo count( $this->get_members() );?>)</label><br/>
                         &nbsp;&nbsp;-or-<br/>
                         <?php
-                            foreach ( array('administrator', 'editor', 'author', 'contributor', 'subscriber') as $rol ) {
-                                $col = count ($this->get_users_by_role( $rol ));
+                            foreach ( array('administrator', 'editor', 'author', 'contributor', 'subscriber') as $role ) {
+                                $col = count ( get_users( array( 'role' => $role ) ) );
                                 if ( 0 < $col )
-                                    echo "<label><input type='checkbox' name='group_name[]' value='{$rol}' /> All site {$rol}s ({$col})</label><br>";
+                                    echo "<label><input type='checkbox' name='group_name[]' value='{$role}' /> All site {$role}s ({$col})</label><br>";
                             }
                         ?>
                         <?php
@@ -340,5 +338,7 @@
                 </tr>
             </thead>
         </table>
+
+        <?php } ?>
 
     </div><!--/wrap-->

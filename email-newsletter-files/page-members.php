@@ -1,5 +1,7 @@
 <?php
 
+    $arg = NULL;
+
     if ( isset( $_REQUEST['orderby'] ) )
         $arg['orderby'] = $_REQUEST['orderby'];
 
@@ -9,13 +11,13 @@
     if ( isset( $_REQUEST['order'] ) )
         $arg['order'] = $_REQUEST['order'];
 
-    if ( "desc" == $_REQUEST['order'] )
+    if ( isset( $_REQUEST['order'] ) && "desc" == $_REQUEST['order'] )
         $order = "asc";
     else
         $order = "desc";
 
 
-    if ( "group" == $_REQUEST['filter'] ) {
+    if (  isset( $_REQUEST['filter'] ) && "group" == $_REQUEST['filter'] ) {
         if ( 0 < $_REQUEST['group_id'] ) {
             $members_id = $this->get_members_of_group( $_REQUEST['group_id'] );
             foreach( $members_id as $member_id )
@@ -29,7 +31,7 @@
                 $members = $this->sort_array_by_field( $members, $arg['sortby'], $arg['order'] );
         }
 
-    } else if ( "unsubscribed" == $_REQUEST['filter'] ) {
+    } else if (  isset( $_REQUEST['filter'] ) && "unsubscribed" == $_REQUEST['filter'] ) {
         $all_members = $this->get_members();
             if ( $all_members ) {
                 foreach( $all_members as $member )
@@ -51,7 +53,7 @@
     }
 
 ?>
-    <script language="JavaScript">
+    <script type="text/javascript">
         jQuery( document ).ready( function() {
 
             jQuery.fn.changeGroups = function ( id ) {
@@ -201,37 +203,37 @@
                             <input type="checkbox">
                         </th>
                         <th class="manage-column column-name <?php echo "member_email" == $_REQUEST['orderby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
-                            <a href="admin.php?page=newsletters-members&orderby=member_email&order=<?php echo $order;?><?php echo $filter;?>">
+                            <a href="admin.php?page=newsletters-members&orderby=member_email&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ?>">
                                 <span><?php _e( 'Email Address', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th class="manage-column column-name <?php echo "member_fname" == $_REQUEST['orderby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
-                            <a href="admin.php?page=newsletters-members&orderby=member_fname&order=<?php echo $order;?><?php echo $filter;?>">
+                            <a href="admin.php?page=newsletters-members&orderby=member_fname&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?>">
                                 <span><?php _e( 'Name', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th class="manage-column column-name <?php echo "join_date" == $_REQUEST['orderby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
-                            <a href="admin.php?page=newsletters-members&orderby=join_date&order=<?php echo $order;?><?php echo $filter;?>">
+                            <a href="admin.php?page=newsletters-members&orderby=join_date&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?>">
                                 <span><?php _e( 'Join Date', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th class="manage-column column-name <?php echo "count_sent" == $_REQUEST['sortby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
-                            <a href="admin.php?page=newsletters-members&sortby=count_sent&order=<?php echo $order;?><?php echo $filter;?>">
+                            <a href="admin.php?page=newsletters-members&sortby=count_sent&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?>">
                                 <span><?php _e( 'Number Sent', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th class="manage-column column-name <?php echo "count_opened" == $_REQUEST['sortby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
-                            <a href="admin.php?page=newsletters-members&sortby=count_opened&order=<?php echo $order;?><?php echo $filter;?>">
+                            <a href="admin.php?page=newsletters-members&sortby=count_opened&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?>">
                                 <span><?php _e( 'Number Opened', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th>
-                            <?php _e( 'Groups', 'email-newsletter' ) ?><?php echo $filter ? ' <a href="admin.php?page=newsletters-members">(all)</a>' : ''; ?>
+                            <?php _e( 'Groups', 'email-newsletter' ) ?><?php echo isset( $filter ) ? ' <a href="admin.php?page=newsletters-members">(all)</a>' : ''; ?>
                         </th>
                         <th>
                             <?php _e( 'Actions', 'email-newsletter' ) ?>

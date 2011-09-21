@@ -8,7 +8,7 @@
     }
 
 ?>
-    <script language="JavaScript">
+    <script type="text/javascript">
         jQuery( document ).ready( function() {
             //Save Newsletter action
             jQuery( "#add_group" ).click( function() {
@@ -101,7 +101,7 @@
                 <tr>
                     <td>
                         <?php _e( 'Group Name:', 'email-newsletter' ) ?><span class="required">*</span>
-                        <input type="text" class="input" name="group_name" id="group_name" value="<?php echo htmlspecialchars($newsletter_data['subject']);?>" size="30" />
+                        <input type="text" class="input" name="group_name" id="group_name" value="" size="30" />
                         <label>
                             <input type="checkbox" name="public" id="public" value="1" /> <?php _e( 'public users can join this group', 'email-newsletter' ) ?>
                         </label>

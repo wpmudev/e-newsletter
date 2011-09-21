@@ -19,7 +19,7 @@
 
 ?>
 
-    <script language="JavaScript">
+    <script type="text/javascript">
 
         function simple_tooltip(target_items, name){
             jQuery(target_items).each(function(i){
@@ -307,15 +307,12 @@
             </div><!--/#newsletter-tabs-->
 
             <br />
-            <?php if ( "install" != $mode ) { ?>
+            <?php if ( isset( $mode ) && "install" != $mode ) { ?>
                 <input type="button" name="save" value="<?php _e( 'Save all Settings', 'email-newsletter' ) ?>" />
             <?php } else { ?>
                 <input type="button" name="save" value="<?php _e( 'Save and Continue', 'email-newsletter' ) ?>" />
             <?php } ?>
 
         </form>
-
-
-
 
     </div><!--/wrap-->
