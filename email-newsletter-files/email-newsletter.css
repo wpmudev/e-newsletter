@@ -327,8 +327,8 @@ Email-Newsletter CSS Styles
     border: 1px solid #666666;
     color:#fff;
     -moz-border-radius: 4px;
-
 }
+
 .qq-upload-button-hover {
     background: url("images/444444_40x100_textures_03_highlight_soft_60.png") repeat-x scroll 50% 50% #444444;
 }
@@ -369,16 +369,26 @@ Email-Newsletter CSS Styles
     -moz-border-radius-bottomright: 4px;
     display: none;
     width: 95%;
-
 }
 
 #panel form {
     border-right: solid 4px #555;
     border-left: solid 4px #555;
-    padding: 20px;
-
-
+    padding: 0px 20px 0px 20px;
 }
+
+#panel .create_mamber {
+    width: 430px;
+    border-right: solid 1px #555;
+    padding: 10px 40px 10px 0px;
+    margin : 0px 10px 0px 20px;
+}
+
+#panel .import_members {
+    padding: 10px 0px 10px 0px;
+    margin : 0px 20px 0px 20px;
+}
+
 .slide {
     margin: 0;
     padding: 0;
@@ -396,7 +406,6 @@ Email-Newsletter CSS Styles
     display: block;
     color: #fff !important;
     font-weight: bold;
-
 }
 
 .btn-slide:hover {
@@ -441,4 +450,8 @@ vertical-align: middle !important;
 .newsletter_table_center td {
     text-align: center;
     vertical-align: middle;
+}
+
+.newsletter_error {
+    background: #FFEBE8;
 }

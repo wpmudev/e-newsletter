@@ -592,7 +592,12 @@ class Email_Newsletter_functions {
     function get_members( $arg = "") {
         global $wpdb;
 
-        $orderby = "";
+        $orderby    = "";
+        $limit      = "";
+
+        if ( isset( $arg['limit'] ) ) {
+            $limit = $arg['limit'];
+        }
 
         if ( isset( $arg['orderby'] ) ) {
             $orderby = "ORDER BY ". $arg['orderby'];
@@ -600,7 +605,7 @@ class Email_Newsletter_functions {
                 $orderby .= " ". $arg['order'];
         }
 
-        $results = $wpdb->get_results(  $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members ". $orderby  ), "ARRAY_A" );
+        $results = $wpdb->get_results(  $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members ". $orderby . $limit ), "ARRAY_A" );
 
         if ( $results )
                 foreach( $results as $member ) {
@@ -618,10 +623,10 @@ class Email_Newsletter_functions {
     /**
      * Get all members of Group
      **/
-    function get_members_of_group( $group_id ) {
+    function get_members_of_group( $group_id, $limit = '' ) {
         global $wpdb;
         $members = NULL;
-        $results =  $wpdb->get_results( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_member_group WHERE group_id = %d", $group_id ), "ARRAY_A" );
+        $results =  $wpdb->get_results( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_member_group WHERE group_id = %d" . $limit , $group_id ), "ARRAY_A" );
         foreach( $results as $member ){
             $members[] = $member['member_id'];
         }
@@ -775,6 +780,127 @@ class Email_Newsletter_functions {
     <?php
     }
 
+    /**
+     * import members
+     **/
+    function import_members() {
+        $upload_dir = wp_upload_dir();
+        $upload_dir = $upload_dir['basedir'] . '/';
+
+        // .csv full file name
+        $file = $upload_dir . $_FILES['import_members_file']['name'];
+
+        if ( is_writable( $upload_dir ) ) {
+            if ( move_uploaded_file( $_FILES['import_members_file']['tmp_name'], $file ) ) {
+                $f = fopen( $file, 'rt' ) or wp_die( 'error!' );
+
+                //Set Separation sign
+                if ( isset( $_REQUEST['separ_sign'] ) &&  1 == $_REQUEST['separ_sign'] )
+                    $separ_sign = ';';
+                elseif ( isset( $_REQUEST['separ_sign'] ) &&  2 == $_REQUEST['separ_sign'] )
+                    $separ_sign = ',';
+                else
+                    $separ_sign = ';';
+
+                // read file and write all to array
+                for ( $i = 0; $data = fgetcsv( $f, 1000, $separ_sign ); $i++ ) {
+                    $num = count( $data );
+
+                    for ( $c = 0; $c < $num; $c++ )
+                        $a[$c] = $data[$c];
+
+                    $import_data[] = $a;
+                }
+                fclose( $f );
+                unlink( $file );
+
+                //write data to member table
+                if ( is_array( $import_data ) ) {
+                    global $wpdb;
+                    $i = 0;
+                    foreach( $import_data as $data ) {
+                        $unsubscribe_code = $this->gen_unsubscribe_code();
+                        $email = $data[0];
+                        $fname = ( isset( $data[1] ) ) ? $data[1] : '';
+                        $lname = ( isset( $data[2] ) ) ? $data[2] : '';
+
+                        if ( isset( $_REQUEST['import_groups_id'] ) && is_array( $_REQUEST['import_groups_id'] ) )
+                            $import_groups_id = $_REQUEST['import_groups_id'];
+
+                        $result = $wpdb->get_var( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE member_email = %s", $email ) );
+
+                        if ( 0 < $result ) {
+                            //email of member already exist
+                            $exist_members[] = $email;
+                        } else {
+                            //create new member
+                            $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_members SET
+                                    wp_user_id = 0,
+                                    member_email = %s,
+                                    member_fname = %s,
+                                    member_lname = %s,
+                                    join_date = %d,
+                                    unsubscribe_code = '%s'
+                                 ", $email, $fname, $lname, time(), $unsubscribe_code ) );
+
+                            $member_id = $wpdb->insert_id;
+
+                            //creating new list of groups for user
+                            if ( isset( $import_groups_id ) )
+                                foreach( $import_groups_id as $group_id )
+                                    $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
+
+                            $i++;
+                        }
+                    }
+                }
+
+                $dmsg = '';
+
+                if ( 0 < $i )
+                    $dmsg .=  __( 'Import finished successfully,', 'email-newsletter' ) . ' ' . $i . ' ' . __( 'members were added.', 'email-newsletter' );
+
+                if ( isset( $exist_members ) && is_array( $exist_members ) ) {
+                    $dmsg .= '<br />' . __( 'These emails already exist in member list:', 'email-newsletter' ) . '<br />';
+                    foreach($exist_members as $exist_member )
+                        $dmsg .= $exist_member . '<br />';
+                }
+
+                wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( $dmsg ) ), 'admin.php' ) );
+                exit;
+
+            } else {
+                wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( __( 'Import: There some errors!', 'email-newsletter' ) ) ), 'admin.php' ) );
+                exit;
+            }
+        } else {
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( __( 'Import ERROR: Please change permission for the folder /wp-contant/uploads/', 'email-newsletter' ) ) ), 'admin.php' ) );
+            exit;
+        }
+    }
+
+
+    /**
+     * Get pagination data
+     **/
+    function get_pagination_data( $count, $per_page ) {
+            if ( $count > $per_page ) {
+                $pagination_data['count'] = $count;
+
+                if ( isset( $_REQUEST['cpage'] ) && 0 < $_REQUEST['cpage'] )
+                    $pagination_data['cpage'] = $_REQUEST['cpage'];
+                else
+                    $pagination_data['cpage'] = 1;
+
+                $pagination_data['cpage_str'] = '&cpage=' . $pagination_data['cpage'];
+                $start = ( $pagination_data['cpage'] - 1 ) * $per_page;
+                $pagination_data['limit'] = ' LIMIT ' . $start . ',' . $per_page;
+
+                return $pagination_data;
+            }
+
+        return NULL;
+    }
 
 }
 ?>

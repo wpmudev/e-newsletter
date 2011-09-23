@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.0.7.3
+Version: 1.0.7.4
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -268,6 +268,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
                         $this->send_newsletter( $_REQUEST['newsletter_id'] );
                 break;
 
+                //action import members
+                case "import_members":
+                    $this->import_members();
+                break;
+
             }
         }
     }
@@ -472,7 +477,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $this->do_double_opt_in( $member_id );
             } else {
                 //creating new list of groups for user
-                if ( is_array( $member_data['groups_id'] ) )
+                if ( isset( $member_data['groups_id'] ) && is_array( $member_data['groups_id'] ) )
                     foreach( $member_data['groups_id'] as $group_id )
                         $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
             }
