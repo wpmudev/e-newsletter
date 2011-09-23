@@ -717,6 +717,39 @@ class Email_Newsletter_functions {
     }
 
     /**
+     * Bulk option -  add member to group
+     **/
+    function add_members_group( $members_id, $group_id ) {
+        global $wpdb;
+
+        if ( 0 < $group_id ) {
+            foreach( $members_id as $member_id ) {
+                $result = $wpdb->get_var( $wpdb->prepare( "SELECT group_id FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d AND group_id = %d", $member_id, $group_id ) );
+
+                if ( ! $result )
+                    $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
+            }
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( __( 'Members are added to the group!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            exit;
+        }
+    }
+
+    /**
+     * Bulk option -  delete member from group
+     **/
+    function delete_members_group( $members_id, $group_id ) {
+        global $wpdb;
+
+        if ( 0 < $group_id ) {
+            foreach( $members_id as $member_id )
+                $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d AND group_id = %d", $member_id, $group_id ) );
+
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( __( 'Members are deleted from the group!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            exit;
+        }
+    }
+
+    /**
      * Get all groups for memeber
      **/
      function get_memeber_groups( $member_id ) {
@@ -858,7 +891,7 @@ class Email_Newsletter_functions {
                 $dmsg = '';
 
                 if ( 0 < $i )
-                    $dmsg .=  __( 'Import finished successfully,', 'email-newsletter' ) . ' ' . $i . ' ' . __( 'members were added.', 'email-newsletter' );
+                    $dmsg .=  __( 'Import is finished successfully,', 'email-newsletter' ) . ' ' . $i . ' ' . __( 'members are added.', 'email-newsletter' );
 
                 if ( isset( $exist_members ) && is_array( $exist_members ) ) {
                     $dmsg .= '<br />' . __( 'These emails already exist in member list:', 'email-newsletter' ) . '<br />';
@@ -870,7 +903,7 @@ class Email_Newsletter_functions {
                 exit;
 
             } else {
-                wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( __( 'Import: There some errors!', 'email-newsletter' ) ) ), 'admin.php' ) );
+                wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( __( 'Import ERROR: Problem with uploading of the file!', 'email-newsletter' ) ) ), 'admin.php' ) );
                 exit;
             }
         } else {
@@ -884,6 +917,9 @@ class Email_Newsletter_functions {
      * Get pagination data
      **/
     function get_pagination_data( $count, $per_page ) {
+            if ( 'all' == $per_page )
+                $per_page = 100000;
+
             if ( $count > $per_page ) {
                 $pagination_data['count'] = $count;
 

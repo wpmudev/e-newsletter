@@ -14,7 +14,11 @@
 
 
     //Pagination option
-    $per_page = 5;
+    if ( isset( $_REQUEST['per_page'] ) )
+        $per_page = $_REQUEST['per_page'];
+    else
+        $per_page = 15;
+
 
     //pagination for non filter
     if ( ! isset( $_REQUEST['filter'] ) ) {
@@ -149,12 +153,33 @@
             jQuery( "#apply" ).click( function() {
                 if ( -1 == jQuery( "#some_action" ).val() ) {
                     return false;
+                } else if ( ( 'add_members_group' == jQuery( "#some_action" ).val() || 'delete_members_group' == jQuery( "#some_action" ).val() )
+                                && -1 == jQuery( "#list_group_id" ).val() ) {
+                    return false;
                 }
 
                 jQuery( "#newsletter_action" ).val( jQuery( "#some_action" ).val() );
                 jQuery( "#form_members" ).submit();
-
+                return false;
             });
+
+            //show/hide select box of groups list
+            jQuery( "#some_action" ).change( function() {
+                if ( 'add_members_group' == jQuery( "#some_action" ).val() || 'delete_members_group' == jQuery( "#some_action" ).val() ) {
+                    jQuery( "#list_group_id" ).show();
+                } else {
+                    jQuery( "#list_group_id" ).hide();
+                }
+            });
+
+
+            //change per page count
+            jQuery( "#per_page" ).change( function() {
+                jQuery( "#newsletter_action" ).val( '' );
+                jQuery( "#form_members" ).submit();
+                return false;
+            });
+
 
             jQuery(".btn-slide").click(function(){
                 jQuery("#panel").slideToggle("slow");
@@ -189,7 +214,7 @@
                             <table class="create_mamber">
                                 <tr>
                                     <td colspan="2">
-                                        <h3><?php _e( 'Create new member:', 'email-newsletter' ) ?></h3>
+                                        <h3><?php _e( 'Create the new member:', 'email-newsletter' ) ?></h3>
                                     </td>
                                 </tr>
                                 <tr>
@@ -250,7 +275,7 @@
                                 </tr>
                                 <tr>
                                     <td colspan="2">
-                                       <span class="description"><?php _e( 'Note: The file should be have the next columns: Email (required), First Name (not required), Last Name (not required).', 'email-newsletter' ) ?></span>
+                                       <span class="description"><?php _e( 'Note: The file should have the next columns: Email (required), First Name (not required), Last Name (not required). Without headers.', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr id="import_file_line">
@@ -316,37 +341,37 @@
                             <input type="checkbox">
                         </th>
                         <th class="manage-column column-name <?php echo "member_email" == $_REQUEST['orderby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
-                            <a href="admin.php?page=newsletters-members&orderby=member_email&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
+                            <a href="admin.php?page=newsletters-members&orderby=member_email&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ?><?php echo '&per_page=' . $per_page ?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
                                 <span><?php _e( 'Email Address', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th class="manage-column column-name <?php echo "member_fname" == $_REQUEST['orderby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
-                            <a href="admin.php?page=newsletters-members&orderby=member_fname&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
+                            <a href="admin.php?page=newsletters-members&orderby=member_fname&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo '&per_page=' . $per_page ?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
                                 <span><?php _e( 'Name', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th class="manage-column column-name <?php echo "join_date" == $_REQUEST['orderby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
-                            <a href="admin.php?page=newsletters-members&orderby=join_date&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
+                            <a href="admin.php?page=newsletters-members&orderby=join_date&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo '&per_page=' . $per_page ?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
                                 <span><?php _e( 'Join Date', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th class="manage-column column-name <?php echo "count_sent" == $_REQUEST['sortby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
-                            <a href="admin.php?page=newsletters-members&sortby=count_sent&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
+                            <a href="admin.php?page=newsletters-members&sortby=count_sent&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo '&per_page=' . $per_page ?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
                                 <span><?php _e( 'Number Sent', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th class="manage-column column-name <?php echo "count_opened" == $_REQUEST['sortby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
-                            <a href="admin.php?page=newsletters-members&sortby=count_opened&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
+                            <a href="admin.php?page=newsletters-members&sortby=count_opened&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo '&per_page=' . $per_page ?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
                                 <span><?php _e( 'Number Opened', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th>
-                            <?php _e( 'Groups', 'email-newsletter' ) ?><?php echo isset( $filter ) ? ' <a href="admin.php?page=newsletters-members">(all)</a>' : ''; ?>
+                            <?php _e( 'Groups', 'email-newsletter' ) ?><?php echo isset( $filter ) ? ' <a href="admin.php?page=newsletters-members&per_page=' . $per_page . '">(all)</a>' : ''; ?>
                         </th>
                         <th>
                             <?php _e( 'Actions', 'email-newsletter' ) ?>
@@ -391,13 +416,13 @@
                         if ( "" != $member['unsubscribe_code'] ) {
                             $groups_id = $this->get_memeber_groups( $member['member_id'] );
                             if ( $groups_id ) {
-                                $groups = "";
+                                $memeber_groups = "";
                                 foreach ( $groups_id as $group_id) {
                                     $group  = $this->get_group_by_id( $group_id );
-                                    $groups .= '<a href="admin.php?page=newsletters-members&filter=group&group_id=' . $group['group_id'] . '" >' . $group['group_name'] . '</a>, ';
+                                    $memeber_groups .= '<a href="admin.php?page=newsletters-members&filter=group&group_id=' . $group['group_id'] . '&per_page=' . $per_page . '" >' . $group['group_name'] . '</a>, ';
 
                                 }
-                                echo substr( $groups, 0, strlen( $groups )-2 );
+                                echo substr( $memeber_groups, 0, strlen( $memeber_groups )-2 );
                             }
                         } else {
                             echo '<a href="admin.php?page=newsletters-members&filter=unsubscribed"><span class="red" >' . __( 'Unsubscribed', 'email-newsletter' ) . '</span></a>';
@@ -417,12 +442,45 @@
             <div class="tablenav bottom">
                 <div class="alignleft actions">
                     <select name="some_action" id="some_action">
-                    <option selected="selected" value="-1"><?php _e( 'Bulk Actions', 'email-newsletter' ) ?></option>
+                        <option selected="selected" value="-1"><?php _e( 'Bulk Actions', 'email-newsletter' ) ?></option>
+
+                        <?php if ( $groups ): ?>
+                        <option value="add_members_group"><?php _e( 'Add to group', 'email-newsletter' ) ?></option>
+                        <option value="delete_members_group"><?php _e( 'Delete from group', 'email-newsletter' ) ?></option>
+                        <?php endif; ?>
+
                         <option value="delete_members"><?php _e( 'Delete', 'email-newsletter' ) ?></option>
                     </select>
+
+                    <?php if ( $groups ): ?>
+                    <select name="list_group_id" id="list_group_id" style="display: none;">
+                        <option selected="selected" value="-1"> <?php _e( 'Group List', 'email-newsletter' ) ?> </option>
+                        <?php foreach( $groups as $group ) : ?>
+                            <option value="<?php echo $group['group_id'];?>">
+                            <?php echo ( $group['public'] ) ? $group['group_name'] .' (public)' : $group['group_name']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php endif; ?>
+
                     <input type="button" value="<?php _e( 'Apply', 'email-newsletter' ) ?>" id="apply" class="button-secondary action" name="">
                 </div>
-                <?php
+
+                <div class="tablenav-pages">
+                    <span class="displaying-num">
+                        <?php echo ( isset( $members_pagination ) ) ? $members_pagination['count'] : $count; ?> <?php _e( 'member(s)', 'email-newsletter' ) ?>
+                        <?php _e( 'by', 'email-newsletter' ) ?>
+                        <select name="per_page" id="per_page">
+                            <option value="15" <?php echo ( 15 == $per_page ) ? 'selected' : ''; ?> >15</option>
+                            <option value="30" <?php echo ( 30 == $per_page ) ? 'selected' : ''; ?> >30</option>
+                            <option value="50" <?php echo ( 50 == $per_page ) ? 'selected' : ''; ?> >50</option>
+                            <option value="100" <?php echo ( 100 == $per_page ) ? 'selected' : ''; ?> >100</option>
+                            <option value="all" <?php echo ( 'all' == $per_page ) ? 'selected' : ''; ?> ><?php _e( 'All', 'email-newsletter' ) ?></option>
+                        </select>
+                        <?php _e( 'per page.', 'email-newsletter' ) ?>
+                    </span>
+
+                    <?php
                     if ( isset( $members_pagination ) && is_array( $members_pagination ) ):
 
                         //count page count before and after current
@@ -456,10 +514,10 @@
 
                         if ( isset( $_REQUEST['order'] ) )
                             $URL .= '&order=' . $_REQUEST['order'];
+                            $URL .= '&per_page=' . $per_page;
 
-                ?>
-                    <div class="tablenav-pages">
-                        <span class="displaying-num"><?php echo $members_pagination['count']; ?> <?php _e( 'member', 'email-newsletter' ) ?></span>
+                        ?>
+
                         <span class="pagination-links">
                         <?php
                             if ( $members_pagination['cpage'] > 1 ) {
@@ -491,9 +549,8 @@
                             }
                         ?>
                         </span>
-                    </div>
-
-                <?php endif;?>
+                    <?php endif;?>
+                </div>
             </div>
         </form>
 

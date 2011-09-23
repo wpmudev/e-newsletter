@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.0.7.4
+Version: 1.0.8
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -239,7 +239,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 //action for change group
                 case "change_group":
-                    $this->change_group( $_REQUEST['member_id'], $_REQUEST['groups_id'] );
+                    $groups_id = ( isset( $_REQUEST['groups_id'] ) ) ? $_REQUEST['groups_id'] : NULL;
+                    $this->change_group( $_REQUEST['member_id'], $groups_id );
                 break;
 
                 //action add new member
@@ -247,9 +248,19 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $this->add_member( $_REQUEST['member'] );
                 break;
 
-                //action delete members
+                //Bulk action delete members
                 case "delete_members":
                     $this->delete_members( $_REQUEST['members_id'] );
+                break;
+
+                //Bulk action add members to group
+                case "add_members_group":
+                    $this->add_members_group( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
+                break;
+
+                //Bulk action add members to group
+                case "delete_members_group":
+                    $this->delete_members_group( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
                 break;
 
                 //action save settings

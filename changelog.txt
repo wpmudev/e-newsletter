@@ -5,17 +5,12 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
-
-= 1.0.7.4 =
-- added feature for import members
-- added members pagination
-
-
-= 1.0.7.3 =
+= 1.0.8 =
 - fixed notice
 - changed widget's scripts
-
-
+- added feature for import members
+- added pagination on members page
+- added new bulk option as assign multiple users with group
 
 = 1.0.7.2 =
 * fixed upload file 
