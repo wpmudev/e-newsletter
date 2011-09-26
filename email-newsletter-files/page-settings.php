@@ -50,6 +50,39 @@
                 jQuery( "#settings_form" ).submit();
             });
 
+            //install plugin data
+            jQuery( "#install" ).click( function() {
+                if ( "" == jQuery( "#smtp_host" ).val() && jQuery( "#smtp_method" ).attr( 'checked' ) ) {
+                    alert('<?php _e( 'Please write SMTP Outgoing Server, or select another Sending Method!', 'email-newsletter' ) ?>');
+                    return false;
+                }
+
+                jQuery( "#newsletter_action" ).val( "install" );
+                jQuery( "#settings_form" ).submit();
+                return false;
+
+            });
+
+
+
+            //uninstall plugin data
+            jQuery( "#uninstall_yes" ).click( function() {
+                jQuery( "#newsletter_action" ).val( "uninstall" );
+                jQuery( "#settings_form" ).submit();
+                return false;
+
+            });
+
+            jQuery( "#uninstall" ).click( function() {
+                jQuery( "#uninstall_confirm" ).show( );
+                return false;
+            });
+
+            jQuery( "#uninstall_no" ).click( function() {
+                jQuery( "#uninstall_confirm" ).hide( );
+                return false;
+            });
+
 
 
             jQuery(".tooltip_img[title]").tooltip();
@@ -131,6 +164,9 @@
                         <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-1"><?php _e( 'General Settings', 'email-newsletter' ) ?></a></li>
                         <li class="ui-state-default ui-corner-top"><a href="#tabs-2"><?php _e( 'Outgoing Email Settings', 'email-newsletter' ) ?></a></li>
                         <li class="ui-state-default ui-corner-top"><a href="#tabs-3"><?php _e( 'Bounce Settings', 'email-newsletter' ) ?></a></li>
+                        <?php if ( ! isset( $mode ) || "install" != $mode ): ?>
+                        <li class="ui-state-default ui-corner-top"><a href="#tabs-4"><?php _e( 'Uninstall', 'email-newsletter' ) ?></a></li>
+                        <?php endif; ?>
                     </ul>
 
                     <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-1">
@@ -299,18 +335,42 @@
                                 </tr>
                             </tbody>
                         </table>
-
                     </div>
+
+                    <?php if ( ! isset( $mode ) || "install" != $mode ): ?>
+                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-4">
+                        <h3><?php _e( 'Uninstall', 'email-newsletter' ) ?></h3>
+                        <p><?php _e( 'Here you can delete all data associated with the plugin from the database.', 'email-newsletter' ) ?></p>
+                        <table cellpadding="5">
+                            <tbody>
+                                <tr>
+                                    <td></td>
+                                    <td>
+                                        <br />
+                                        <input type="button" name="uninstall" id="uninstall" value="<?php _e( 'Delete data', 'email-newsletter' ) ?>" />
+                                        <span class="description" style="color: red;"><?php _e( "Delete all plugin's data from DB.", 'email-newsletter' ) ?></span>
+                                        <div id="uninstall_confirm" style="display: none;">
+                                            <span class="description"><?php _e( 'Are you sure?', 'email-newsletter' ) ?></span>
+                                            <br />
+                                            <input type="button" name="uninstall" id="uninstall_no" value="<?php _e( 'No', 'email-newsletter' ) ?>" />
+                                            <input type="button" name="uninstall" id="uninstall_yes" value="<?php _e( 'Yes', 'email-newsletter' ) ?>" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <?php endif; ?>
 
                 </div><!--/#tabs-->
 
             </div><!--/#newsletter-tabs-->
 
             <br />
-            <?php if ( isset( $mode ) && "install" != $mode ) { ?>
-                <input type="button" name="save" value="<?php _e( 'Save all Settings', 'email-newsletter' ) ?>" />
+            <?php if ( isset( $mode ) && "install" == $mode ) { ?>
+                <input type="button" name="install" id="install" value="<?php _e( 'Install', 'email-newsletter' ) ?>" />
             <?php } else { ?>
-                <input type="button" name="save" value="<?php _e( 'Save and Continue', 'email-newsletter' ) ?>" />
+                <input type="button" name="save" value="<?php _e( 'Save all Settings', 'email-newsletter' ) ?>" />
             <?php } ?>
 
         </form>

@@ -938,5 +938,206 @@ class Email_Newsletter_functions {
         return NULL;
     }
 
+
+
+    /**
+     * Install of plugin - creating tables in DB
+     **/
+    function install( $blog_id = '' ) {
+        global $wpdb;
+
+        if ( function_exists( 'is_multisite' ) && is_multisite() && 0 !== $blog_id && isset( $_GET['networkwide'] ) && $_GET['networkwide'] == 1 ) {
+                $blogids = $wpdb->get_col( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs" ) );
+        } else {
+            if ( 0 !== $blog_id )
+                $blogids[] = $wpdb->blogid;
+            else
+                $blogids[] = $blog_id;
+        }
+
+        foreach ( $blogids as $blog_id ) {
+            //Checking DB prefix
+            if ( 1 < $blog_id )
+                $tb_prefix = $wpdb->base_prefix . $blog_id . '_';
+            else
+                $tb_prefix = $wpdb->base_prefix;
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_newsletters'" ) != "{$tb_prefix}enewsletter_newsletters" ) {
+
+                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_newsletters` (
+                    `newsletter_id` int(11) NOT NULL auto_increment,
+                    `create_date` int(11) NOT NULL,
+                    `template` varchar(100) NOT NULL,
+                    `subject` varchar(255) NOT NULL,
+                    `from_name` varchar(255) NOT NULL,
+                    `from_email` varchar(255) NOT NULL,
+                    `content` text NOT NULL,
+                    `contact_info` varchar(255) NOT NULL,
+                    `bounce_email` varchar(255) NOT NULL,
+                    PRIMARY KEY (`newsletter_id`)
+                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
+
+                $result = $wpdb->query( $enewsletter_table );
+            }
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_send'" ) != "{$tb_prefix}enewsletter_send" ) {
+
+                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_send` (
+                    `send_id` int(11) NOT NULL auto_increment,
+                    `newsletter_id` int(11) NOT NULL,
+                    `start_time` int(11) DEFAULT '0',
+                    `end_time` int(11) DEFAULT '0',
+                    `email_body` text,
+                    PRIMARY KEY (`send_id`)
+                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
+
+                $result = $wpdb->query( $enewsletter_table );
+            }
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_send_members'" ) != "{$tb_prefix}enewsletter_send_members" ) {
+
+                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_send_members` (
+                    `send_id` int(11) NOT NULL,
+                    `member_id` int(11) NOT NULL,
+                    `status` varchar(15),
+                    `opened_time` int(11) DEFAULT '0',
+                    `bounce_time` int(11) DEFAULT '0'
+                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
+
+                $result = $wpdb->query( $enewsletter_table );
+            }
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_groups'" ) != "{$tb_prefix}enewsletter_groups" ) {
+
+                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_groups` (
+                    `group_id` int(11) NOT NULL auto_increment,
+                    `group_name` varchar(255) NOT NULL,
+                    `public` varchar(1) NOT NULL,
+                    PRIMARY KEY (`group_id`)
+                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
+
+                $result = $wpdb->query( $enewsletter_table );
+            }
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_member_group'" ) != "{$tb_prefix}enewsletter_member_group" ) {
+
+                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_member_group` (
+                    `member_id` int(11) NOT NULL,
+                    `group_id` int(11) NOT NULL
+                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
+
+                $result = $wpdb->query( $enewsletter_table );
+            }
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_members'" ) != "{$tb_prefix}enewsletter_members" ) {
+
+                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_members` (
+                    `member_id` int(11) NOT NULL auto_increment,
+                    `wp_user_id` int(11) DEFAULT '0',
+                    `member_fname` varchar(255),
+                    `member_lname` varchar(255),
+                    `member_email` varchar(255) NOT NULL,
+                    `join_date` int(11) NOT NULL,
+                    `member_info` text,
+                    `unsubscribe_code` varchar(20),
+                    PRIMARY KEY (`member_id`)
+                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
+                $result = $wpdb->query( $enewsletter_table );
+
+                //Sync exist wp users
+                $arg = array (
+                    'blog_id' => $blog_id
+                );
+                $users = get_users( $arg );
+                if ( $users )
+                    foreach( $users as $user ) {
+                        $unsubscribe_code = $this->gen_unsubscribe_code();
+                        $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$tb_prefix}enewsletter_members SET
+                            wp_user_id = %d,
+                            member_fname = %s,
+                            member_email = %s,
+                            join_date = %d,
+                            unsubscribe_code = '%s'
+                         ", $user->ID, $user->user_nicename, $user->user_email, time(), $unsubscribe_code ) );
+                    }
+
+            }
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_settings'" ) != "{$tb_prefix}enewsletter_settings" ) {
+
+                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_settings` (
+                    `key` varchar(255) NOT NULL,
+                    `value` varchar(255) NOT NULL,
+                    PRIMARY KEY (`key`)
+                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
+
+                $result = $wpdb->query( $enewsletter_table );
+            }
+
+        }
+    }
+
+
+    /**
+     * Deleting tables from DB
+     **/
+    function uninstall( $blog_id = '' ) {
+        global $wpdb;
+
+        if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id  && $_GET['networkwide'] == 1 ) {
+                $blogids = $wpdb->get_col( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs" ) );
+        } else {
+            if ( 0 !== $blog_id )
+                $blogids[] = $wpdb->blogid;
+            else
+                $blogids[] = $blog_id;
+        }
+
+        foreach ( $blogids as $blog_id ) {
+            //Checking DB prefix
+            if ( 1 < $blog_id )
+                $tb_prefix = $wpdb->base_prefix . $blog_id . '_';
+            else
+                $tb_prefix = $wpdb->base_prefix;
+
+            //Delete all CRON actions
+            if ( wp_next_scheduled( 'e_newsletter_cron_send' . $wpdb->blogid ) )
+                wp_clear_scheduled_hook( 'e_newsletter_cron_send' . $wpdb->blogid );
+
+            if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_1' . $wpdb->blogid ) )
+                wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_1' . $wpdb->blogid );
+
+            if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid ) )
+                wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid );
+
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_newsletters'" ) == "{$tb_prefix}enewsletter_newsletters" )
+                $wpdb->query("DROP TABLE IF EXISTS {$tb_prefix}enewsletter_newsletters");
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_send'" ) == "{$tb_prefix}enewsletter_send" )
+                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_send" );
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_send_members'" ) == "{$tb_prefix}enewsletter_send_members" )
+                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_send_members" );
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_groups'" ) == "{$tb_prefix}enewsletter_groups" )
+                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_groups" );
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_member_group'" ) == "{$tb_prefix}enewsletter_member_group" )
+                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_member_group" );
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_members'" ) == "{$tb_prefix}enewsletter_members" )
+                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_members" );
+
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_settings'" ) == "{$tb_prefix}enewsletter_settings" )
+                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_settings" );
+
+        }
+
+    }
+
+
+
+
 }
 ?>

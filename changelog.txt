@@ -5,12 +5,16 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.0.8.1 =
+* added new tab of Settings as "Uninstall" - for delete data from DB (data is not lost after deactivation of the plugin).
+* changed HTML for widget.
+
 = 1.0.8 =
-- fixed notice
-- changed widget's scripts
-- added feature for import members
-- added pagination on members page
-- added new bulk option as assign multiple users with group
+* fixed notice
+* changed widget's scripts
+* added feature for import members
+* added pagination on members page
+* added new bulk option as assign multiple users with group
 
 = 1.0.7.2 =
 * fixed upload file 

@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.0.8
+Version: 1.0.8.1
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -77,10 +77,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
             wp_die( __('There was an issue determining where WPMU DEV Update Notifications is installed. Please reinstall.', 'email-newsletter' ) );
         }
 
-
-        register_activation_hook ( __FILE__, array( &$this, 'activation' ) );
-        register_deactivation_hook ( __FILE__, array( &$this, 'deactivation' ) );
-
         load_plugin_textdomain( 'email-newsletter', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
         //get all setting of plugin
@@ -108,8 +104,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             add_action( 'remove_user_from_blog', array( &$this, 'user_remove_from_site' ) );
             add_action( 'wpmu_delete_user', array( &$this, 'user_delete' ) );
 
-            add_action('wpmu_new_blog', array( &$this, 'activation' ) );
-            add_action('delete_blog', array( &$this, 'deactivation' ) );
+            add_action('delete_blog', array( &$this, 'uninstall' ) );
 
         }
 
@@ -232,7 +227,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $this->create_group( $_REQUEST['edit_group_name'], $edit_public, $_REQUEST['group_id'] );
                 break;
 
-                //action for dlete group
+                //action for delete group
                 case "delete_group":
                     $this->delete_group( $_REQUEST['group_id'] );
                 break;
@@ -271,7 +266,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $this->save_settings( $_REQUEST['settings'] );
                 break;
 
-                //action save settings
+                //action send newsletter
                 case "send_newsletter":
                     if ( isset( $_REQUEST['cron'] ) && 'add_to_cron' == $_REQUEST['cron'] )
                         $this->add_to_cron( $_REQUEST['newsletter_id'], $_REQUEST['send_id'] );
@@ -282,6 +277,22 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 //action import members
                 case "import_members":
                     $this->import_members();
+                break;
+
+                //action install data in DB
+                case "install":
+                    $this->install();
+                    if( ! isset( $_REQUEST['settings']['double_opt_in'] ) ) {
+                        $_REQUEST['settings']['double_opt_in'] = 0;
+                    }
+                    $this->save_settings( $_REQUEST['settings'] );
+                break;
+
+                //action uninstall data from DB
+                case "uninstall":
+                    $this->uninstall();
+                    wp_redirect( add_query_arg( array( 'page' => 'newsletters-settings', 'updated' => 'true', 'dmsg' => urlencode( __( "Plugin's data are deleted.", 'email-newsletter' ) ) ), 'admin.php' ) );
+                    exit;
                 break;
 
             }
@@ -1170,201 +1181,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         }
     }
 
-    /**
-     * Install of plugin
-     **/
-    function activation( $blog_id = '' ) {
-        global $wpdb;
-
-        if ( function_exists( 'is_multisite' ) && is_multisite() && 0 !== $blog_id && isset( $_GET['networkwide'] ) && $_GET['networkwide'] == 1 ) {
-                $blogids = $wpdb->get_col( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs" ) );
-        } else {
-            if ( 0 !== $blog_id )
-                $blogids[] = $wpdb->blogid;
-            else
-                $blogids[] = $blog_id;
-        }
-
-        foreach ( $blogids as $blog_id ) {
-            //Checking DB prefix
-            if ( 1 < $blog_id )
-                $tb_prefix = $wpdb->base_prefix . $blog_id . '_';
-            else
-                $tb_prefix = $wpdb->base_prefix;
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_newsletters'" ) != "{$tb_prefix}enewsletter_newsletters" ) {
-
-                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_newsletters` (
-                    `newsletter_id` int(11) NOT NULL auto_increment,
-                    `create_date` int(11) NOT NULL,
-                    `template` varchar(100) NOT NULL,
-                    `subject` varchar(255) NOT NULL,
-                    `from_name` varchar(255) NOT NULL,
-                    `from_email` varchar(255) NOT NULL,
-                    `content` text NOT NULL,
-                    `contact_info` varchar(255) NOT NULL,
-                    `bounce_email` varchar(255) NOT NULL,
-                    PRIMARY KEY (`newsletter_id`)
-                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
-
-                $result = $wpdb->query( $enewsletter_table );
-            }
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_send'" ) != "{$tb_prefix}enewsletter_send" ) {
-
-                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_send` (
-                    `send_id` int(11) NOT NULL auto_increment,
-                    `newsletter_id` int(11) NOT NULL,
-                    `start_time` int(11) DEFAULT '0',
-                    `end_time` int(11) DEFAULT '0',
-                    `email_body` text,
-                    PRIMARY KEY (`send_id`)
-                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
-
-                $result = $wpdb->query( $enewsletter_table );
-            }
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_send_members'" ) != "{$tb_prefix}enewsletter_send_members" ) {
-
-                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_send_members` (
-                    `send_id` int(11) NOT NULL,
-                    `member_id` int(11) NOT NULL,
-                    `status` varchar(15),
-                    `opened_time` int(11) DEFAULT '0',
-                    `bounce_time` int(11) DEFAULT '0'
-                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
-
-                $result = $wpdb->query( $enewsletter_table );
-            }
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_groups'" ) != "{$tb_prefix}enewsletter_groups" ) {
-
-                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_groups` (
-                    `group_id` int(11) NOT NULL auto_increment,
-                    `group_name` varchar(255) NOT NULL,
-                    `public` varchar(1) NOT NULL,
-                    PRIMARY KEY (`group_id`)
-                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
-
-                $result = $wpdb->query( $enewsletter_table );
-            }
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_member_group'" ) != "{$tb_prefix}enewsletter_member_group" ) {
-
-                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_member_group` (
-                    `member_id` int(11) NOT NULL,
-                    `group_id` int(11) NOT NULL
-                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
-
-                $result = $wpdb->query( $enewsletter_table );
-            }
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_members'" ) != "{$tb_prefix}enewsletter_members" ) {
-
-                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_members` (
-                    `member_id` int(11) NOT NULL auto_increment,
-                    `wp_user_id` int(11) DEFAULT '0',
-                    `member_fname` varchar(255),
-                    `member_lname` varchar(255),
-                    `member_email` varchar(255) NOT NULL,
-                    `join_date` int(11) NOT NULL,
-                    `member_info` text,
-                    `unsubscribe_code` varchar(20),
-                    PRIMARY KEY (`member_id`)
-                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
-                $result = $wpdb->query( $enewsletter_table );
-
-                //Sync exist wp users
-                $arg = array (
-                    'blog_id' => $blog_id
-                );
-                $users = get_users( $arg );
-                if ( $users )
-                    foreach( $users as $user ) {
-                        $unsubscribe_code = $this->gen_unsubscribe_code();
-                        $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$tb_prefix}enewsletter_members SET
-                            wp_user_id = %d,
-                            member_fname = %s,
-                            member_email = %s,
-                            join_date = %d,
-                            unsubscribe_code = '%s'
-                         ", $user->ID, $user->user_nicename, $user->user_email, time(), $unsubscribe_code ) );
-                    }
-
-            }
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_settings'" ) != "{$tb_prefix}enewsletter_settings" ) {
-
-                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_settings` (
-                    `key` varchar(255) NOT NULL,
-                    `value` varchar(255) NOT NULL,
-                    PRIMARY KEY (`key`)
-                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
-
-                $result = $wpdb->query( $enewsletter_table );
-            }
-
-        }
-    }
-
-    /**
-     * Deleting DB tables and other setting when deactivation plugin
-     **/
-    function deactivation( $blog_id = '' ) {
-        global $wpdb;
-
-        if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id  && $_GET['networkwide'] == 1 ) {
-                $blogids = $wpdb->get_col( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs" ) );
-        } else {
-            if ( 0 !== $blog_id )
-                $blogids[] = $wpdb->blogid;
-            else
-                $blogids[] = $blog_id;
-        }
-
-        foreach ( $blogids as $blog_id ) {
-            //Checking DB prefix
-            if ( 1 < $blog_id )
-                $tb_prefix = $wpdb->base_prefix . $blog_id . '_';
-            else
-                $tb_prefix = $wpdb->base_prefix;
-
-            //Delete all CRON actions
-            if ( wp_next_scheduled( 'e_newsletter_cron_send' . $wpdb->blogid ) )
-                wp_clear_scheduled_hook( 'e_newsletter_cron_send' . $wpdb->blogid );
-
-            if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_1' . $wpdb->blogid ) )
-                wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_1' . $wpdb->blogid );
-
-            if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid ) )
-                wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid );
-
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_newsletters'" ) == "{$tb_prefix}enewsletter_newsletters" )
-                $wpdb->query("DROP TABLE IF EXISTS {$tb_prefix}enewsletter_newsletters");
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_send'" ) == "{$tb_prefix}enewsletter_send" )
-                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_send" );
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_send_members'" ) == "{$tb_prefix}enewsletter_send_members" )
-                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_send_members" );
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_groups'" ) == "{$tb_prefix}enewsletter_groups" )
-                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_groups" );
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_member_group'" ) == "{$tb_prefix}enewsletter_member_group" )
-                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_member_group" );
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_members'" ) == "{$tb_prefix}enewsletter_members" )
-                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_members" );
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_settings'" ) == "{$tb_prefix}enewsletter_settings" )
-                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_settings" );
-
-        }
-    }
-
-
 
     /**
      * Send Confirm email for subscribe
@@ -1574,20 +1390,25 @@ class e_newsletter_subscribe extends WP_Widget {
             <?php
             if ( ! $current_user->data || 0 == $current_user->data->ID ) {
             ?>
-                <label for="e_newsletter_email"><?php _e( 'Your Email:', 'email-newsletter' ) ?></label>
-                <input type="text" name="e_newsletter_email" id="e_newsletter_email" />
+                <div>
+                    <label for="e_newsletter_email"><?php _e( 'Your Email:', 'email-newsletter' ) ?></label>
+                    <input type="text" name="e_newsletter_email" id="e_newsletter_email" />
+                </div>
 
 
                 <?php
                 if( $show_name ) {
                 ?>
+                <div>
                     <label for="e_newsletter_name"><?php _e( 'Your Name:', 'email-newsletter' ) ?></label>
                     <input type="text" name="e_newsletter_name" id="e_newsletter_name" />
+                </div>
                 <?php
                 }
 
                 if( $show_groups && $groups ) {
                 ?>
+                <div>
                     <h3><?php _e( 'Subscribe to:', 'email-newsletter' ) ?></h3>
                     <ul style="list-style: none outside none;">
                         <?php
@@ -1596,59 +1417,66 @@ class e_newsletter_subscribe extends WP_Widget {
                         ?>
                             <li>
 
-                                    <input type="checkbox" name="e_newsletter_groups_id[]" value="<?php echo $group['group_id'];?>" id="e_newsletter_groups_id_<?php echo $group['group_id'];?>" />
-                                    <label for="e_newsletter_groups_id_<?php echo $group['group_id'];?>"><?php echo $group['group_name'];?></label>
+                                <input type="checkbox" name="e_newsletter_groups_id[]" value="<?php echo $group['group_id'];?>" id="e_newsletter_groups_id_<?php echo $group['group_id'];?>" />
+                                <label for="e_newsletter_groups_id_<?php echo $group['group_id'];?>"><?php echo $group['group_name'];?></label>
 
                             </li>
                         <?php
                         }
                         ?>
                     </ul>
+                </div>
                 <?php
                 }
                 ?>
-
-                <input type="button" id="new_subscribe" value="<?php _e( 'Subscribe', 'email-newsletter' ) ?>" />
-
+                <div>
+                    <input type="button" id="new_subscribe" value="<?php _e( 'Subscribe', 'email-newsletter' ) ?>" />
+                </div>
 
             <?php
             } else if ( isset( $member_data['unsubscribe_code'] ) && "" != $member_data['unsubscribe_code'] && 0 < $current_user->data->ID ) {
             ?>
                 <input type="hidden" name="unsubscribe_code" value="<?php echo $member_data['unsubscribe_code']; ?>" />
-
                 <?php
                 if( $groups ) {
                 ?>
-                    <h3><?php _e( 'Subscribe to:', 'email-newsletter' ) ?></h3>
-                    <ul style="list-style: none outside none;">
-                        <?php
-                        foreach( (array) $groups as $group ){
-                            if ( false === array_search ( $group['group_id'], ( array ) $member_groups ) )
-                                $checked = '';
-                            else
-                                $checked = 'checked="checked"';
-                        ?>
-                            <li>
+                    <div>
+                        <h3><?php _e( 'Subscribe to:', 'email-newsletter' ) ?></h3>
+                        <ul style="list-style: none outside none;">
+                            <?php
+                            foreach( (array) $groups as $group ){
+                                if ( false === array_search ( $group['group_id'], ( array ) $member_groups ) )
+                                    $checked = '';
+                                else
+                                    $checked = 'checked="checked"';
+                            ?>
+                                <li>
 
                                     <input type="checkbox" name="e_newsletter_groups_id[]" value="<?php echo $group['group_id'];?>" <?php echo $checked;?> id="e_newsletter_groups_id_<?php echo $group['group_id'];?>" />
                                     <label for="e_newsletter_groups_id_<?php echo $group['group_id'];?>"><?php echo $group['group_name'];?></label>
-                            </li>
-                        <?php
-                        }
-                        ?>
-                    </ul>
+                                </li>
+                            <?php
+                            }
+                            ?>
+                        </ul>
+                    </div>
                 <?php
                 }
                 ?>
-                <input type="button" id="save_subscribes" value="<?php _e( 'Save Subscriptions', 'email-newsletter' ) ?>" />
-                <br />
+                <div>
+                    <input type="button" id="save_subscribes" value="<?php _e( 'Save Subscriptions', 'email-newsletter' ) ?>" />
+                </div>
+                <div>
                 <a href="javascript:;" id="unsubscribe" ><?php _e( 'Unsubscribe', 'email-newsletter' ) ?></a>
+                </div>
 
             <?php
             } else if ( $current_user->data && 0 < $current_user->data->ID ) {
             ?>
                 <input type="hidden" name="newsletter_action" value="subscribe" />
-                <input type="submit" id="subscribe"  value="<?php _e( 'Subscribe to Newsletters', 'email-newsletter' ) ?>" />
+                <div>
+                    <input type="submit" id="subscribe"  value="<?php _e( 'Subscribe to Newsletters', 'email-newsletter' ) ?>" />
+                </div>
             <?php
             }
             ?>
@@ -1673,11 +1501,21 @@ class e_newsletter_subscribe extends WP_Widget {
 
     /** @see WP_Widget::form */
     function form( $instance ) {
-        $title = esc_attr( $instance['title'] );
-        if( ! $title ) $title = __( 'Subscribe to our Newsletters', 'email-newsletter' );
+        if ( isset( $instance['title'] ) )
+            $title = esc_attr( $instance['title'] );
+        else
+            $title = __( 'Subscribe to our Newsletters', 'email-newsletter' );
 
-        $name   = esc_attr( $instance['name'] );
-        $groups = esc_attr( $instance['groups'] );
+        if ( isset( $instance['name'] ) )
+            $name = esc_attr( $instance['name'] );
+        else
+            $name = 0;
+
+        if ( isset( $instance['groups'] ) )
+            $groups = esc_attr( $instance['groups'] );
+        else
+            $groups = 0;
+
         ?>
             <p>
                 <label for="<?php echo $this->get_field_name( 'title' ); ?>"><?php _e( 'Title', 'email-newsletter' ) ?></label>
