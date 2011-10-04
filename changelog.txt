@@ -5,6 +5,9 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.0.8.2 =
+* fixed some buttons of WYSIWYG editor.
+
 = 1.0.8.1 =
 * added new tab of Settings as "Uninstall" - for delete data from DB (data is not lost after deactivation of the plugin).
 * changed HTML for widget.
