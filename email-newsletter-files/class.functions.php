@@ -605,7 +605,7 @@ class Email_Newsletter_functions {
                 $orderby .= " ". $arg['order'];
         }
 
-        $results = $wpdb->get_results(  $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members ". $orderby . $limit ), "ARRAY_A" );
+        $results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members ". $orderby . $limit ), "ARRAY_A" );
 
         if ( $results )
                 foreach( $results as $member ) {
@@ -620,17 +620,45 @@ class Email_Newsletter_functions {
         return $members;
     }
 
+
     /**
      * Get all members of Group
      **/
     function get_members_of_group( $group_id, $limit = '' ) {
         global $wpdb;
         $members = NULL;
-        $results =  $wpdb->get_results( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_member_group WHERE group_id = %d" . $limit , $group_id ), "ARRAY_A" );
+        $results = $wpdb->get_results( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_member_group WHERE group_id = %d" . $limit , $group_id ), "ARRAY_A" );
         foreach( $results as $member ){
             $members[] = $member['member_id'];
         }
         return $members;
+    }
+
+    /**
+     * Get count members of Group
+     **/
+    function get_count_members_of_group( $group_id ) {
+        global $wpdb;
+        $results = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(member_id) FROM {$this->tb_prefix}enewsletter_member_group WHERE group_id = %d", $group_id ) );
+        return $results;
+    }
+
+    /**
+     * Get unsubscribe members
+     **/
+    function get_unsubscribe_member( $limit = '' ) {
+        global $wpdb;
+        $results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members WHERE unsubscribe_code = '' OR unsubscribe_code IS NULL" . $limit ), "ARRAY_A" );
+        return $results;
+    }
+
+    /**
+     * Get count unsubscribe members
+     **/
+    function get_count_unsubscribe_members() {
+        global $wpdb;
+        $results = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(member_id) FROM {$this->tb_prefix}enewsletter_members WHERE unsubscribe_code = '' OR unsubscribe_code IS NULL" ) );
+        return $results;
     }
 
     /**

@@ -455,3 +455,13 @@ vertical-align: middle !important;
 .newsletter_error {
     background: #FFEBE8;
 }
+
+
+#test_bounce_loading {
+    width: 15px;
+    height: 15px;
+    background: url("images/loading-publish.gif") #fff no-repeat center center;
+    display: none;
+    float: right;
+    margin: 20px 0px 0px 0px;
+}

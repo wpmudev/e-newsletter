@@ -154,9 +154,9 @@
                         <span id="public_block_<?php echo $group['group_id'];?>">
                             <?php
                             if ( "1" == $group['public'] )
-                                echo "Yes";
+                                _e( 'Yes', 'email-newsletter' );
                             else
-                                echo "No";
+                                _e( 'No', 'email-newsletter' );
                             ?>
                         </span>
                     </td>

@@ -103,24 +103,20 @@
                 var bounce_username = jQuery( "#bounce_username" ).val();
                 var bounce_password = jQuery( "#bounce_password" ).val();
 
-                jQuery( "body" ).css( "cursor", "wait" );
+                jQuery( "#test_bounce_loading" ).show();
                 jQuery( "#test_bounce_conn" ).attr( 'disabled', true );
+
                 jQuery.ajax({
                     type: "POST",
                     url: "<?php echo $siteurl;?>/wp-admin/admin-ajax.php",
                     data: "action=test_bounces&bounce_email=" + bounce_email + "&bounce_host=" + bounce_host + "&bounce_port=" + bounce_port + "&bounce_username=" + bounce_username + "&bounce_password=" + bounce_password,
-                    success: function(html){
-                        jQuery( "body" ).css( "cursor", "default" );
+                    success: function( html ){
                         jQuery( "#test_bounce_conn" ).attr( 'disabled', false );
+                        jQuery( "#test_bounce_loading" ).hide();
                         alert( html );
                     }
                  });
             });
-
-
-
-
-
 
 
         });
@@ -326,7 +322,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td></td>
+                                    <td><div id="test_bounce_loading"></div></td>
                                     <td>
                                         <br />
                                         <input type="button" name="" id="test_bounce_conn" value="<?php _e( 'Test Connection', 'email-newsletter' ) ?>" />

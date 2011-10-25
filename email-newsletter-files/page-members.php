@@ -22,7 +22,8 @@
 
     //pagination for non filter
     if ( ! isset( $_REQUEST['filter'] ) ) {
-        $count = count( $this->get_members( $arg ) );
+        $count = $this->get_count_members();
+
         $members_pagination = $this->get_pagination_data( $count, $per_page );
 
         if ( isset( $members_pagination['limit'] ) )
@@ -40,7 +41,8 @@
         if ( 0 < $_REQUEST['group_id'] ) {
 
             //pagination for filter by group
-            $count = count( $this->get_members_of_group( $_REQUEST['group_id'] ) );
+            $count = $this->get_count_members_of_group( $_REQUEST['group_id'] );
+
             $members_pagination = $this->get_pagination_data( $count, $per_page );
             if ( isset( $members_pagination['limit'] ) )
                 $limit = $members_pagination['limit'];
@@ -48,7 +50,7 @@
                 $limit = '';
 
 
-            $members_id = $this->get_members_of_group( $_REQUEST['group_id'] , $limit );
+            $members_id = $this->get_members_of_group( $_REQUEST['group_id'], $limit );
             foreach( $members_id as $member_id )
                 $members[] = $this->get_member( $member_id );
 
@@ -61,13 +63,17 @@
         }
 
     } else if (  isset( $_REQUEST['filter'] ) && "unsubscribed" == $_REQUEST['filter'] ) {
-        $all_members = $this->get_members();
-            if ( $all_members ) {
-                foreach( $all_members as $member )
-                    if ( ! $member['unsubscribe_code'] )
-                        $members[] = $member;
-                $filter = "&filter=unsubscribed";
-            }
+        $count = $this->get_count_unsubscribe_members( );
+
+        $members_pagination = $this->get_pagination_data( $count, $per_page );
+        if ( isset( $members_pagination['limit'] ) )
+            $limit = $members_pagination['limit'];
+        else
+            $limit = '';
+
+        $members = $this->get_unsubscribe_member( $limit );
+
+        $filter = "&filter=unsubscribed";
 
     } else {
         $members = $this->get_members( $arg );
@@ -419,7 +425,10 @@
                                 $memeber_groups = "";
                                 foreach ( $groups_id as $group_id) {
                                     $group  = $this->get_group_by_id( $group_id );
-                                    $memeber_groups .= '<a href="admin.php?page=newsletters-members&filter=group&group_id=' . $group['group_id'] . '&per_page=' . $per_page . '" >' . $group['group_name'] . '</a>, ';
+                                    if ( isset( $_REQUEST['group_id'] ) && $group_id == $_REQUEST['group_id'] )
+                                        $memeber_groups .= '<span style="color: green;" >' . $group['group_name'] . '</span>, ';
+                                    else
+                                        $memeber_groups .= '<a href="admin.php?page=newsletters-members&filter=group&group_id=' . $group['group_id'] . '&per_page=' . $per_page . '" >' . $group['group_name'] . '</a>, ';
 
                                 }
                                 echo substr( $memeber_groups, 0, strlen( $memeber_groups )-2 );

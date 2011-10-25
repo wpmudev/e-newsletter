@@ -5,6 +5,13 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.0.9 =
+* Fixed slow loading list of members on members page.
+* Fixed path to the language file.
+* Fixed bounce test connection.
+* Some translation fixes.
+* Fixed JS problem of TinyMCE (added language).
+
 = 1.0.8.2 =
 * fixed some buttons of WYSIWYG editor.
 

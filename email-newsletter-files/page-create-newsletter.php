@@ -3,6 +3,8 @@
 
     $settings = $this->get_settings();
 
+    $language = ( 5 == strlen( get_locale() ) ) ? substr( get_locale(), 0, 2 ) : 'en';
+
     $siteurl = get_option( 'siteurl' );
 
     //get data of newsletter
@@ -82,7 +84,7 @@
                         data: "action=send_preview&template=" + template + "&subject=" + subject + "&from_name=" + from_name + "&from_email=" + from_email + "&contact_info=" + contact_info + "&preview_email=" + preview_email + "&content=" + content,
                         success: function(html){
                             jQuery( "body" ).css( "cursor", "default" );
-                             jQuery( "#send_preview" ).attr( 'value', 'Send Preview' );
+                             jQuery( "#send_preview" ).attr( 'value', '<?php _e( 'Send Preview', 'email-newsletter' ) ?>' );
                             alert( html );
                             jQuery( "#send_preview" ).attr( 'disabled', false );
                         }
@@ -174,6 +176,7 @@
             //Creating WYSIWYG editor
             tinyMCE.init({
                     // General options
+                    language: "<?php echo $language ?>",
                     mode: "exact",
                     elements : "newsletter_content",
                     theme : "advanced",
@@ -321,8 +324,8 @@
                 var src = jQuery( '#uploads_images' ).val();
                 jQuery( '#uploads_images' ).val( '' );
                 var alt = jQuery( '#image_alt' ).val();
-                if ( alt == 'Image Description' ) alt = '';
-                jQuery( '#image_alt' ).val( 'Image Description' );
+                if ( alt == '<?php _e( 'Image Description', 'email-newsletter' ) ?>' ) alt = '';
+                jQuery( '#image_alt' ).val( '<?php _e( 'Image Description', 'email-newsletter' ) ?>' );
                 if( !src || src == '' )return;
 
                 var imghtml = '<img src="' + src + '" alt="'+alt+'"';
@@ -449,8 +452,8 @@
                                     <select name="uploads_images" id="uploads_images">
                                     <?php echo $this->get_uploads(); ?>
                                     </select>
-                                    <input type="text" name="image_alt" id="image_alt" value="Image Description" onfocus="if(this.value=='Image Description')this.value='';">
-                                    <input type="button" name="image_insert" onclick="jQuery(this).insertImage();" value="Insert Image" />
+                                    <input type="text" name="image_alt" id="image_alt" value="<?php _e( 'Image Description', 'email-newsletter' ) ?>" onfocus="if( this.value == '<?php _e( 'Image Description', 'email-newsletter' ) ?>' ) this.value='';">
+                                    <input type="button" name="image_insert" onclick="jQuery(this).insertImage();" value="<?php _e( 'Insert Image', 'email-newsletter' ) ?>" />
                                     <h4><?php _e( 'Upload images to server:', 'email-newsletter' ) ?> </h4>
                                     <div id="file-uploader">
                                         <noscript>

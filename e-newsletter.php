@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.0.8.2
+Version: 1.0.9
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -77,7 +77,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             wp_die( __('There was an issue determining where WPMU DEV Update Notifications is installed. Please reinstall.', 'email-newsletter' ) );
         }
 
-        load_plugin_textdomain( 'email-newsletter', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+        load_plugin_textdomain( 'email-newsletter', false, dirname( plugin_basename( __FILE__ ) ) . '/email-newsletter-files/languages' );
 
         //get all setting of plugin
         $this->settings = $this->get_settings();
@@ -1071,6 +1071,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $content        = base64_decode( str_replace( "-", "+", $_REQUEST['content'] ) );
         $contact_info   = base64_decode( str_replace( "-", "+", $_REQUEST['contact_info'] ) );
 
+
+        $contents = str_replace( "{OPENED_TRACKER}", '', $contents );
+
+        $contents = str_replace( "{UNSUBSCRIBE_URL}", '#', $contents );
+
         $contents = str_replace( "{EMAIL_BODY}", $content, $contents );
         $contents = str_replace( "{EMAIL_SUBJECT}", stripslashes ( $_REQUEST['subject'] ), $contents );
         $contents = str_replace( "{FROM_NAME}", stripslashes ( $_REQUEST['from_name'] ), $contents );
@@ -1137,11 +1142,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $email_subject      = 'Test Connection Bounce';
         $email_contents     = 'Test';
         $options            = array (
-            "bounce_email" => $_REQUEST['bounce_email'],
+//            "bounce_email" => $_REQUEST['bounce_email'],
             "message_id" => "Test-Connection-Bounce-". $email_id,
         );
 
-        if( !$this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents, $options ) ) {
+        if( ! $this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents, $options ) ) {
             die( "Failed to send test email!" );
         }
 
@@ -1154,6 +1159,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         if( ! $email_host )
             return true;
+
+        sleep( 3 );
 
         $mbox = imap_open ( '{'.$email_host.':'.$email_port.'/pop3/notls}INBOX', $email_username, $email_password ) or die( imap_last_error() );
 
