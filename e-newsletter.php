@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.0.9
+Version: 1.0.9.1
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -46,6 +46,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     var $plugin_url;
     var $settings;
     var $tb_prefix;
+    var $cron_send_name;
 
     function Email_Newsletter() {
         __construct();
@@ -62,6 +63,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
             $this->tb_prefix = $wpdb->base_prefix . $wpdb->blogid . '_';
         else
             $this->tb_prefix = $wpdb->base_prefix;
+
+        //set cron name for send emails
+        $this->cron_send_name = "e_newsletter_cron_send_" . $wpdb->blogid;
 
         //setup proper directories
         if ( is_multisite() && defined( 'WPMU_PLUGIN_URL' ) && defined( 'WPMU_PLUGIN_DIR' ) && file_exists( WPMU_PLUGIN_DIR . '/' . basename( __FILE__ ) ) ) {
@@ -81,6 +85,25 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         //get all setting of plugin
         $this->settings = $this->get_settings();
+
+
+
+        //Set value for CRON
+        if ( ! isset( $this->settings['cron_enable'] ) && isset( $this->settings['cron_time'] ) ) {
+            if ( 1 < $this->settings['cron_time'] ) {
+                $result = $wpdb->query( "INSERT INTO {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_enable', `value` = '1'" );
+                if ( 7 >  $this->settings['cron_time'] )
+                    $result = $wpdb->query( "UPDATE {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_time', `value` = '1' WHERE `key` = 'cron_time'" );
+                else
+                    $result = $wpdb->query( "UPDATE {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_time', `value` = '2' WHERE `key` = 'cron_time'" );
+            } else {
+                $result = $wpdb->query( "INSERT INTO {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_enable', `value` = '2'" );
+                if ( wp_next_scheduled( $this->cron_send_name ) )
+                    wp_clear_scheduled_hook( $this->cron_send_name );
+            }
+            $this->settings = $this->get_settings();
+        }
+
 
 
         //plugin_icon
@@ -112,11 +135,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'admin_menu', array( &$this, 'admin_page' ) );
 
         //send email by WP-CRON
-        add_action('e_newsletter_cron_send', array( &$this, 'send_by_wpcron' ) );
+        add_action( $this->cron_send_name, array( &$this, 'send_by_wpcron' ) );
 
         //check bounces email by WP-CRON
-        add_action('e_newsletter_cron_check_bounces_1', array( &$this, 'check_bounces' ) );
-        add_action('e_newsletter_cron_check_bounces_2', array( &$this, 'check_bounces' ) );
+        add_action( 'e_newsletter_cron_check_bounces_1', array( &$this, 'check_bounces' ) );
+        add_action( 'e_newsletter_cron_check_bounces_2', array( &$this, 'check_bounces' ) );
 
 
 
@@ -948,85 +971,128 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         @set_time_limit( 0 );
 
-        if ( 0 < $this->settings['send_limit'] )
-            $send_limit = 'LIMIT 0, ' . $this->settings['send_limit'];
-        else
-            $send_limit = '';
+        if ( 1 > $wpdb->get_var( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron'") )
+            return ;
 
-        $send_members = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron' " . $send_limit , "ARRAY_A");
+        if ( ! get_option( 'enewsletter_cron_send_run' ) ) {
 
-        if ( ! $send_members )
-            return 'end';
+            //add new column for check limit
+            if ( 1 != $wpdb->query( "DESCRIBE {$this->tb_prefix}enewsletter_send_members sent_time" ) ) {
+                $wpdb->query( "ALTER TABLE {$this->tb_prefix}enewsletter_send_members ADD sent_time INT" );
+            }
 
-        require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
+            update_option( 'enewsletter_cron_send_run', time() );
 
-        foreach ( $send_members as $send_member ) {
 
-            $member_data = $this->get_member( $send_member['member_id'] );
+            if ( 0 < $this->settings['send_limit'] ) {
+                switch ( $this->settings['cron_time'] ) {
+                case '1':
+                    $limit_time = time() - 60*60;
+                    break;
+                case '2':
+                    $limit_time = time() - 60*60*24;
+                    break;
+                case '3':
+                    $limit_time = time() - 60*60*24*30;
+                    break;
+                }
 
-            $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_member['send_id'] ), "ARRAY_A");
+                $current_count_sent = $wpdb->get_var( $wpdb->prepare( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE sent_time > %d", $limit_time ), "ARRAY_A");
+            }
 
-            $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
+            if ( ! isset( $current_count_sent ) || $current_count_sent < $this->settings['send_limit'] ) {
 
-            $unsubscribe_code = $member_data['unsubscribe_code'];
+//                if ( 0 < $this->settings['send_limit'] )
+                $send_limit = 'LIMIT 0, 10';
+//                else
+//                    $send_limit = '';
 
-            $siteurl = get_option( 'siteurl' );
+                $send_members = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron' " . $send_limit , "ARRAY_A");
 
-            $mail = new PHPMailer();
+                if ( ! $send_members ) {
+                    delete_option( 'enewsletter_cron_send_run' );
+                    return 'end';
+                }
 
-            $mail->CharSet = 'UTF-8';
+                require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
 
-            //Set Sending Method
-            switch( $this->settings['outbound_type'] ) {
-                case 'smtp':
-                    $mail->IsSMTP();
-                    $mail->Host     = $this->settings['smtp_host'];
-                    $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
-                    if( $mail->SMTPAuth ){
-                        $mail->Username = $this->settings['smtp_user'];
-                        $mail->Password = $this->settings['smtp_pass'];
+                foreach ( $send_members as $send_member ) {
+
+                    update_option( 'enewsletter_cron_send_run', time() );
+
+                    $member_data = $this->get_member( $send_member['member_id'] );
+
+                    $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_member['send_id'] ), "ARRAY_A");
+
+                    $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
+
+                    $unsubscribe_code = $member_data['unsubscribe_code'];
+
+                    $siteurl = get_option( 'siteurl' );
+
+                    $mail = new PHPMailer();
+
+                    $mail->CharSet = 'UTF-8';
+
+                    //Set Sending Method
+                    switch( $this->settings['outbound_type'] ) {
+                        case 'smtp':
+                            $mail->IsSMTP();
+                            $mail->Host     = $this->settings['smtp_host'];
+                            $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
+                            if( $mail->SMTPAuth ){
+                                $mail->Username = $this->settings['smtp_user'];
+                                $mail->Password = $this->settings['smtp_pass'];
+                            }
+                            break;
+
+                        case 'mail':
+                            $mail->IsMail();
+                            break;
+
+                        case 'sendmail':
+                            $mail->IsSendmail();
+                            break;
                     }
-                    break;
 
-                case 'mail':
-                    $mail->IsMail();
-                    break;
+                    $contents = $send_data['email_body'];
+                    //Replace content of template
+                    $contents = str_replace( "{OPENED_TRACKER}", '<img src="' . $siteurl . '/wp-admin/admin-ajax.php?action=check_email_opened&send_id=' . $send_member['send_id'] . '&member_id=' . $member_data['member_id'] . '" width="1" height="1" style="display:none;" />', $contents );
 
-                case 'sendmail':
-                    $mail->IsSendmail();
-                    break;
+                    $contents = str_replace( "{UNSUBSCRIBE_URL}", $siteurl . '/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/', $contents );
+
+                    $mail->From         = $newsletter_data['from_email'];
+                    $mail->FromName     = $newsletter_data['from_name'];
+                    $mail->Subject      = $newsletter_data["subject"];
+
+                    $mail->MsgHTML( $contents );
+
+                    $mail->AddAddress( $member_data["member_email"] );
+
+                    $mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_member['send_id'] );
+
+                    if( ! $mail->Send() ) {
+            //            return "Mailer Error: " . $mail->ErrorInfo;
+        //                return 'error';
+                    } else {
+                        //write info of Sent in DB
+                        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent', sent_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_member['send_id'], $send_member['member_id'] ) );
+                        if ( ++$current_count_sent == $this->settings['send_limit'] )
+                            return ;
+        //                if ( ! $result )
+        //                    return 'error';
+
+                    }
+                }
+
+                if ( ! wp_next_scheduled( 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid ) )
+                    wp_schedule_single_event( time() + 60, 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid );
+
+
             }
-
-            $contents = $send_data['email_body'];
-            //Replace content of template
-            $contents = str_replace( "{OPENED_TRACKER}", '<img src="' . $siteurl . '/wp-admin/admin-ajax.php?action=check_email_opened&send_id=' . $send_member['send_id'] . '&member_id=' . $member_data['member_id'] . '" width="1" height="1" style="display:none;" />', $contents );
-
-            $contents = str_replace( "{UNSUBSCRIBE_URL}", $siteurl . '/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/', $contents );
-
-            $mail->From         = $newsletter_data['from_email'];
-            $mail->FromName     = $newsletter_data['from_name'];
-            $mail->Subject      = $newsletter_data["subject"];
-
-            $mail->MsgHTML( $contents );
-
-            $mail->AddAddress( $member_data["member_email"] );
-
-            $mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_member['send_id'] );
-
-            if( ! $mail->Send() ) {
-    //            return "Mailer Error: " . $mail->ErrorInfo;
-//                return 'error';
-            } else {
-                //write info of Sent in DB
-                $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent' WHERE send_id = %d AND member_id = %d", $send_member['send_id'], $send_member['member_id'] ) );
-//                if ( ! $result )
-//                    return 'error';
-
-            }
+        } elseif ( get_option( 'enewsletter_cron_send_run' ) < time() - 3*60 ) {
+            delete_option( 'enewsletter_cron_send_run' );
         }
-
-        if ( ! wp_next_scheduled( 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid ) )
-            wp_schedule_single_event( time() + 60, 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid );
     }
 
     /**

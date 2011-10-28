@@ -4,7 +4,7 @@
     if ( 5 < count( $newsletters_sent ) )
         $newsletters_sent = array_slice ( $newsletters_sent, 0, 5 );
 
-    $members = $this->get_members();
+    $members = $this->get_members( array( 'limit' => 'LIMIT 0,5' ) );
     if ( 5 < count( $members ) )
         $members = array_slice ( array_reverse( $members ), 0, 5 );
 
@@ -38,7 +38,7 @@
                     </th>
                     <th>
                         <?php _e( 'CRON', 'email-newsletter' ) ?>
-                        (<?php echo wp_next_scheduled( 'e_newsletter_cron_action' ) ? __( 'enabled', 'email-newsletter') : __( 'disabled', 'email-newsletter'); ?>)
+                        (<?php echo wp_next_scheduled( $this->cron_send_name ) ? __( 'enabled', 'email-newsletter') : __( 'disabled', 'email-newsletter'); ?>)
 
                     </th>
                 </tr>

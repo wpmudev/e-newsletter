@@ -213,35 +213,36 @@ class Email_Newsletter_functions {
      **/
     function add_new_cron_time( $schedules ) {
 
-        $schedules['enewsletter_min_5'] = array(
-            'interval' => 5*60,
-            'display' => __('every 5 min')
+        $schedules['enewsletter_min_2'] = array(
+            'interval' => 1*60,
+            'display' => __('every 2 min')
         );
+        //
+//        $schedules['enewsletter_min_10'] = array(
+//            'interval' => 1*60,
+//            'display' => __('every 10 min')
+//        );
 
-        $schedules['enewsletter_min_10'] = array(
-            'interval' => 10*60,
-            'display' => __('every 10 min')
-        );
+//        $schedules['enewsletter_min_15'] = array(
+//            'interval' => 1*60,
+//            'display' => __('every 15 min')
+//        );
 
-        $schedules['enewsletter_min_15'] = array(
-            'interval' => 15*60,
-            'display' => __('every 15 min')
-        );
+//        $schedules['enewsletter_min_30'] = array(
+//            'interval' => 30*60,
+//            'display' => __('every 30 min')
+//        );
 
-        $schedules['enewsletter_min_30'] = array(
-            'interval' => 30*60,
-            'display' => __('every 30 min')
-        );
+//        $schedules['enewsletter_hour_3'] = array(
+//            'interval' => 3*60*60,
+//            'display' => __('every 3 hour')
+//        );
 
-        $schedules['enewsletter_hour_3'] = array(
-            'interval' => 3*60*60,
-            'display' => __('every 3 hour')
-        );
+//        $schedules['enewsletter_hour_6'] = array(
+//            'interval' => 6*60*60,
+//            'display' => __('every 6 hour')
+//        );
 
-        $schedules['enewsletter_hour_6'] = array(
-            'interval' => 6*60*60,
-            'display' => __('every 6 hour')
-        );
         return $schedules;
     }
 
@@ -392,35 +393,37 @@ class Email_Newsletter_functions {
         if( ! is_array( $settings ) )
             $settings = array();
 
-
         //change time for CRON
-        if ( $this->settings['cron_time'] != $settings['cron_time'] ) {
-            if ( wp_next_scheduled( 'e_newsletter_cron_send' . $wpdb->blogid ) )
-                wp_clear_scheduled_hook( 'e_newsletter_cron_send' . $wpdb->blogid );
+        if ( 1 == $settings['cron_enable'] ) {
 
-            if ( 1 < $settings['cron_time'] ) {
-                switch ( $settings['cron_time'] ) {
-                case 2:    $cron_time = 'enewsletter_min_5';
-                           break;
-                case 3:    $cron_time = 'enewsletter_min_10';
-                           break;
-                case 4:    $cron_time = 'enewsletter_min_15';
-                           break;
-                case 5:    $cron_time = 'enewsletter_min_30';
-                           break;
-                case 6:    $cron_time = 'hourly';
-                           break;
-                case 7:    $cron_time = 'enewsletter_hour_3';
-                           break;
-                case 8:    $cron_time = 'enewsletter_hour_6';
-                           break;
-                case 9:    $cron_time = 'twicedaily';
-                           break;
-                case 10:   $cron_time = 'daily';
-                           break;
-                }
-                wp_schedule_event( time(), $cron_time, 'e_newsletter_cron_send' . $wpdb->blogid );
-            }
+//            if ( 1 < $settings['cron_time'] ) {
+//                switch ( $settings['cron_time'] ) {
+//                case 2:    $cron_time = 'enewsletter_min_5';
+//                           break;
+//                case 3:    $cron_time = 'enewsletter_min_10';
+//                           break;
+//                case 4:    $cron_time = 'enewsletter_min_15';
+//                           break;
+//                case 5:    $cron_time = 'enewsletter_min_30';
+//                           break;
+//                case 6:    $cron_time = 'hourly';
+//                           break;
+//                case 7:    $cron_time = 'enewsletter_hour_3';
+//                           break;
+//                case 8:    $cron_time = 'enewsletter_hour_6';
+//                           break;
+//                case 9:    $cron_time = 'twicedaily';
+//                           break;
+//                case 10:   $cron_time = 'daily';
+//                           break;
+//                }
+//                wp_schedule_event( time(), $cron_time, $this->cron_send_name );
+//            }
+
+            wp_schedule_event( time(), 'enewsletter_min_2', $this->cron_send_name );
+        } else {
+            if ( wp_next_scheduled( $this->cron_send_name ) )
+                wp_clear_scheduled_hook( $this->cron_send_name );
         }
 
         if ( $settings['send_limit'] )
@@ -946,7 +949,7 @@ class Email_Newsletter_functions {
      **/
     function get_pagination_data( $count, $per_page ) {
             if ( 'all' == $per_page )
-                $per_page = 100000;
+                $per_page = 1000000;
 
             if ( $count > $per_page ) {
                 $pagination_data['count'] = $count;
@@ -1029,7 +1032,8 @@ class Email_Newsletter_functions {
                     `member_id` int(11) NOT NULL,
                     `status` varchar(15),
                     `opened_time` int(11) DEFAULT '0',
-                    `bounce_time` int(11) DEFAULT '0'
+                    `bounce_time` int(11) DEFAULT '0',
+                    `sent_time` int(11),
                 ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
 
                 $result = $wpdb->query( $enewsletter_table );
@@ -1129,8 +1133,8 @@ class Email_Newsletter_functions {
                 $tb_prefix = $wpdb->base_prefix;
 
             //Delete all CRON actions
-            if ( wp_next_scheduled( 'e_newsletter_cron_send' . $wpdb->blogid ) )
-                wp_clear_scheduled_hook( 'e_newsletter_cron_send' . $wpdb->blogid );
+            if ( wp_next_scheduled( $this->cron_send_name ) )
+                wp_clear_scheduled_hook( $this->cron_send_name );
 
             if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_1' . $wpdb->blogid ) )
                 wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_1' . $wpdb->blogid );
@@ -1138,6 +1142,7 @@ class Email_Newsletter_functions {
             if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid ) )
                 wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid );
 
+            delete_option( 'enewsletter_cron_send_run' );
 
             if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_newsletters'" ) == "{$tb_prefix}enewsletter_newsletters" )
                 $wpdb->query("DROP TABLE IF EXISTS {$tb_prefix}enewsletter_newsletters");

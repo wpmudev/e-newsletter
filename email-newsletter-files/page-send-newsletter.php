@@ -5,7 +5,6 @@
 
     $groups = $this->get_groups();
 
-
     //send newsletter
     if ( ! isset( $_REQUEST['send_id'] ) ) {
         $check_key = substr( md5( uniqid( rand(), true ) ), 0, 7);
@@ -191,7 +190,7 @@
                 <tr>
                     <td>
                     <p>
-                        <label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members', 'email-newsletter' ) ?></strong> (<?php echo count( $this->get_members() );?>)</label><br/>
+                        <label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members', 'email-newsletter' ) ?></strong> (<?php echo $this->get_count_members();?>)</label><br/>
                         &nbsp;&nbsp;-or-<br/>
                         <?php
                             foreach ( array('administrator', 'editor', 'author', 'contributor', 'subscriber') as $role ) {
@@ -199,8 +198,7 @@
                                 if ( 0 < $col )
                                     echo "<label><input type='checkbox' name='group_name[]' value='{$role}' /> All site {$role}s ({$col})</label><br>";
                             }
-                        ?>
-                        <?php
+
                             if ( $groups )
                                 foreach ( $groups as $group ) {
                                     $col = count( $this->get_members_of_group( $group['group_id'] ) );

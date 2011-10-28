@@ -1,4 +1,6 @@
 <?php
+
+var_dump( wp_next_scheduled( $this->cron_send_name ) );
     $siteurl = get_option( 'siteurl' );
 
     $settings = $this->get_settings();
@@ -151,7 +153,7 @@
     <div class="wrap">
         <h2><?php echo $page_title; ?></h2>
 
-        <form method="post" action="" name="settings_form" id="settings_form" >
+        <form method="post" name="settings_form" id="settings_form" >
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
             <input type="hidden" name="mode"  value="<?php echo $mode; ?>" />
             <div id="newsletter-tabs" class="newsletter-settings-tabs">
@@ -255,6 +257,19 @@
                             </tbody>
                                 <tr>
                                     <td>
+                                        <?php _e( 'Enable', 'email-newsletter' ) ?>
+                                        <span class="description"><?php _e( ' (CRON)', 'email-newsletter' ) ?></span>
+                                    </td>
+                                    <td>
+                                        <select name="settings[cron_enable]" >
+                                            <option value="1" <?php echo ( 1 == $settings['cron_enable'] ) ? 'selected' : ''; ?> ><?php _e( 'Enable', 'email-newsletter' ) ?></option>
+                                            <option value="2" <?php echo ( 2 == $settings['cron_enable'] ) ? 'selected' : ''; ?> ><?php _e( 'Disable', 'email-newsletter' ) ?></option>
+                                        </select>
+                                        <span class="description"><?php _e( "('Disable' - not use CRON for sending emails)", 'email-newsletter' ) ?></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
                                         <?php _e( 'Limit send:', 'email-newsletter' ) ?>
                                         <span class="description"><?php _e( ' (CRON)', 'email-newsletter' ) ?></span>
                                     </td>
@@ -270,18 +285,10 @@
                                     </td>
                                     <td>
                                         <select name="settings[cron_time]" >
-                                            <option value="1" <?php echo ( 1 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >Never</option>
-                                            <option value="2" <?php echo ( 2 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >5 mins</option>
-                                            <option value="3" <?php echo ( 3 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >10 mins</option>
-                                            <option value="4" <?php echo ( 4 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >15 mins</option>
-                                            <option value="5" <?php echo ( 5 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >30 mins</option>
-                                            <option value="6" <?php echo ( 6 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >1 hour</option>
-                                            <option value="7" <?php echo ( 7 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >3 hours</option>
-                                            <option value="8" <?php echo ( 8 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >6 hours</option>
-                                            <option value="9" <?php echo ( 9 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >12 hours</option>
-                                            <option value="10" <?php echo ( 10 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> >1 day</option>
+                                            <option value="1" <?php echo ( 1 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Hour', 'email-newsletter' ) ?></option>
+                                            <option value="2" <?php echo ( 2 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Day', 'email-newsletter' ) ?></option>
+                                            <option value="3" <?php echo ( 3 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Mounth', 'email-newsletter' ) ?></option>
                                         </select>
-                                        <span class="description"><?php _e( "('Never' - not use CRON for sending emails)", 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                         </table>
