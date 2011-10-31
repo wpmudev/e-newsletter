@@ -217,31 +217,6 @@ class Email_Newsletter_functions {
             'interval' => 1*60,
             'display' => __('every 2 min')
         );
-        //
-//        $schedules['enewsletter_min_10'] = array(
-//            'interval' => 1*60,
-//            'display' => __('every 10 min')
-//        );
-
-//        $schedules['enewsletter_min_15'] = array(
-//            'interval' => 1*60,
-//            'display' => __('every 15 min')
-//        );
-
-//        $schedules['enewsletter_min_30'] = array(
-//            'interval' => 30*60,
-//            'display' => __('every 30 min')
-//        );
-
-//        $schedules['enewsletter_hour_3'] = array(
-//            'interval' => 3*60*60,
-//            'display' => __('every 3 hour')
-//        );
-
-//        $schedules['enewsletter_hour_6'] = array(
-//            'interval' => 6*60*60,
-//            'display' => __('every 6 hour')
-//        );
 
         return $schedules;
     }
@@ -395,31 +370,6 @@ class Email_Newsletter_functions {
 
         //change time for CRON
         if ( 1 == $settings['cron_enable'] ) {
-
-//            if ( 1 < $settings['cron_time'] ) {
-//                switch ( $settings['cron_time'] ) {
-//                case 2:    $cron_time = 'enewsletter_min_5';
-//                           break;
-//                case 3:    $cron_time = 'enewsletter_min_10';
-//                           break;
-//                case 4:    $cron_time = 'enewsletter_min_15';
-//                           break;
-//                case 5:    $cron_time = 'enewsletter_min_30';
-//                           break;
-//                case 6:    $cron_time = 'hourly';
-//                           break;
-//                case 7:    $cron_time = 'enewsletter_hour_3';
-//                           break;
-//                case 8:    $cron_time = 'enewsletter_hour_6';
-//                           break;
-//                case 9:    $cron_time = 'twicedaily';
-//                           break;
-//                case 10:   $cron_time = 'daily';
-//                           break;
-//                }
-//                wp_schedule_event( time(), $cron_time, $this->cron_send_name );
-//            }
-
             wp_schedule_event( time(), 'enewsletter_min_2', $this->cron_send_name );
         } else {
             if ( wp_next_scheduled( $this->cron_send_name ) )
@@ -1169,6 +1119,17 @@ class Email_Newsletter_functions {
 
     }
 
+    /**
+     * Write log for CRON
+     **/
+    function write_log( $message ) {
+        $file = $this->plugin_dir . "email-newsletter-files/cron_log.log";
+
+        $handle = fopen( $file, 'ab' );
+        $data = date( "[Y-m-d H:i:s]" ) . $message . "\r\n";
+        fwrite($handle, $data);
+        fclose($handle);
+    }
 
 
 

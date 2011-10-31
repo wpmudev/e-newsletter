@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.0.9.1
+Version: 1.1.0
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -87,8 +87,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $this->settings = $this->get_settings();
 
 
-
-        //Set value for CRON
+         //TODELETE in next versions (was added 1.1)
+        //Set value for CRON (transition from old version)
         if ( ! isset( $this->settings['cron_enable'] ) && isset( $this->settings['cron_time'] ) ) {
             if ( 1 < $this->settings['cron_time'] ) {
                 $result = $wpdb->query( "INSERT INTO {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_enable', `value` = '1'" );
@@ -974,7 +974,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ( 1 > $wpdb->get_var( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron'") )
             return ;
 
+//        $process_id = time();
+        //writing some information in the plugin log file
+        //$this->write_log( $process_id . " 01 - start" );
+
         if ( ! get_option( 'enewsletter_cron_send_run' ) ) {
+
+            //writing some information in the plugin log file
+            //$this->write_log( $process_id . " 02 - before enewsletter_cron_send_run 1" );
 
             //add new column for check limit
             if ( 1 != $wpdb->query( "DESCRIBE {$this->tb_prefix}enewsletter_send_members sent_time" ) ) {
@@ -983,35 +990,64 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             update_option( 'enewsletter_cron_send_run', time() );
 
+            //writing some information in the plugin log file
+            //$this->write_log( $process_id . " 03 - set enewsletter_cron_send_run 1" );
+
 
             if ( 0 < $this->settings['send_limit'] ) {
+
+                $month  = date( 'n', time() );
+                $year   = date( 'Y', time() );
+                $day    = date( 'j', time() );
+                $hour   = date( 'H', time() );
+                $min    = date( 'i', time() );
+
                 switch ( $this->settings['cron_time'] ) {
                 case '1':
-                    $limit_time = time() - 60*60;
+                    $limit_time_start   = mktime( $hour , 0, 0, $month, $day, $year ) ;
+                    $limit_time_end     = mktime( $hour + 1, 0, -1, $month, $day, $year );
                     break;
                 case '2':
-                    $limit_time = time() - 60*60*24;
+                    $limit_time_start   = mktime( 0, 0, 0, $month, $day, $year );
+                    $limit_time_end     = mktime( 0, 0, -1, $month, $day + 1, $year );
                     break;
                 case '3':
-                    $limit_time = time() - 60*60*24*30;
+                    $limit_time_start   =  mktime( 0, 0, 0, $month, 1, $year);
+                    $limit_time_end     =  mktime( 0, 0, -1, $month + 1, 1, $year);
                     break;
                 }
 
-                $current_count_sent = $wpdb->get_var( $wpdb->prepare( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE sent_time > %d", $limit_time ), "ARRAY_A");
+                //for test (every 2 min )
+//                $limit_time_start   = mktime( $hour , $min - 2, 0, $month, $day, $year ) ;
+//                $limit_time_end     = mktime( $hour, $min + 1, -1, $month, $day, $year );
+
+
+                //writing some information in the plugin log file
+                //$this->write_log( $process_id . " 04 - cron_time: " . $this->settings['cron_time'] . "  limit_time_start:" . $limit_time_start . "  limit_time_end:" . $limit_time_end );
+
+                $current_count_sent = $wpdb->get_var( $wpdb->prepare( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE sent_time  BETWEEN %d AND %d", $limit_time_start, $limit_time_end ) );
             }
+
+
+            //writing some information in the plugin log file
+            //$this->write_log( $process_id . " 05 - current_count_sent: " . $current_count_sent  . "  send_limit:" . $this->settings['send_limit'] );
+
 
             if ( ! isset( $current_count_sent ) || $current_count_sent < $this->settings['send_limit'] ) {
 
-//                if ( 0 < $this->settings['send_limit'] )
-                $send_limit = 'LIMIT 0, 10';
-//                else
-//                    $send_limit = '';
+                $send_limit = 'LIMIT 0, 500';
+
+                //writing some information in the plugin log file
+                //$this->write_log( $process_id . " 06 - NOT LIMIT YET" );
 
                 $send_members = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron' " . $send_limit , "ARRAY_A");
 
+                //writing some information in the plugin log file
+                //$this->write_log( $process_id . " 07 - send_members:" . $send_members );
+
                 if ( ! $send_members ) {
                     delete_option( 'enewsletter_cron_send_run' );
-                    return 'end';
+                    die(1);
                 }
 
                 require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
@@ -1072,16 +1108,27 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_member['send_id'] );
 
                     if( ! $mail->Send() ) {
-            //            return "Mailer Error: " . $mail->ErrorInfo;
-        //                return 'error';
+                        //return "Mailer Error: " . $mail->ErrorInfo;
+                        //return 'error';
+
+                        //writing some information in the plugin log file
+                        //$this->write_log( $process_id . " 08 - send_errors:" . $mail->ErrorInfo );
+
                     } else {
                         //write info of Sent in DB
                         $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent', sent_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_member['send_id'], $send_member['member_id'] ) );
-                        if ( ++$current_count_sent == $this->settings['send_limit'] )
-                            return ;
+
+                        //writing some information in the plugin log file
+                        //$this->write_log( $process_id . " 09 - send OK" );
+
+                        if ( ++$current_count_sent == $this->settings['send_limit'] ) {
+                            //writing some information in the plugin log file
+                            //$this->write_log( $process_id . " 10 - STOP - LIMIT" );
+                            delete_option( 'enewsletter_cron_send_run' );
+                            die(2);
+                        }
         //                if ( ! $result )
         //                    return 'error';
-
                     }
                 }
 
@@ -1089,10 +1136,20 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     wp_schedule_single_event( time() + 60, 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid );
 
 
+            } else {
+                delete_option( 'enewsletter_cron_send_run' );
             }
         } elseif ( get_option( 'enewsletter_cron_send_run' ) < time() - 3*60 ) {
+            //writing some information in the plugin log file
+            //$this->write_log( $process_id . " 11 - CRON works more 3 min - restart CRON" );
+
             delete_option( 'enewsletter_cron_send_run' );
+            die(3);
         }
+        //writing some information in the plugin log file
+        //$this->write_log( $process_id . " 12 - END" );
+
+        die(4);
     }
 
     /**

@@ -1,6 +1,5 @@
 <?php
 
-var_dump( wp_next_scheduled( $this->cron_send_name ) );
     $siteurl = get_option( 'siteurl' );
 
     $settings = $this->get_settings();
