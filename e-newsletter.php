@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.1.0
+Version: 1.1.1
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -821,7 +821,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 foreach ( $_REQUEST["group_name"] as $group_name ) {
                     $users_id = get_users( array( 'role' => $group_name ) );
                     foreach ( $users_id as $user_id ) {
-                        $members_id[] = $this->get_members_by_wp_user_id( $user_id );
+                        $member_id = $this->get_members_by_wp_user_id( $user_id->ID );
+                        if ( 0 < $member_id )
+                            $members_id[] = $member_id;
                     }
                 }
              if ( isset( $_REQUEST["group_id"] ) && $_REQUEST["group_id"] )
@@ -842,17 +844,17 @@ class Email_Newsletter extends Email_Newsletter_functions {
         else
             $status = 'waiting_send';
 
+        if ( 0 < count( $members_id ) )
+            foreach ( $members_id as $member_id ) {
 
-        foreach ( $members_id as $member_id ) {
-
-            if ( ! ( isset( $_REQUEST['dont_send_duplicate'] ) && "1" == $_REQUEST['dont_send_duplicate'] && $this->check_duplicate_send( $newsletter_id, $member_id ) ) )
-                $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send_members SET send_id = %d, member_id = %d, status = '%s' ", $send_id, $member_id, $status ) );
-        }
+                if ( ! ( isset( $_REQUEST['dont_send_duplicate'] ) && "1" == $_REQUEST['dont_send_duplicate'] && $this->check_duplicate_send( $newsletter_id, $member_id ) ) )
+                    $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send_members SET send_id = %d, member_id = %d, status = '%s' ", $send_id, $member_id, $status ) );
+            }
 
         $count_send_members = $this->get_count_send_members( $send_id, $status );
 
         if ( 0 == $count_send_members )
-            wp_redirect( add_query_arg( array( 'page' => $_REQUEST['page'], 'newsletter_action' => 'send_newsletter', 'newsletter_id' => $newsletter_id, 'updated' => 'true', 'dmsg' => urlencode( __( 'All members have already received it!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            wp_redirect( add_query_arg( array( 'page' => $_REQUEST['page'], 'newsletter_action' => 'send_newsletter', 'newsletter_id' => $newsletter_id, 'updated' => 'true', 'dmsg' => urlencode( __( 'All members have already received it or no user is subscribed!', 'email-newsletter' ) ) ), 'admin.php' ) );
         else
             if ( 'cron' == $_REQUEST["cron"] )
                 wp_redirect( add_query_arg( array( 'page' => $_REQUEST['page'], 'newsletter_action' => 'send_newsletter', 'newsletter_id' => $newsletter_id, 'updated' => 'true', 'dmsg' => urlencode( $count_send_members . ' ' . __( 'Members are added to CRON list', 'email-newsletter' ) ) ), 'admin.php' ) );
