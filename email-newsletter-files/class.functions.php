@@ -983,7 +983,7 @@ class Email_Newsletter_functions {
                     `status` varchar(15),
                     `opened_time` int(11) DEFAULT '0',
                     `bounce_time` int(11) DEFAULT '0',
-                    `sent_time` int(11),
+                    `sent_time` int(11)
                 ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
 
                 $result = $wpdb->query( $enewsletter_table );

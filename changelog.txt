@@ -5,6 +5,9 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.1.2 =
+* Fixed problem with create the enewsletter_send_members table.
+
 = 1.1.1 =
 * Fixed problem with send by role.
 
