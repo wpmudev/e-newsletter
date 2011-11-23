@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.1.2
+Version: 1.1.2.1
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -923,7 +923,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
                 if( $mail->SMTPAuth ){
                     $mail->Username = $this->settings['smtp_user'];
-                    $mail->Password = $this->settings['smtp_pass'];
+                    $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
                 }
                 break;
 
@@ -1080,7 +1080,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                             $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
                             if( $mail->SMTPAuth ){
                                 $mail->Username = $this->settings['smtp_user'];
-                                $mail->Password = $this->settings['smtp_pass'];
+                                $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
                             }
                             break;
 
@@ -1173,7 +1173,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
                 if( $mail->SMTPAuth ){
                     $mail->Username = $this->settings['smtp_user'];
-                    $mail->Password = $this->settings['smtp_pass'];
+                    $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
                 }
                 break;
 

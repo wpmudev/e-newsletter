@@ -249,7 +249,7 @@
                                 <tr>
                                     <td><?php _e( 'SMTP Password:', 'email-newsletter' ) ?></td>
                                     <td>
-                                        <input type="text" name="settings[smtp_pass]" value="<?php echo htmlspecialchars($settings['smtp_pass']);?>" />
+                                        <input type="password" name="settings[smtp_pass]" value="<?php echo ( isset( $settings['smtp_pass'] ) && '' != $settings['smtp_pass'] ) ? '********' : ''; ?>" />
                                         <span class="description"><?php _e( '(leave blank for none)', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>

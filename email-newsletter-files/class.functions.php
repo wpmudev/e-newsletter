@@ -258,7 +258,7 @@ class Email_Newsletter_functions {
                 $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
                 if( $mail->SMTPAuth ){
                     $mail->Username = $this->settings['smtp_user'];
-                    $mail->Password = $this->settings['smtp_pass'];
+                    $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
                 }
                 break;
 
@@ -378,6 +378,14 @@ class Email_Newsletter_functions {
 
         if ( $settings['send_limit'] )
             $settings['send_limit'] = (int) trim( $settings['send_limit'] );
+
+        //Encrypt password
+        if ( isset( $settings['smtp_pass'] ) && '********' == $settings['smtp_pass'] )
+            unset( $settings['smtp_pass'] );
+        elseif( isset( $settings['smtp_pass'] ) && '' != $settings['smtp_pass'] )
+            $settings['smtp_pass'] = $this->_encrypt( $settings['smtp_pass'] );
+        else
+            $settings['smtp_pass'] = '';
 
 
         foreach( $settings as $key=>$item )
@@ -1131,6 +1139,27 @@ class Email_Newsletter_functions {
         fclose($handle);
     }
 
+    /**
+     * Encrypt text (SMTP password)
+     **/
+    protected function _encrypt( $text ) {
+        if  ( function_exists( 'mcrypt_encrypt' ) ) {
+            return base64_encode( @mcrypt_encrypt( MCRYPT_RIJNDAEL_256, DB_PASSWORD, $text, MCRYPT_MODE_ECB ) );
+        } else {
+            return $text;
+        }
+    }
+
+    /**
+     * Decrypt password (SMTP password)
+     **/
+    protected function _decrypt( $text ) {
+        if ( function_exists( 'mcrypt_decrypt' ) ) {
+            return trim( @mcrypt_decrypt( MCRYPT_RIJNDAEL_256, DB_PASSWORD, base64_decode( $text ), MCRYPT_MODE_ECB ) );
+        } else {
+            return $text;
+        }
+    }
 
 
 }

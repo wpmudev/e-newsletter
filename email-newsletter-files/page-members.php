@@ -187,13 +187,13 @@
             });
 
 
-            jQuery(".btn-slide").click(function(){
-                jQuery("#panel").slideToggle("slow");
+            jQuery( "#show_add_form" ).click( function() {
+                jQuery( "#panel" ).slideToggle( "slow" );
 
-                if ( "<?php _e( 'Show the New Member form', 'email-newsletter' ) ?>" == jQuery(this).val() )
-                    jQuery(this).val( '<?php _e( 'Close the New Member/Import forms', 'email-newsletter' ) ?>' );
+                if ( "<?php _e( 'Show the New Member / Import forms', 'email-newsletter' ) ?>" == jQuery(this).val() )
+                    jQuery(this).val( '<?php _e( 'Hide the New Member / Import forms', 'email-newsletter' ) ?>' );
                 else
-                    jQuery(this).val( '<?php _e( 'Show the New Member/Import forms', 'email-newsletter' ) ?>' );
+                    jQuery(this).val( '<?php _e( 'Show the New Member / Import forms', 'email-newsletter' ) ?>' );
 
                 return false;
             });
@@ -208,8 +208,9 @@
 
 
         <p class="slide">
-            <input type="button" class="btn-slide" id="show_add_form" value="<?php _e( 'Show the New Member/Import forms', 'email-newsletter' ) ?>" />
+            <input type="button" class="button-secondary action" id="show_add_form" value="<?php _e( 'Show the New Member / Import forms', 'email-newsletter' ) ?>" />
         </p>
+
         <div id="panel">
             <form action="" method="post" name="add_new_member" id="add_new_member" enctype="multipart/form-data">
                 <input type="hidden" name="newsletter_action" id="newsletter_action2" value="" />
@@ -335,7 +336,6 @@
                 </table>
             </form>
         </div>
-
 
         <form method="post" action="" name="form_members" id="form_members" >
             <input type="hidden" name="member_id" id="member_id" value="" />

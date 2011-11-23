@@ -364,16 +364,17 @@ Email-Newsletter CSS Styles
 
 #panel {
     background: #F9F9F9;
-    border-bottom: solid 4px #555;
+    border: solid 1px #DFDFDF;
+    -moz-border-radius-topleft: 4px;
+    -moz-border-radius-topright: 4px;
     -moz-border-radius-bottomleft: 4px;
     -moz-border-radius-bottomright: 4px;
     display: none;
     width: 95%;
+    margin: 10px 0px 30px 0px;
 }
 
 #panel form {
-    border-right: solid 4px #555;
-    border-left: solid 4px #555;
     padding: 0px 20px 0px 20px;
 }
 
@@ -392,25 +393,9 @@ Email-Newsletter CSS Styles
 .slide {
     margin: 0;
     padding: 0;
-    border-bottom: solid 4px #555;
     background: none transparent no-repeat center top;
     width: 95%;
-}
-
-.btn-slide {
-    background: #555555 url(images/555555_40x100_textures_03_highlight_soft_75.png) 50% 50% repeat-x;
-    border: 1px solid #666666 !important;
-
-    height: 31px;
-    margin: 0 auto;
-    display: block;
-    color: #fff !important;
-    font-weight: bold;
-}
-
-.btn-slide:hover {
-    background: url("images/444444_40x100_textures_03_highlight_soft_60.png") repeat-x scroll 50% 50% #444444;
-    border: 1px solid #666666;
+    margin : 10px 0px 20px 0px;
 }
 
 /* End Add member block */
