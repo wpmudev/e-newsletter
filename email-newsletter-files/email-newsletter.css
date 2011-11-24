@@ -450,3 +450,7 @@ vertical-align: middle !important;
     float: right;
     margin: 20px 0px 0px 0px;
 }
+
+#settings_form .email_out_smtp input {
+    width: 225px;
+}

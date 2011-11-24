@@ -5,6 +5,11 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.1.3 =
+* Changed button for "New Member / Import forms";
+* Fixed security of SMTP password (added encrypt/decrypt);
+* Added more information for SMTP method;
+
 = 1.1.2 =
 * Fixed problem with create the enewsletter_send_members table.
 

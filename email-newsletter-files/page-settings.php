@@ -185,6 +185,10 @@
                                 <td>
                                     <input type="text" name="settings[from_email]" value="<?php echo htmlspecialchars( $settings['from_email'] ? $settings['from_email'] : get_option( 'admin_email' ) );?>" />
                                     <span class="description"><?php _e( 'Default "from" email address when sending newsletters.', 'email-newsletter' ) ?></span>
+                                    <?php
+                                    if ( "smtp" == $settings['outbound_type'] )
+                                        echo '<span class="red">' . __( 'You use SMTP method for sending email. Check this field!', 'email-newsletter' ) . '</span>';
+                                    ?>
                                 </td>
                             </tr>
                             <tr>
@@ -233,10 +237,15 @@
 
                             <tbody class="email_out email_out_smtp">
                                 <tr>
+                                    <td colspan="2">
+                                         <span class="red"><?php _e( 'Note: for SMTP method - in "From email" you should use only emails which related with your SMTP server! Check it on "General Settings" and "Create\Edit newsletter"!', 'email-newsletter' ) ?></span>
+                                    </td>
+                                </tr>
+                                <tr>
                                     <td><?php _e( 'SMTP Outgoing Server', 'email-newsletter' ) ?>:</td>
                                     <td>
                                         <input type="text" id="smtp_host" name="settings[smtp_host]" value="<?php echo htmlspecialchars($settings['smtp_host']);?>" />
-                                        <span class="description"><?php _e( '(eg: ssl://smtp.gmail.com:465)', 'email-newsletter' ) ?></span>
+                                        <span class="description"><?php _e( '(eg: smtp.someserver.com, ssl://smtp.gmail.com:465)', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr>
