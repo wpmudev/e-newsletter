@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.1.3
+Version: 1.1.4
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -81,6 +81,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
             wp_die( __('There was an issue determining where WPMU DEV Update Notifications is installed. Please reinstall.', 'email-newsletter' ) );
         }
 
+        //add new rewrite rules
+        register_activation_hook( $this->plugin_dir . 'e-newsletter.php', array( &$this, 'update_rewrite_rules' ) );
+        add_filter( 'rewrite_rules_array', array( &$this, 'insert_rewrite_rules' ) );
+        add_filter( 'query_vars', array( &$this, 'insert_query_vars' ) );
+
+
         load_plugin_textdomain( 'email-newsletter', false, dirname( plugin_basename( __FILE__ ) ) . '/email-newsletter-files/languages' );
 
         //get all setting of plugin
@@ -115,7 +121,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_filter( 'cron_schedules', array( &$this, 'add_new_cron_time' ) );
 
         add_action( 'init', array( &$this, 'init' ) );
-
 
         //changing list of members when we create or delete user of the site
         add_action( 'user_register', array( &$this, 'user_create' ) );
@@ -211,6 +216,34 @@ class Email_Newsletter extends Email_Newsletter_functions {
             wp_enqueue_script( 'jquery_progressbar' );
         }
     }
+
+    /**
+     * Update rewrite_rules
+     *
+     * @return void
+     */
+    function update_rewrite_rules() {
+        flush_rewrite_rules( false );
+    }
+
+    /**
+     * Adding a new rule
+     **/
+    function insert_rewrite_rules( $rules ) {
+        $newrules = array();
+        $newrules['e-newsletter/unsubscribe/([\w\d]{15})(\d*)/?$'] = 'index.php?unsubscribe_page=1&unsubscribe_code=$matches[1]&unsubscribe_member_id=$matches[2]';
+        return $newrules + $rules;
+    }
+    /**
+     * Adding the var for unsubscribe page
+     **/
+    function insert_query_vars( $vars ) {
+        array_push( $vars, 'unsubscribe_page' );
+        array_push( $vars, 'unsubscribe_code' );
+        array_push( $vars, 'unsubscribe_member_id' );
+        return $vars;
+    }
+
 
     /**
      * init for admin
@@ -326,24 +359,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * init for all users
      **/
     function init() {
-        global $wp, $wp_rewrite;
-        // add rule for show Unsubscribe page
-        $wp->add_query_var( 'unsubscribe_page' );
-        $wp->add_query_var( 'unsubscribe_code' );
-        $wp->add_query_var( 'unsubscribe_member_id' );
-
-        $this->add_rewrite_rule( 'e-newsletter/unsubscribe/([\w\d]{15})(\d*)/?$', array(
-            'unsubscribe_page' => 1,
-            'unsubscribe_code' => '$matches[1]',
-            'unsubscribe_member_id' => '$matches[2]'
-        ) );
-
-        $rules = get_option( 'rewrite_rules' );
-
-        if ( ! isset( $rules['e-newsletter/unsubscribe/([\w\d]{15})(\d*)/?$'] ) )
-            $wp_rewrite->flush_rules();
-
-
 
         //public actions of the plugin
         if ( isset( $_REQUEST['newsletter_action'] ) )
