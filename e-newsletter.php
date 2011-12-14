@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.1.4
+Version: 1.1.5
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -918,7 +918,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $member_data = $this->get_member( $send_member['member_id'] );
 
-        require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
+        if ( !class_exists( 'PHPMailer' ) )
+            require_once( $this->plugin_dir . 'email-newsletter-files/phpmailer/class.phpmailer.php' );
 
         $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
 
@@ -1067,7 +1068,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     die(1);
                 }
 
-                require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
+                if ( !class_exists( 'PHPMailer' ) )
+                    require_once( $this->plugin_dir . 'email-newsletter-files/phpmailer/class.phpmailer.php' );
 
                 foreach ( $send_members as $send_member ) {
 
@@ -1174,7 +1176,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function send_preview_ajax() {
 
-        require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
+        if ( !class_exists( 'PHPMailer' ) )
+            require_once( $this->plugin_dir . 'email-newsletter-files/phpmailer/class.phpmailer.php' );
 
         $mail = new PHPMailer();
 
