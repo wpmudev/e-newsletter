@@ -190,7 +190,7 @@
                 <tr>
                     <td>
                     <p>
-                        <label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members', 'email-newsletter' ) ?></strong> (<?php echo $this->get_count_members();?>)</label><br/>
+                        <label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members - except unsubscribed', 'email-newsletter' ) ?></strong> (<?php echo $this->get_count_members();?>)</label><br/>
                         &nbsp;&nbsp;-or-<br/>
                         <?php
                             foreach ( array('administrator', 'editor', 'author', 'contributor', 'subscriber') as $role ) {

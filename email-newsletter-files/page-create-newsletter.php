@@ -1,11 +1,11 @@
 <?php
     global $wpdb;
 
-    $settings = $this->get_settings();
-
-    $language = ( 5 == strlen( get_locale() ) ) ? substr( get_locale(), 0, 2 ) : 'en';
-
-    $siteurl = get_option( 'siteurl' );
+    $settings           = $this->get_settings();
+    $language           = ( 5 == strlen( get_locale() ) ) ? substr( get_locale(), 0, 2 ) : 'en';
+    $siteurl            = get_option( 'siteurl' );
+    $rich_editing       = user_can_richedit();
+    $uploaded_images    = $this->get_uploaded_images();
 
     //get data of newsletter
     if ( isset( $_REQUEST['newsletter_id'] ) ) {
@@ -37,14 +37,6 @@
         ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['dmsg'] ); ?></p></div><?php
     }
 
-    //Creating WYSIWYG editor
-    wp_tiny_mce( false ,
-        array(
-            "editor_selector" => "newsletter_content",
-        )
-    );
-
-
 ?>
     <script type="text/javascript">
 
@@ -66,7 +58,12 @@
                 var contact_info    = jQuery.base64Encode( jQuery( "#contact_info" ).val() );
                 contact_info        = contact_info.replace(/\+/g, "-");
 
+                <?php if ( true === $rich_editing ): ?>
                 var content         = jQuery.base64Encode( tinyMCE.get( "newsletter_content" ).getContent() );
+                <?php else: ?>
+                var content         = jQuery.base64Encode( jQuery( "#newsletter_content" ).val() );
+                <?php endif; ?>
+
                 content = content.replace(/\+/g, "-");
 
                 if ( "" == preview_email ) {
@@ -111,7 +108,12 @@
                 var contact_info    = jQuery.base64Encode( jQuery( "#contact_info" ).val() );
                 contact_info        = contact_info.replace(/\+/g, "-");
 
+                <?php if ( true === $rich_editing ): ?>
                 var content         = jQuery.base64Encode( tinyMCE.get( "newsletter_content" ).getContent() );
+                <?php else: ?>
+                var content         = jQuery.base64Encode( jQuery( "#newsletter_content" ).val() );
+                <?php endif; ?>
+
                 content             = content.replace(/\+/g, "-");
 
 
@@ -138,7 +140,13 @@
 
             //Save Newsletter action
             jQuery( "#newsletter_save" ).click( function() {
+
+                <?php if ( true === $rich_editing ): ?>
                 var content = jQuery.base64Encode( tinyMCE.get( "newsletter_content" ).getContent() );
+                <?php else: ?>
+                var content = jQuery.base64Encode( jQuery( "#newsletter_content" ).val() );
+                <?php endif; ?>
+
                 content     = content.replace(/\+/g, "-");
 
                 var contact_info    = jQuery.base64Encode( jQuery( "#contact_info" ).val() );
@@ -153,7 +161,13 @@
 
             //Save Newsletter and then go on send page
             jQuery( "#newsletter_save_send" ).click( function() {
+
+                <?php if ( true === $rich_editing ): ?>
                 var content = jQuery.base64Encode( tinyMCE.get( "newsletter_content" ).getContent() );
+                <?php else: ?>
+                var content = jQuery.base64Encode( jQuery( "#newsletter_content" ).val() );
+                <?php endif; ?>
+
                 content = content.replace(/\+/g, "-");
 
                 var contact_info = jQuery.base64Encode( jQuery( "#contact_info" ).val() );
@@ -172,37 +186,6 @@
                jQuery( "#create_newsletter" ).submit();
             });
 
-
-            //Creating WYSIWYG editor
-            tinyMCE.init({
-                    // General options
-                    language: "<?php echo $language ?>",
-                    mode: "exact",
-                    elements : "newsletter_content",
-                    theme : "advanced",
-                    height : '300px',
-                    width : '95%',
-                    relative_urls : false,
-//                    remove_script_host : true,
-                    convert_urls : false,
-
-                    plugins : "autolink,lists,spellchecker,table,advhr,wpeditimage,advlink,iespell,inlinepopups,contextmenu,paste,fullscreen,noneditable,visualchars,nonbreaking",
-
-                    // Theme options
-                    theme_advanced_buttons1 : "undo,redo,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,formatselect,fontselect,fontsizeselect",
-                    theme_advanced_buttons2 : "cut,copy,paste,pastetext,pasteword,|,bullist,numlist,|,link,unlink,anchor,image,cleanup,code,|,forecolor,backcolor,|,fullscreen,nonbreaking,spellchecker,visualchars",
-                    theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,charmap,iespell",
-                    theme_advanced_toolbar_location : "top",
-                    theme_advanced_toolbar_align : "left",
-                    theme_advanced_statusbar_location : "bottom",
-                    theme_advanced_resizing : true,
-                    valid_elements : "*[*]",
-
-                    // Skin options
-                    skin : "o2k7",
-                    skin_variant : "silver",
-
-            });
 
 
             //function base64 encode
@@ -303,22 +286,7 @@
                     });
             })(jQuery);
 
-
-
-           //upload  image on server
-            var uploader = new qq.FileUploader({
-                element: document.getElementById('file-uploader'),
-                action: '<?php echo $siteurl;?>/wp-admin/admin-ajax.php',
-                params: {
-                    action: 'file_upload'
-                },
-                allowedExtensions: ['jpg', 'jpeg', 'png', 'gif'],
-                sizeLimit: 2097152, // max size
-                minSizeLimit: 0 // min size
-
-
-            });
-
+            <?php if ( $uploaded_images ): ?>
             //insert  image to body of email
             jQuery.fn.insertImage = function ( ) {
                 var src = jQuery( '#uploads_images' ).val();
@@ -330,8 +298,32 @@
 
                 var imghtml = '<img src="' + src + '" alt="'+alt+'"';
                 imghtml += ' />';
+
+                <?php if ( true === $rich_editing ): ?>
                 tinyMCE.execCommand( 'mceInsertRawHTML', false, imghtml );
+                <?php else: ?>
+                //insert image in textarea - in cursor place
+                var area = area=document.getElementsByName( 'newsletter_content' ).item(0);
+
+                // Mozilla and other browser
+                if ( (area.selectionStart )||( area.selectionStart == '0' ) ) { // определяем, где начало выделения, если оно существует
+                  var p_start   = area.selectionStart;
+                  var p_end     = area.selectionEnd;
+
+                  area.value    = area.value.substring( 0, p_start ) + imghtml + area.value.substring( p_end, area.value.length );
+                }
+
+                // For Internet Explorer
+                if ( document.selection ) {
+                  area.focus();
+                  sel = document.selection.createRange();
+                  sel.text = imghtml;
+                }
+                <?php endif; ?>
+
+
             };
+            <?php endif; ?>
 
             //show big preview image of template
             jQuery( ".newsletter-templates a" ).click( function() {
@@ -443,25 +435,24 @@
                         <table width="100%">
                             <tr>
                                 <td>
-                                    <textarea name="newsletter_content" id="newsletter_content" style="width:100%"><?php echo htmlspecialchars( ( isset( $newsletter_data['content'] ) ) ? $newsletter_data['content'] : '' );?></textarea>
+                                <?php
+                                $em_content = ( isset( $newsletter_data['content'] ) ) ? $newsletter_data['content'] : '';
+                                the_editor( $em_content, 'newsletter_content' );
+                                ?>
                                 </td>
                             </tr>
+                            <?php if ( $uploaded_images ): ?>
                             <tr>
                                 <td>
                                     <h4><?php _e( 'Insert images from server:', 'email-newsletter' ) ?> </h4>
                                     <select name="uploads_images" id="uploads_images">
-                                    <?php echo $this->get_uploads(); ?>
+                                    <?php echo $uploaded_images; ?>
                                     </select>
                                     <input type="text" name="image_alt" id="image_alt" value="<?php _e( 'Image Description', 'email-newsletter' ) ?>" onfocus="if( this.value == '<?php _e( 'Image Description', 'email-newsletter' ) ?>' ) this.value='';">
                                     <input type="button" name="image_insert" onclick="jQuery(this).insertImage();" value="<?php _e( 'Insert Image', 'email-newsletter' ) ?>" />
-                                    <h4><?php _e( 'Upload images to server:', 'email-newsletter' ) ?> </h4>
-                                    <div id="file-uploader">
-                                        <noscript>
-                                            <p>Please enable JavaScript to use file uploader.</p>
-                                        </noscript>
-                                    </div>
                                 </td>
                             </tr>
+                            <?php endif; ?>
                         </table>
 
                     </div>

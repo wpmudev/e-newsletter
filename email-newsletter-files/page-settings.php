@@ -295,7 +295,7 @@
                                         <select name="settings[cron_time]" >
                                             <option value="1" <?php echo ( 1 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Hour', 'email-newsletter' ) ?></option>
                                             <option value="2" <?php echo ( 2 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Day', 'email-newsletter' ) ?></option>
-                                            <option value="3" <?php echo ( 3 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Mounth', 'email-newsletter' ) ?></option>
+                                            <option value="3" <?php echo ( 3 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Month', 'email-newsletter' ) ?></option>
                                         </select>
                                     </td>
                                 </tr>

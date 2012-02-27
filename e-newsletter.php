@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.1.5
+Version: 1.1.6
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -86,12 +86,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_filter( 'rewrite_rules_array', array( &$this, 'insert_rewrite_rules' ) );
         add_filter( 'query_vars', array( &$this, 'insert_query_vars' ) );
 
-
-        load_plugin_textdomain( 'email-newsletter', false, dirname( plugin_basename( __FILE__ ) ) . '/email-newsletter-files/languages' );
-
         //get all setting of plugin
         $this->settings = $this->get_settings();
-
 
          //TODELETE in next versions (was added 1.1)
         //Set value for CRON (transition from old version)
@@ -114,6 +110,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         //plugin_icon
         add_action( 'admin_head', array( &$this, 'change_icon' ) );
+        add_action( 'admin_head', array( &$this, 'tinymce_includes' ) );
 
         add_action( 'admin_init', array( &$this, 'admin_init' ) );
 
@@ -165,10 +162,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'wp_ajax_nopriv_check_email_opened', array( &$this, 'check_email_opened_ajax' ) );
         add_action( 'wp_ajax_check_email_opened', array( &$this, 'check_email_opened_ajax' ) );
 
-        //ajax action for upload image file on server
-        add_action( 'wp_ajax_nopriv_file_upload', array( &$this, 'file_upload_ajax' ) );
-        add_action( 'wp_ajax_file_upload', array( &$this, 'file_upload_ajax' ) );
-
         //ajax action for unsubscribe from email
         add_action( 'wp_ajax_nopriv_newsletter_unsubscibe', array( &$this, 'unsubscibe_ajax' ) );
         add_action( 'wp_ajax_newsletter_unsubscibe', array( &$this, 'unsubscibe_ajax' ) );
@@ -195,13 +188,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
             //including JS scripts
             wp_enqueue_script( 'jquery-ui-tabs' );
             wp_enqueue_script( 'jquery-ui-core' );
-
-            //include plugins for WYSIWYG editor on Create Newsletter page
-            if ( 'newsletters-create' == $_REQUEST['page'] )
-                add_filter("mce_external_plugins", array( &$this, 'my_tinymce_plugins' ) );
-
-            wp_register_script( 'newsletter_fileuploader', $this->plugin_url . 'email-newsletter-files/js/fileuploader/fileuploader.js' );
-            wp_enqueue_script( 'newsletter_fileuploader' );
 
             //including JS scripts for tooltips
             wp_register_script( 'jquery_tooltips', $this->plugin_url . 'email-newsletter-files/js/jquery.tools.min.js' );
@@ -359,6 +345,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * init for all users
      **/
     function init() {
+
+        load_plugin_textdomain( 'email-newsletter', false, dirname( plugin_basename( __FILE__ ) ) . '/email-newsletter-files/languages/' );
 
         //public actions of the plugin
         if ( isset( $_REQUEST['newsletter_action'] ) )
@@ -583,7 +571,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
         global $wpdb;
         $unsubscribe_code = $this->gen_unsubscribe_code();
 
-        $user = get_userdata( $userID );
+        $data = get_userdata( $userID );
+
+        if ( !empty( $data->data ) )
+            $user = (array) $data->data;
+        else
+            $user = (array) $data;
 
         $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_members SET
             wp_user_id = %d,
@@ -591,7 +584,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             member_email = %s,
             join_date = %d,
             unsubscribe_code = '%s'
-         ", $user->ID, $user->user_nicename, $user->user_email, time(), $unsubscribe_code ) );
+         ", $user['ID'], $user['user_nicename'], $user['user_email'], time(), $unsubscribe_code ) );
     }
 
     /**
@@ -721,16 +714,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
     }
 
     /**
-     * file_upload_ajax
-     **/
-    function file_upload_ajax() {
-        global $wpdb;
-        require_once( $this->plugin_dir . "email-newsletter-files/file-uploader.php" );
-
-        die("");
-    }
-
-    /**
      * Confirm subscibe from Email
      **/
     function confirm_subscibe_ajax() {
@@ -827,7 +810,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $members_id = array();
         if ( isset( $_REQUEST["all_members"] ) && "1" == $_REQUEST["all_members"] ) {
-            $members = $this->get_members();
+            $args = array (
+                'where' => "unsubscribe_code != ''"
+            );
+
+            $members = $this->get_members( $args );
             foreach ( $members as $member ) {
                 $members_id[] = $member['member_id'];
             }

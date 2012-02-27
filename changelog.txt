@@ -5,6 +5,13 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.1.6 =
+* Changed WYSIWYG editor on WP editor;
+* Changed image uploader on WP media Upload/Insert;
+* Text correction;
+* Fixed unsubscribe link;
+* Fixed translation (WPML);
+
 = 1.1.5 =
 * WP 3.3 compatibility;
 * Fixed problem with require_once PHPMailer file;

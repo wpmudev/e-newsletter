@@ -125,7 +125,7 @@ class Email_Newsletter_functions {
      **/
      function get_count_members() {
         global $wpdb;
-        $count = $wpdb->get_row( "SELECT Count(member_id) FROM {$this->tb_prefix}enewsletter_members", "ARRAY_A");
+        $count = $wpdb->get_row( "SELECT Count(member_id) FROM {$this->tb_prefix}enewsletter_members WHERE unsubscribe_code != ''", "ARRAY_A");
         return $count['Count(member_id)'];
     }
 
@@ -174,8 +174,12 @@ class Email_Newsletter_functions {
     /**
      * Get all uploads images
      **/
-    function get_uploads(){
+    function get_uploaded_images(){
         $upload_files = glob( $this->plugin_dir . "email-newsletter-files/uploads/*" );
+
+        if ( !is_array( $upload_files ) )
+            return false;
+
         $uploads = '<option value="">' . __( 'Select an image', 'email-newsletter' ) . '</option>';
         foreach( $upload_files as $upload_file ) {
             $uploads .='<option value="' . $this->plugin_url . 'email-newsletter-files/uploads/' . basename( $upload_file ) . '"> ' . basename( $upload_file ) . ' </option>';
@@ -553,8 +557,13 @@ class Email_Newsletter_functions {
     function get_members( $arg = "") {
         global $wpdb;
 
+        $where      = "";
         $orderby    = "";
         $limit      = "";
+
+        if ( isset( $arg['where'] ) ) {
+            $where = "WHERE ". $arg['where'];
+        }
 
         if ( isset( $arg['limit'] ) ) {
             $limit = $arg['limit'];
@@ -566,7 +575,7 @@ class Email_Newsletter_functions {
                 $orderby .= " ". $arg['order'];
         }
 
-        $results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members ". $orderby . $limit ), "ARRAY_A" );
+        $results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members ". $where . " ".  $orderby . " " . $limit ), "ARRAY_A" );
 
         if ( $results )
                 foreach( $results as $member ) {
@@ -752,31 +761,10 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * Get all groups for memeber
-     **/
-    function my_tinymce_plugins( $plugin_array ) {
-        $plugin_array['autolink']           = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/autolink/editor_plugin.js';
-        $plugin_array['lists']              = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/lists/editor_plugin.js';
-        $plugin_array['table']              = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/table/editor_plugin.js';
-        $plugin_array['advhr']              = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/advhr/editor_plugin.js';
-        $plugin_array['advlink']            = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/advlink/editor_plugin.js';
-        $plugin_array['iespell']            = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/iespell/editor_plugin.js';
-        $plugin_array['inlinepopups']       = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/inlinepopups/editor_plugin.js';
-        $plugin_array['contextmenu']        = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/contextmenu/editor_plugin.js';
-        $plugin_array['paste']              = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/paste/editor_plugin.js';
-        $plugin_array['fullscreen']         = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/fullscreen/editor_plugin.js';
-        $plugin_array['noneditable']        = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/noneditable/editor_plugin.js';
-        $plugin_array['visualchars']        = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/visualchars/editor_plugin.js';
-        $plugin_array['nonbreaking']        = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/nonbreaking/editor_plugin.js';
-        $plugin_array['wordcount']          = $this->plugin_url . 'email-newsletter-files/js/tiny_mce/plugins/wordcount/editor_plugin.js';
-
-        return $plugin_array;
-    }
-
-    /**
      * change plugin's icon
      **/
-    function change_icon( $plugin_array ) {
+    function change_icon( ) {
+
        ?>
         <style type="text/css">
             #toplevel_page_newsletters-dashboard .wp-menu-image a img,
@@ -800,6 +788,25 @@ class Email_Newsletter_functions {
             }
         </style>
     <?php
+    }
+
+
+    /**
+     * tinymce includes
+     **/
+    function tinymce_includes( ) {
+
+        // Including files
+        if ( isset( $_REQUEST['page'] ) && 'newsletters-create' == $_REQUEST['page'] ) {
+            wp_admin_css( 'thickbox' );
+            wp_print_scripts( 'jquery-ui-core' );
+            wp_print_scripts( 'jquery-ui-tabs' );
+            wp_print_scripts( 'post' );
+            wp_print_scripts( 'editor' );
+            add_thickbox();
+            wp_print_scripts( 'media-upload' );
+            if ( function_exists( 'wp_tiny_mce' ) ) wp_tiny_mce();
+        }
     }
 
     /**
