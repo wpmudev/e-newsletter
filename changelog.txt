@@ -5,6 +5,9 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.1.7 =
+* Added wordpress editor-style alignment css to included templates
+
 = 1.1.6 =
 * Changed WYSIWYG editor on WP editor;
 * Changed image uploader on WP media Upload/Insert;
@@ -89,3 +92,5 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 
 = 1.0.0 =
 * Initial Release;
+
+62863-1331581920
