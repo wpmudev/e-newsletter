@@ -4,14 +4,19 @@
 
     $settings = $this->get_settings();
 
-    $page_title =  __( 'Settings of eNewsletter plugin', 'email-newsletter' );
+    $page_title =  __( 'eNewsletter Settings', 'email-newsletter' );
 
     if ( ! $settings ) {
-        $page_title =  __( 'Install Settings of eNewsletter plugin', 'email-newsletter' );
+        $page_title =  __( 'eNewsletter plugin Installation', 'email-newsletter' );
 
         $mode = "install";
 
     }
+	global $email_newsletter;
+	if (!class_exists('WpmuDev_HelpTooltips')) require_once $email_newsletter->plugin_dir . '/email-newsletter-files/class_wd_help_tooltips.php';
+	$tips = new WpmuDev_HelpTooltips();
+	$tips->set_icon_url($email_newsletter->plugin_url.'/email-newsletter-files/images/information.png');
+	
 
     //Display status message
     if ( isset( $_GET['updated'] ) ) {
@@ -21,45 +26,37 @@
 ?>
 
     <script type="text/javascript">
-
-        function simple_tooltip(target_items, name){
-            jQuery(target_items).each(function(i){
-                jQuery("body").append("<div class='"+name+"' id='"+name+i+"'><p>"+jQuery(this).attr('title')+"</p></div>");
-                var my_tooltip = jQuery("#"+name+i);
-
-                jQuery(this).removeAttr("title").mouseover(function(){
-                    my_tooltip.css({opacity:0.8, display:"none"}).fadeIn(400);
-                }).mousemove(function(kmouse){
-                    my_tooltip.css({left:kmouse.pageX+15, top:kmouse.pageY+15});
-                }).mouseout(function(){
-                    my_tooltip.fadeOut(400);
-                });
-            });
-        }
-
-
-
-        jQuery( document ).ready( function() {
-
-            jQuery( "input[type=button][name='save']" ).click( function() {
-                if ( "" == jQuery( "#smtp_host" ).val() && jQuery( "#smtp_method" ).attr( 'checked' ) ) {
+	
+        jQuery( document ).ready( function($) {
+			
+			$('.newsletter-settings-tabs > div').not('.active').hide();
+			$('#newsletter-tabs a').click(function(e) {
+				var tab = $(this).attr('href');
+				$(this).addClass('nav-tab-active').siblings('a').removeClass('nav-tab-active');
+				$(tab).show().siblings('div').hide();
+				$(tab).addClass('nav-tab-active');
+				return false;
+			});
+			
+            $( "input[type=button][name='save']" ).click( function() {
+                if ( "" == $( "#smtp_host" ).val() && $( "#smtp_method" ).attr( 'checked' ) ) {
                     alert('<?php _e( 'Please write SMTP Outgoing Server, or select another Sending Method!', 'email-newsletter' ) ?>');
                     return false;
                 }
 
-                jQuery( "#newsletter_action" ).val( "save_settings" );
-                jQuery( "#settings_form" ).submit();
+                $( "#newsletter_action" ).val( "save_settings" );
+                $( "#settings_form" ).submit();
             });
 
             //install plugin data
-            jQuery( "#install" ).click( function() {
-                if ( "" == jQuery( "#smtp_host" ).val() && jQuery( "#smtp_method" ).attr( 'checked' ) ) {
+            $( "#install" ).click( function() {
+                if ( "" == $( "#smtp_host" ).val() && $( "#smtp_method" ).attr( 'checked' ) ) {
                     alert('<?php _e( 'Please write SMTP Outgoing Server, or select another Sending Method!', 'email-newsletter' ) ?>');
                     return false;
                 }
 
-                jQuery( "#newsletter_action" ).val( "install" );
-                jQuery( "#settings_form" ).submit();
+                $( "#newsletter_action" ).val( "install" );
+                $( "#settings_form" ).submit();
                 return false;
 
             });
@@ -67,53 +64,42 @@
 
 
             //uninstall plugin data
-            jQuery( "#uninstall_yes" ).click( function() {
-                jQuery( "#newsletter_action" ).val( "uninstall" );
-                jQuery( "#settings_form" ).submit();
+            $( "#uninstall_yes" ).click( function() {
+                $( "#newsletter_action" ).val( "uninstall" );
+                $( "#settings_form" ).submit();
                 return false;
 
             });
 
-            jQuery( "#uninstall" ).click( function() {
-                jQuery( "#uninstall_confirm" ).show( );
+            $( "#uninstall" ).click( function() {
+                $( "#uninstall_confirm" ).show( );
                 return false;
             });
 
-            jQuery( "#uninstall_no" ).click( function() {
-                jQuery( "#uninstall_confirm" ).hide( );
+            $( "#uninstall_no" ).click( function() {
+                $( "#uninstall_confirm" ).hide( );
                 return false;
             });
-
-
-
-            jQuery(".tooltip_img[title]").tooltip();
-
-
-            //Creating tabs
-            jQuery(function() {
-                jQuery( "#tabs" ).tabs();
-            });
-
 
 
             //Test connection to bounces email
-            jQuery( "#test_bounce_conn" ).click( function() {
-                var bounce_email    = jQuery( "#bounce_email" ).val();
-                var bounce_host     = jQuery( "#bounce_host" ).val();
-                var bounce_port     = jQuery( "#bounce_port" ).val();
-                var bounce_username = jQuery( "#bounce_username" ).val();
-                var bounce_password = jQuery( "#bounce_password" ).val();
+            $( "#test_bounce_conn" ).click( function() {
+                var bounce_email    = $( "#bounce_email" ).val();
+                var bounce_host     = $( "#bounce_host" ).val();
+                var bounce_port     = $( "#bounce_port" ).val();
+                var bounce_username = $( "#bounce_username" ).val();
+                var bounce_password = $( "#bounce_password" ).val();
 
-                jQuery( "#test_bounce_loading" ).show();
-                jQuery( "#test_bounce_conn" ).attr( 'disabled', true );
+                $( "#test_bounce_loading" ).show();
+                $( "#test_bounce_conn" ).attr( 'disabled', true );
 
-                jQuery.ajax({
+                $.ajax({
                     type: "POST",
                     url: "<?php echo $siteurl;?>/wp-admin/admin-ajax.php",
                     data: "action=test_bounces&bounce_email=" + bounce_email + "&bounce_host=" + bounce_host + "&bounce_port=" + bounce_port + "&bounce_username=" + bounce_username + "&bounce_password=" + bounce_password,
                     success: function( html ){
-                        jQuery( "#test_bounce_conn" ).attr( 'disabled', false );
-                        jQuery( "#test_bounce_loading" ).hide();
+                        $( "#test_bounce_conn" ).attr( 'disabled', false );
+                        $( "#test_bounce_loading" ).hide();
                         alert( html );
                     }
                  });
@@ -124,21 +110,21 @@
 
 
         function set_out_option() {
-            jQuery('.email_out_type' ).each( function() {
-                if( jQuery( this )[0].checked ){
-                    jQuery( '.email_out' ).hide();
-                    jQuery( '.email_out_' + jQuery( this ).val() ).show();
+            $('.email_out_type' ).each( function() {
+                if( $( this )[0].checked ){
+                    $( '.email_out' ).hide();
+                    $( '.email_out_' + $( this ).val() ).show();
                 }
             });
         }
 
-        jQuery( function() {
+        $( function() {
             set_out_option();
-            jQuery( '.email_out_type' ).change( function() {
+            $( '.email_out_type' ).change( function() {
                 set_out_option();
-                if( jQuery( this )[0].checked ){
-                    jQuery( '.email_out' ).hide();
-                    jQuery( '.email_out_' + jQuery( this ).val() ).show();
+                if( $( this )[0].checked ){
+                    $( '.email_out' ).hide();
+                    $( '.email_out_' + $( this ).val() ).show();
                 }
             });
         });
@@ -155,18 +141,18 @@
         <form method="post" name="settings_form" id="settings_form" >
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
             <input type="hidden" name="mode"  value="<?php echo $mode; ?>" />
-            <div id="newsletter-tabs" class="newsletter-settings-tabs">
-                <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
-                    <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
-                        <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-1"><?php _e( 'General Settings', 'email-newsletter' ) ?></a></li>
-                        <li class="ui-state-default ui-corner-top"><a href="#tabs-2"><?php _e( 'Outgoing Email Settings', 'email-newsletter' ) ?></a></li>
-                        <li class="ui-state-default ui-corner-top"><a href="#tabs-3"><?php _e( 'Bounce Settings', 'email-newsletter' ) ?></a></li>
-                        <?php if ( ! isset( $mode ) || "install" != $mode ): ?>
-                        <li class="ui-state-default ui-corner-top"><a href="#tabs-4"><?php _e( 'Uninstall', 'email-newsletter' ) ?></a></li>
-                        <?php endif; ?>
-                    </ul>
-
-                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-1">
+			
+            <div class="newsletter-settings-tabs">
+               
+					<h3 id="newsletter-tabs" class="nav-tab-wrapper">
+						<a href="#tabs-1" class="nav-tab nav-tab-active"><?php _e( 'General Settings', 'email-newsletter' ) ?></a>
+						<a href="#tabs-2" class="nav-tab"><?php _e( 'Outgoing Email Settings', 'email-newsletter' ) ?></a>
+						<a href="#tabs-3" class="nav-tab"><?php _e( 'Bounce Settings', 'email-newsletter' ) ?></a>
+						 <?php if ( ! isset( $mode ) || "install" != $mode ): ?>
+						 	<a class="nav-tab" href="#tabs-4"><?php _e( 'Uninstall', 'email-newsletter' ) ?></a>
+						 <?php endif; ?>
+					</h3>
+                    <div class="active" id="tabs-1">
                         <h3><?php _e( 'General Settings', 'email-newsletter' ) ?></h3>
                         <table class="settings-form">
                             <tr>
@@ -213,7 +199,7 @@
                         </table>
                     </div>
 
-                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-2">
+                    <div id="tabs-2">
                         <h3><?php _e( 'Outgoing Email Settings', 'email-newsletter' ) ?></h3>
                         <table class="settings-form">
                             <tbody>
@@ -222,15 +208,16 @@
                                         <?php echo _e( 'Email Sending Method:', 'email-newsletter' );?>
                                     </td>
                                     <td>
-                                        <label>
-                                            <input type="radio" name="settings[outbound_type]" id="smtp_method" value="smtp" class="email_out_type" <?php echo ( $settings['outbound_type'] == 'smtp' || ! $settings['outbound_type']) ? 'checked="checked"' : '';?> /><?php echo _e( 'SMTP (recommended)', 'email-newsletter' );?>
-                                            <img class="tooltip_img" src="<?php echo $this->plugin_url . "email-newsletter-files/images/"; ?>info_small.png" title="<?php echo _e( "The SMTP method allows you to use your SMTP server (or Gmail, Yahoo, Hotmail etc. ) for sending newsletters and emails. It's usually the best choice, especially if your host has restrictions on sending email and to help you to avoid being blacklisted as a SPAM sender.", 'email-newsletter' );?>"/>
-                                        </label>
-                                        &nbsp;&nbsp;&nbsp;
-                                        <label>
+                                        <label id="tip_smtp">
+                                            <input type="radio" name="settings[outbound_type]" id="smtp_method" value="smtp" class="email_out_type" <?php echo ( $settings['outbound_type'] == 'smtp' || ! $settings['outbound_type']) ? 'checked="checked"' : '';?> /><?php echo _e( 'SMTP (recommended)', 'email-newsletter' );?></label>
+											
+											<?php $tips->bind_tip(__("The SMTP method allows you to use your SMTP server (or Gmail, Yahoo, Hotmail etc. ) for sending newsletters and emails. It's usually the best choice, especially if your host has restrictions on sending email and to help you to avoid being blacklisted as a SPAM sender",'email-newsletter'), '#tip_smtp'); ?>
+											
+                                        &nbsp; &nbsp; &nbsp;
+                                        <label id="tip_php">
                                             <input type="radio" name="settings[outbound_type]" value="mail" class="email_out_type" <?php echo $settings['outbound_type'] == 'mail' ? 'checked="checked"' : '';?> /><?php echo _e( 'php mail', 'email-newsletter' );?>
-                                            <img class="tooltip_img" src="<?php echo $this->plugin_url . "email-newsletter-files/images/"; ?>info_small.png" title="<?php echo _e( "This method uses php functions for sending newsletters and emails. Be careful because some hosts may set restrictions on using this method. If you can't edit settings of your server, we recommend to use the SMTP method for optimal results!", 'email-newsletter' );?>"/>
                                         </label>
+										<?php $tips->bind_tip(__( "This method uses php functions for sending newsletters and emails. Be careful because some hosts may set restrictions on using this method. If you can't edit settings of your server, we recommend to use the SMTP method for optimal results!", 'email-newsletter' ), '#tip_php'); ?>
                                     </td>
                                 </tr>
                             </tbody>
@@ -302,7 +289,7 @@
                         </table>
                     </div>
 
-                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-3">
+                    <div id="tabs-3">
                         <h3><?php _e( 'Bounce Settings', 'email-newsletter' ) ?></h3>
                         <p><?php _e( 'This controls how bounce emails are handled by the system. Please create a new separate POP3 email account to handle bounce emails. Enter these POP3 email details below.', 'email-newsletter' ) ?></p>
                         <table cellpadding="5">
@@ -349,7 +336,7 @@
                     </div>
 
                     <?php if ( ! isset( $mode ) || "install" != $mode ): ?>
-                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-4">
+                    <div id="tabs-4">
                         <h3><?php _e( 'Uninstall', 'email-newsletter' ) ?></h3>
                         <p><?php _e( 'Here you can delete all data associated with the plugin from the database.', 'email-newsletter' ) ?></p>
                         <table cellpadding="5">
@@ -373,15 +360,13 @@
                     </div>
                     <?php endif; ?>
 
-                </div><!--/#tabs-->
-
-            </div><!--/#newsletter-tabs-->
-
+            </div><!--/.newsletter-tabs-settings-->
+		
             <br />
             <?php if ( isset( $mode ) && "install" == $mode ) { ?>
-                <input type="button" name="install" id="install" value="<?php _e( 'Install', 'email-newsletter' ) ?>" />
+                <input type="button" class="button" name="install" id="install" value="<?php _e( 'Install', 'email-newsletter' ) ?>" />
             <?php } else { ?>
-                <input type="button" name="save" value="<?php _e( 'Save all Settings', 'email-newsletter' ) ?>" />
+                <input type="button" class="button" name="save" value="<?php _e( 'Save all Settings', 'email-newsletter' ) ?>" />
             <?php } ?>
 
         </form>

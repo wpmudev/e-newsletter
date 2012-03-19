@@ -5,6 +5,10 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 1.2.0 =
+* Minor UI changes
+* Added {DATE} template and content tag.
+
 = 1.1.8 =
 * Fixed version error
 

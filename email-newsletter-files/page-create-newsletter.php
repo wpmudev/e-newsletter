@@ -40,12 +40,17 @@
 ?>
     <script type="text/javascript">
 
-        jQuery( document ).ready( function() {
+        jQuery( document ).ready( function($) {
 
             //Creating tabs
-            jQuery(function() {
-                jQuery( "#tabs" ).tabs();
-            });
+            $('.newsletter-create-tabs > div').not('.active').hide();
+			$('#newsletter-tabs a').click(function(e) {
+				var tab = $(this).attr('href');
+				$(this).addClass('nav-tab-active').siblings('a').removeClass('nav-tab-active');
+				$(tab).show().siblings('div').hide();
+				$(tab).addClass('nav-tab-active');
+				return false;
+			});
 
 
             //Send  Preview Email by AJAX
@@ -353,17 +358,17 @@
             <input type="hidden" name="content_ecoded" id="content_ecoded" value="" />
             <input type="hidden" name="newsletter_id" id="newsletter_id" value="<?php echo ( isset( $newsletter_data['newsletter_id'] ) ) ? $newsletter_data['newsletter_id'] : ''; ?>" />
             <input type="hidden" name="newsletter_template" id="newsletter_template" value="<?php echo $newsletter_data['template']; ?>" />
-            <div id="newsletter-tabs">
-                <div class="ui-tabs ui-widget ui-widget-content ui-corner-all" id="tabs">
-                    <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
-                        <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-1"><?php _e( 'Template', 'email-newsletter' ) ?></a></li>
-                        <li class="ui-state-default ui-corner-top"><a href="#tabs-2"><?php _e( 'Settings', 'email-newsletter' ) ?></a></li>
-                        <li class="ui-state-default ui-corner-top"><a href="#tabs-3"><?php _e( 'Content', 'email-newsletter' ) ?></a></li>
-                        <li class="ui-state-default ui-corner-top"><a href="#tabs-4" id="newsletter_preview"><?php _e( 'Preview', 'email-newsletter' ) ?></a></li>
-                        <li class="ui-state-default ui-corner-top"><a href="#tabs-5"><?php _e( 'Actions', 'email-newsletter' ) ?></a></li>
-                    </ul>
+			<div class="newsletter-create-tabs">
+               
+			<h3 id="newsletter-tabs" class="nav-tab-wrapper">
+				<a class="nav-tab nav-tab-active" href="#tabs-1"><?php _e( 'Template', 'email-newsletter' ) ?></a>
+				<a class="nav-tab" href="#tabs-2"><?php _e( 'Settings', 'email-newsletter' ) ?></a>
+				<a class="nav-tab" href="#tabs-3"><?php _e( 'Content', 'email-newsletter' ) ?></a>
+				<a class="nav-tab" href="#tabs-4" id="newsletter_preview"><?php _e( 'Preview', 'email-newsletter' ) ?></a>
+				<a class="nav-tab" href="#tabs-5"><?php _e( 'Actions', 'email-newsletter' ) ?></a>
+			</h3>
 
-                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-1">
+                    <div class="active" id="tabs-1">
                         <h2><?php _e( 'Template of Newsletter:', 'email-newsletter' ) ?><span id="selected_temp"><?php echo $newsletter_data['template'] ;?></span></h2>
 
                         <div class="newsletter-templates">
@@ -386,7 +391,7 @@
 
                     </div>
 
-                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-2">
+                    <div id="tabs-2">
                         <h2><?php _e( 'Settings of Newsletter:', 'email-newsletter' ) ?></h2>
                         <table class="form-table" style="width: auto;">
                             <tr>
@@ -430,7 +435,7 @@
                         </table>
                     </div>
 
-                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-3">
+                    <div id="tabs-3">
                         <h2><?php _e( 'Content of Newsletter:', 'email-newsletter' ) ?></h2>
                         <table width="100%">
                             <tr>
@@ -457,8 +462,8 @@
 
                     </div>
 
-                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-4">
-                        <h2><?php _e( 'Preview of Newsletter:', 'email-newsletter' ) ?></h2>
+                    <div id="tabs-4">
+                        <h2><?php _e( 'Newsletter Preview:', 'email-newsletter' ) ?></h2>
                         <?php _e( 'Preview in Email:', 'email-newsletter' ) ?>
                         <input type="text" name="preview_email" id="preview_email" value="" />
                         <input type="button" id="send_preview" value="<?php _e( 'Send Preview', 'email-newsletter' ) ?>" />
@@ -466,14 +471,14 @@
                         </div>
                     </div>
 
-                    <div class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" id="tabs-5">
+                    <div id="tabs-5">
                         <h2><?php _e( 'Save the Newsletter:', 'email-newsletter' ) ?></h2>
                         <input type="button" id="newsletter_save" value="<?php _e( 'Save', 'email-newsletter' ) ?>" />
-                        <br />
+                        &nbsp;&nbsp;
                         <?php
                         _e( 'or', 'email-newsletter' ) ;
                          ?>
-                        <br />
+                        &nbsp;&nbsp;
                         <input type="button" id="newsletter_save_send" value="<?php _e( 'Save, and go to Send page', 'email-newsletter' ) ?>" />
                         <?php
                         if ( isset( $mode ) && "create" != $mode) {
@@ -486,12 +491,11 @@
                         ?>
                     </div>
 
-                </div><!--/#tabs-->
-
-            </div><!--/#newsletter-tabs-->
+                </div><!--/.newsletter-create-tabs-->
 
         </form>
-
-        <div id="for_newsletter_preview_form"></div>
+		
+        
+		<div id="for_newsletter_preview_form"></div>
 
     </div><!--/wrap-->

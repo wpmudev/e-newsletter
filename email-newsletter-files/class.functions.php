@@ -390,11 +390,12 @@ class Email_Newsletter_functions {
             $settings['smtp_pass'] = $this->_encrypt( $settings['smtp_pass'] );
         else
             $settings['smtp_pass'] = '';
-
+		
 
         foreach( $settings as $key=>$item )
              $result = $wpdb->query( $wpdb->prepare( "REPLACE INTO {$this->tb_prefix}enewsletter_settings SET `key` = '%s', `value` = '%s'", $key, stripslashes( $item ) ) );
-
+		
+		
         $this->get_settings();
 
         if ( "install" == $_REQUEST['mode']) {
@@ -411,6 +412,14 @@ class Email_Newsletter_functions {
      * Get Settings
      **/
     function get_settings() {
+		
+		//Coming Soon
+		/*if(is_multisite() && is_network_admin()) {
+			$this->settings = get_site_option('enewsletter_settings');
+			return $this->settings;
+		}*/
+		
+		
         global $wpdb;
         if ( $wpdb->get_var( "SHOW TABLES LIKE '{$this->tb_prefix}enewsletter_settings'" ) == "{$this->tb_prefix}enewsletter_settings" ) {
             $results = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_settings ORDER BY `key`", "ARRAY_A" );
@@ -437,6 +446,7 @@ class Email_Newsletter_functions {
      * Get All Sends
      **/
     function get_sends( $newsletter_id ) {
+		
         global $wpdb;
         $sends = NULL;
         $results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE newsletter_id = %d ORDER BY start_time DESC", $newsletter_id ), "ARRAY_A");

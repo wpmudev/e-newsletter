@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.1.8
+Version: 1.2.0
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -128,13 +128,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
             add_action( 'added_existing_user', array( &$this, 'user_create' ) );
             add_action( 'remove_user_from_blog', array( &$this, 'user_remove_from_site' ) );
             add_action( 'wpmu_delete_user', array( &$this, 'user_delete' ) );
-
-            add_action('delete_blog', array( &$this, 'uninstall' ) );
-
+            add_action( 'delete_blog', array( &$this, 'uninstall' ) );
+			//Coming Soon
+			//add_action( 'network_admin_menu', array( &$this, 'admin_page' ) );
         }
 
         //creating menu of the plugin
         add_action( 'admin_menu', array( &$this, 'admin_page' ) );
+
 
         //send email by WP-CRON
         add_action( $this->cron_send_name, array( &$this, 'send_by_wpcron' ) );
@@ -1203,14 +1204,13 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
 
         $contents = str_replace( "{OPENED_TRACKER}", '', $contents );
-
         $contents = str_replace( "{UNSUBSCRIBE_URL}", '#', $contents );
-
         $contents = str_replace( "{EMAIL_BODY}", $content, $contents );
         $contents = str_replace( "{EMAIL_SUBJECT}", stripslashes ( $_REQUEST['subject'] ), $contents );
         $contents = str_replace( "{FROM_NAME}", stripslashes ( $_REQUEST['from_name'] ), $contents );
         $contents = str_replace( "{FROM_EMAIL}", $_REQUEST['from_email'], $contents );
         $contents = str_replace( "{CONTACT_INFO}", $contact_info, $contents );
+		$contents = str_replace( "{DATE}", date("F j, Y"), $contents );
         $contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $_REQUEST['template'] . "/images/", $contents );
 
         $mail->From     = $_REQUEST['from_email'];
@@ -1254,6 +1254,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $contents = str_replace( "{FROM_EMAIL}", $newsletter_data['from_email'], $contents );
         $contents = str_replace( "{CONTACT_INFO}", $newsletter_data['contact_info'], $contents );
         $contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $newsletter_data['template'] . "/images/", $contents );
+		$contents = str_replace( "{DATE}", date("F j, Y"), $contents );
 
         return $contents;
     }
@@ -1452,7 +1453,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     }
 
 }
-
+global $email_newsletter;
 $email_newsletter =& new Email_Newsletter();
 
 
