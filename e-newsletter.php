@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.2.0
+Version: 1.2.2
 Author: Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -113,6 +113,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'admin_head', array( &$this, 'tinymce_includes' ) );
 
         add_action( 'admin_init', array( &$this, 'admin_init' ) );
+		add_action( 'admin_enqueue_scripts', array(&$this,'admin_enqueue_scripts'));
 
         // filter schedules
         add_filter( 'cron_schedules', array( &$this, 'add_new_cron_time' ) );
@@ -182,26 +183,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         add_action( 'template_redirect', array( &$this, 'template_redirect' ), 12 );
 
-        //including JS scripts for Newsletter pages
-        if ( isset( $_REQUEST['page'] ) && 1 == $this->is_enewsletter_page( $_REQUEST['page'] ) ) {
-            wp_enqueue_script( 'jquery' );
-
-            //including JS scripts
-            wp_enqueue_script( 'jquery-ui-tabs' );
-            wp_enqueue_script( 'jquery-ui-core' );
-
-            //including JS scripts for tooltips
-            wp_register_script( 'jquery_tooltips', $this->plugin_url . 'email-newsletter-files/js/jquery.tools.min.js' );
-            wp_enqueue_script( 'jquery_tooltips' );
-
-            //including JS scripts for progressbar
-            wp_register_script( 'jquery_ui_widget', $this->plugin_url . 'email-newsletter-files/js/ui.widget.js' );
-            wp_enqueue_script( 'jquery_ui_widget' );
-
-            //including JS scripts for progressbar
-            wp_register_script( 'jquery_progressbar', $this->plugin_url . 'email-newsletter-files/js/jquery.ui.progressbar.js' );
-            wp_enqueue_script( 'jquery_progressbar' );
-        }
     }
 
     /**
@@ -230,17 +211,40 @@ class Email_Newsletter extends Email_Newsletter_functions {
         array_push( $vars, 'unsubscribe_member_id' );
         return $vars;
     }
+	function admin_enqueue_scripts($hook) {
+		 //including JS scripts for Newsletter pages
+        if ( isset( $_REQUEST['page'] ) && 1 == $this->is_enewsletter_page( $_REQUEST['page'] ) ) {
+            wp_enqueue_script( 'jquery' );
 
+            //including JS scripts
+            wp_enqueue_script( 'jquery-ui-tabs' );
+            wp_enqueue_script( 'jquery-ui-core' );
+
+            //including JS scripts for tooltips
+            wp_register_script( 'jquery_tooltips', $this->plugin_url . 'email-newsletter-files/js/jquery.tools.min.js' );
+            wp_enqueue_script( 'jquery_tooltips' );
+
+            //including JS scripts for progressbar
+            wp_register_script( 'jquery_ui_widget', $this->plugin_url . 'email-newsletter-files/js/ui.widget.js' );
+            wp_enqueue_script( 'jquery_ui_widget' );
+
+            //including JS scripts for progressbar
+            wp_register_script( 'jquery_progressbar', $this->plugin_url . 'email-newsletter-files/js/jquery.ui.progressbar.js' );
+            wp_enqueue_script( 'jquery_progressbar' );
+        }
+		
+		// Including CSS file
+        if ( isset( $_REQUEST['page'] ) && 1 == $this->is_enewsletter_page( $_REQUEST['page'] ) ) {
+            wp_register_style( 'emailNewsletterStyle', $this->plugin_url . 'email-newsletter-files/email-newsletter.css' );
+            wp_enqueue_style( 'emailNewsletterStyle' );
+        }
+	}
 
     /**
      * init for admin
      **/
     function admin_init() {
-        // Including CSS file
-        if ( isset( $_REQUEST['page'] ) && 1 == $this->is_enewsletter_page( $_REQUEST['page'] ) ) {
-            wp_register_style( 'emailNewsletterStyle', $this->plugin_url . 'email-newsletter-files/email-newsletter.css' );
-            wp_enqueue_style( 'emailNewsletterStyle' );
-        }
+        
 
         //private actions of the plugin
         if ( isset( $_REQUEST['newsletter_action'] ) && ( current_user_can( 'manage_network_options' ) || current_user_can( 'manage_options' ) ) ) {
