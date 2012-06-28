@@ -815,7 +815,7 @@ class Email_Newsletter_functions {
             wp_print_scripts( 'editor' );
             add_thickbox();
             wp_print_scripts( 'media-upload' );
-            if ( function_exists( 'wp_tiny_mce' ) ) wp_tiny_mce();
+            //if ( function_exists( 'wp_editor' ) ) wp_editor();
         }
     }
 

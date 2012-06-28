@@ -10,10 +10,8 @@
 ?>
 
     <div class="wrap">
-        <h2><?php _e( 'Newsletters', 'email-newsletter' ) ?></h2>
+        <h2><?php _e( 'Newsletters', 'email-newsletter' ) ?><a href="<?php echo admin_url('admin.php?page=newsletters-create'); ?>" class="add-new-h2"><?php _e('Create New','email-newsletter'); ?></a></h2>
         <p><?php _e( 'This page contains the list of all Newsletters.', 'email-newsletter' ) ?></p>
-        <a href="?page=newsletters-create" ><?php _e( 'Create New Newsletter', 'email-newsletter' ) ?></a>
-        <br /><br />
         <table width="700px" class="widefat post" style="width:95%;">
             <thead>
                 <tr>

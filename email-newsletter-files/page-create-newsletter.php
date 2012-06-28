@@ -7,6 +7,7 @@
     $rich_editing       = user_can_richedit();
     $uploaded_images    = $this->get_uploaded_images();
 
+
     //get data of newsletter
     if ( isset( $_REQUEST['newsletter_id'] ) ) {
         $newsletter_id = $_REQUEST['newsletter_id'];
@@ -64,9 +65,9 @@
                 contact_info        = contact_info.replace(/\+/g, "-");
 
                 <?php if ( true === $rich_editing ): ?>
-                var content         = jQuery.base64Encode( tinyMCE.get( "newsletter_content" ).getContent() );
+                var content         = jQuery.base64Encode( tinyMCE.get( "newslettercontent" ).getContent() );
                 <?php else: ?>
-                var content         = jQuery.base64Encode( jQuery( "#newsletter_content" ).val() );
+                var content         = jQuery.base64Encode( jQuery( "#newslettercontent" ).val() );
                 <?php endif; ?>
 
                 content = content.replace(/\+/g, "-");
@@ -114,9 +115,10 @@
                 contact_info        = contact_info.replace(/\+/g, "-");
 
                 <?php if ( true === $rich_editing ): ?>
-                var content         = jQuery.base64Encode( tinyMCE.get( "newsletter_content" ).getContent() );
+				$('#newslettercontent-tmce').trigger('click');
+                var content         = jQuery.base64Encode( tinyMCE.get( "newslettercontent" ).getContent() );
                 <?php else: ?>
-                var content         = jQuery.base64Encode( jQuery( "#newsletter_content" ).val() );
+                var content         = jQuery.base64Encode( jQuery( "#newslettercontent" ).val() );
                 <?php endif; ?>
 
                 content             = content.replace(/\+/g, "-");
@@ -147,9 +149,9 @@
             jQuery( "#newsletter_save" ).click( function() {
 
                 <?php if ( true === $rich_editing ): ?>
-                var content = jQuery.base64Encode( tinyMCE.get( "newsletter_content" ).getContent() );
+                var content = jQuery.base64Encode( tinyMCE.get( "newslettercontent" ).getContent() );
                 <?php else: ?>
-                var content = jQuery.base64Encode( jQuery( "#newsletter_content" ).val() );
+                var content = jQuery.base64Encode( jQuery( "#newslettercontent" ).val() );
                 <?php endif; ?>
 
                 content     = content.replace(/\+/g, "-");
@@ -168,9 +170,9 @@
             jQuery( "#newsletter_save_send" ).click( function() {
 
                 <?php if ( true === $rich_editing ): ?>
-                var content = jQuery.base64Encode( tinyMCE.get( "newsletter_content" ).getContent() );
+                var content = jQuery.base64Encode( tinyMCE.get( "newslettercontent" ).getContent() );
                 <?php else: ?>
-                var content = jQuery.base64Encode( jQuery( "#newsletter_content" ).val() );
+                var content = jQuery.base64Encode( jQuery( "#newslettercontent" ).val() );
                 <?php endif; ?>
 
                 content = content.replace(/\+/g, "-");
@@ -308,7 +310,7 @@
                 tinyMCE.execCommand( 'mceInsertRawHTML', false, imghtml );
                 <?php else: ?>
                 //insert image in textarea - in cursor place
-                var area = area=document.getElementsByName( 'newsletter_content' ).item(0);
+                var area = area=document.getElementsByName( 'newslettercontent' ).item(0);
 
                 // Mozilla and other browser
                 if ( (area.selectionStart )||( area.selectionStart == '0' ) ) { // определяем, где начало выделения, если оно существует
@@ -442,7 +444,8 @@
                                 <td>
                                 <?php
                                 $em_content = ( isset( $newsletter_data['content'] ) ) ? $newsletter_data['content'] : '';
-                                the_editor( $em_content, 'newsletter_content' );
+								
+                                wp_editor( $em_content, 'newslettercontent', array() );
                                 ?>
                                 </td>
                             </tr>
