@@ -147,7 +147,7 @@
 
             //Save Newsletter action
             jQuery( "#newsletter_save" ).click( function() {
-
+				$('#newslettercontent-tmce').trigger('click');
                 <?php if ( true === $rich_editing ): ?>
                 var content = jQuery.base64Encode( tinyMCE.get( "newslettercontent" ).getContent() );
                 <?php else: ?>
@@ -401,7 +401,7 @@
                                     <?php _e( 'Email Subject:', 'email-newsletter' ) ?><span class="required">*</span>
                                 </td>
                                 <td>
-                                    <input type="text" class="input" name="subject" id="subject" value="<?php echo htmlspecialchars( $newsletter_data['subject'] );?>" size="30" />
+                                    <input type="text" class="input" name="subject" id="subject" value="<?php echo htmlspecialchars( stripcslashes($newsletter_data['subject']) );?>" size="30" />
                                 </td>
                             </tr>
                             <tr>
@@ -409,7 +409,7 @@
                                     <?php _e( 'From Name:', 'email-newsletter' ) ?><span class="required">*</span>
                                 </td>
                                 <td>
-                                    <input type="text" class="input" name="from_name" id="from_name" value="<?php echo htmlspecialchars( $newsletter_data['from_name'] );?>" size="30" />
+                                    <input type="text" class="input" name="from_name" id="from_name" value="<?php echo htmlspecialchars( stripcslashes($newsletter_data['from_name']) );?>" size="30" />
                                 </td>
                             </tr>
                             <tr>
@@ -445,7 +445,7 @@
                                 <?php
                                 $em_content = ( isset( $newsletter_data['content'] ) ) ? $newsletter_data['content'] : '';
 								
-                                wp_editor( $em_content, 'newslettercontent', array() );
+                                wp_editor( $em_content, 'newslettercontent', array('tinymce'=> array('height' => '450')) );
                                 ?>
                                 </td>
                             </tr>
@@ -457,7 +457,7 @@
                                     <?php echo $uploaded_images; ?>
                                     </select>
                                     <input type="text" name="image_alt" id="image_alt" value="<?php _e( 'Image Description', 'email-newsletter' ) ?>" onfocus="if( this.value == '<?php _e( 'Image Description', 'email-newsletter' ) ?>' ) this.value='';">
-                                    <input type="button" name="image_insert" onclick="jQuery(this).insertImage();" value="<?php _e( 'Insert Image', 'email-newsletter' ) ?>" />
+                                    <input type="button" name="image_insert" class="button secondary-button" onclick="jQuery(this).insertImage();" value="<?php _e( 'Insert Image', 'email-newsletter' ) ?>" />
                                 </td>
                             </tr>
                             <?php endif; ?>
@@ -469,26 +469,26 @@
                         <h2><?php _e( 'Newsletter Preview:', 'email-newsletter' ) ?></h2>
                         <?php _e( 'Preview in Email:', 'email-newsletter' ) ?>
                         <input type="text" name="preview_email" id="preview_email" value="" />
-                        <input type="button" id="send_preview" value="<?php _e( 'Send Preview', 'email-newsletter' ) ?>" />
+                        <input type="button" id="send_preview" class="button secondary-button" value="<?php _e( 'Send Preview', 'email-newsletter' ) ?>" />
                         <div id="preview_block">
                         </div>
                     </div>
 
                     <div id="tabs-5">
                         <h2><?php _e( 'Save the Newsletter:', 'email-newsletter' ) ?></h2>
-                        <input type="button" id="newsletter_save" value="<?php _e( 'Save', 'email-newsletter' ) ?>" />
+                        <input type="button" id="newsletter_save" class="button secondary-button" value="<?php _e( 'Save', 'email-newsletter' ) ?>" />
                         &nbsp;&nbsp;
                         <?php
                         _e( 'or', 'email-newsletter' ) ;
                          ?>
                         &nbsp;&nbsp;
-                        <input type="button" id="newsletter_save_send" value="<?php _e( 'Save, and go to Send page', 'email-newsletter' ) ?>" />
+                        <input type="button" id="newsletter_save_send" class="button secondary-button" value="<?php _e( 'Save, and go to Send page', 'email-newsletter' ) ?>" />
                         <?php
                         if ( isset( $mode ) && "create" != $mode) {
                         ?>
                         <br />
                         <br />
-                        <input type="button" id="newsletter_delete" value="<?php _e( 'Delete Newsletter', 'email-newsletter' ) ?>" />
+                        <input type="button" id="newsletter_delete" class="button secondary-button" value="<?php _e( 'Delete Newsletter', 'email-newsletter' ) ?>" />
                         <?php
                         }
                         ?>
