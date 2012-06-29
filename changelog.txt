@@ -1,9 +1,13 @@
 === e-newsletter ===
-Authors: Andrey Shipilov (Incsub)
+Authors: Cole / Andrey (Incsub)
 Plugin Page: http://premium.wpmudev.org/project/e-newsletter    
 
  
 == Changelog ==
+
+= 1.2.2 =
+Fixed issue with escaping quotes in some settings
+Fixed bug concerning saving a newsletter after creating it in the HTML tab
 
 = 1.2.1 =
 * Fixed problem with creating and previewing html newsletters
