@@ -6,8 +6,9 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 == Changelog ==
 
 = 1.2.2 =
-Fixed issue with escaping quotes in some settings
-Fixed bug concerning saving a newsletter after creating it in the HTML tab
+* Fixed issue with escaping quotes in some settings
+* Fixed bug concerning saving a newsletter after creating it in the HTML tab
+* Added locale specific double_optin messages. Check /enewsletter/email-newsletter-files/emails/readme.txt for more info
 
 = 1.2.1 =
 * Fixed problem with creating and previewing html newsletters
