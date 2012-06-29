@@ -3,8 +3,8 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
-Version: 1.2.2
-Author: Andrey Shipilov (Incsub)
+Version: 1.2.3
+Author: Cole / Andrey (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
 
@@ -1339,7 +1339,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
             $email_from         = $this->settings['from_email'];
             $email_from_name    = $this->settings['from_name'];
             $email_subject      = ( isset( $this->settings['double_opt_in_subject'] ) ) ? $this->settings['double_opt_in_subject'] : 'Confirm newsletter subscription';
-            $email_contents     = file_get_contents( $this->plugin_dir . "email-newsletter-files/emails/double_optin.html" );
+			
+			// Determine our locale to check for a specific template
+			$locale = get_locale();
+			if( file_exists($this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html') ) {
+				$email_contents     = file_get_contents( $this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html' );
+			} else {
+	            $email_contents     = file_get_contents( $this->plugin_dir . "email-newsletter-files/emails/double_optin.html" );
+			}
 
             $replace = array(
                 "from_name"=>$email_from_name,
