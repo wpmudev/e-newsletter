@@ -140,7 +140,6 @@ Email-Newsletter CSS Styles
     margin: 10px 0px 0px 0px;
 }
 
-
 /* end Page create-newsletter*/
 
 
@@ -205,11 +204,6 @@ vertical-align: middle !important;
     width: 300px;
     height: 100px;
 }
-
-
-
-
-
 #send_list th,
 #send_list td {
     text-align: center;
@@ -238,5 +232,3 @@ vertical-align: middle !important;
 #settings_form .email_out_smtp input {
     width: 225px;
 }
-
-/* 62863-1331581920 */
