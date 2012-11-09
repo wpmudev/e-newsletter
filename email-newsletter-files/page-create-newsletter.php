@@ -1,4 +1,7 @@
 <?php
+	global $email_builder;
+	wp_redirect($email_builder->generate_builder_link('new'));
+	exit;
     global $wpdb;
 
     $settings           = $this->get_settings();
@@ -313,7 +316,7 @@
                 var area = area=document.getElementsByName( 'newslettercontent' ).item(0);
 
                 // Mozilla and other browser
-                if ( (area.selectionStart )||( area.selectionStart == '0' ) ) { // определяем, где начало выделения, если оно существует
+                if ( (area.selectionStart )||( area.selectionStart == '0' ) ) { // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                   var p_start   = area.selectionStart;
                   var p_end     = area.selectionEnd;
 

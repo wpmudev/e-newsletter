@@ -104,21 +104,16 @@
                     }
                  });
             });
-
-
-        });
-
-
-        function set_out_option() {
-            $('.email_out_type' ).each( function() {
-                if( $( this )[0].checked ){
-                    $( '.email_out' ).hide();
-                    $( '.email_out_' + $( this ).val() ).show();
-                }
-            });
-        }
-
-        $( function() {
+            
+            function set_out_option() {
+	            $('.email_out_type' ).each( function() {
+	                if( $( this )[0].checked ){
+	                    $( '.email_out' ).hide();
+	                    $( '.email_out_' + $( this ).val() ).show();
+	                }
+	            });
+	        }
+            
             set_out_option();
             $( '.email_out_type' ).change( function() {
                 set_out_option();
@@ -127,11 +122,19 @@
                     $( '.email_out_' + $( this ).val() ).show();
                 }
             });
+            
+            $('table.permissionTable thead .check-column input:checkbox').change(function() {
+            	console.log($(this).parents('table').find('.check-column input:checkbox'));
+            	if($(this).is(':checked')) {
+            		console.log($(this).parents('table').find('.check-column input:checkbox'));
+            		$(this).parents('table').find('.check-column input:checkbox').not($(this)).attr('checked','checked');
+            	} else {
+            		$(this).parents('table').find('.check-column input:checkbox').not($(this)).attr('checked','');
+            	}
+            });
+
+
         });
-
-
-
-
     </script>
 
 
@@ -148,8 +151,9 @@
 						<a href="#tabs-1" class="nav-tab nav-tab-active"><?php _e( 'General Settings', 'email-newsletter' ) ?></a>
 						<a href="#tabs-2" class="nav-tab"><?php _e( 'Outgoing Email Settings', 'email-newsletter' ) ?></a>
 						<a href="#tabs-3" class="nav-tab"><?php _e( 'Bounce Settings', 'email-newsletter' ) ?></a>
+						<a href="#tabs-4" class="nav-tab"><?php _e( 'User Permissions', 'email-newsletter' ) ?></a>
 						 <?php if ( ! isset( $mode ) || "install" != $mode ): ?>
-						 	<a class="nav-tab" href="#tabs-4"><?php _e( 'Uninstall', 'email-newsletter' ) ?></a>
+						 	<a class="nav-tab" href="#tabs-5"><?php _e( 'Uninstall', 'email-newsletter' ) ?></a>
 						 <?php endif; ?>
 					</h3>
                     <div class="active" id="tabs-1">
@@ -161,6 +165,15 @@
                                 </td>
                                 <td>
                                     <input type="checkbox" name="settings[double_opt_in]" value="1" <?php echo (isset($settings['double_opt_in'])&&$settings['double_opt_in']) ? ' checked':'';?> />
+                                    <span class="description"><?php _e( 'Yes, members will get confirmation email to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
+                                </td>
+                            </tr>
+							<tr>
+                                <td>
+                                    <?php _e( 'Double Opt In Subject:', 'email-newsletter' ) ?>
+                                </td>
+                                <td>
+                                    <input type="text" name="settings[double_opt_in_subject]" value="1" <?php echo (isset($settings['double_opt_in_subject'])&&$settings['double_opt_in_subject']) ? ' checked':'';?> />
                                     <span class="description"><?php _e( 'Yes, members will get confirmation email to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
@@ -334,9 +347,41 @@
                             </tbody>
                         </table>
                     </div>
-
+					<div id="tabs-4">
+						<?php global $wp_roles; ?>
+						<h3><?php _e('User Permissions','email-newsletter'); ?></h3>
+						<p><?php _e('Here you can set your desired permissions for each user role on your site'); ?></p>
+						<div class="metabox-holder">
+							<?php foreach($wp_roles->get_names() as $name => $label) : ?>
+								<?php $role_obj = get_role($name); ?>
+								<div class="postbox">
+									<h3 class="hndle"><span><?php echo $label; ?></span></h3>
+									<div class="inside">
+										<table class="widefat permissionTable">
+											<thead>
+												<tr>
+													<th style="" class="manage-column column-cb check-column" scope="col"><input type="checkbox"></th>
+													<th><?php _e('Capability','email-newsletter'); ?></th>
+												</tr>
+											</thead>
+											<tbody>
+												<?php foreach($this->capabilities as $key => $label) : ?>
+													<tr>
+														<th class="check-column" scope="row"><input id="<?php echo $name.'_'.$key; ?>" type="checkbox" value="<?php echo $name; ?>" name="settings[email_caps][<?php echo $key; ?>]" <?php checked($wp_roles->roles[$name]['capabilities'][$key],true); ?> /></th>
+														<th style="" class="manage-column column-<?php echo $key; ?>" id="<?php echo $key; ?>" scope="col">
+															<label for="<?php echo $name.'_'.$key; ?>"><?php echo $label; ?></label>
+														</th>
+													</tr>
+												<?php endforeach; ?>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							<?php endforeach; ?>
+						</div>
+					</div>
                     <?php if ( ! isset( $mode ) || "install" != $mode ): ?>
-                    <div id="tabs-4">
+                    <div id="tabs-5">
                         <h3><?php _e( 'Uninstall', 'email-newsletter' ) ?></h3>
                         <p><?php _e( 'Here you can delete all data associated with the plugin from the database.', 'email-newsletter' ) ?></p>
                         <table cellpadding="5">

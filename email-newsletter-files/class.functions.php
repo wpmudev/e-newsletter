@@ -371,7 +371,13 @@ class Email_Newsletter_functions {
 
         if( ! is_array( $settings ) )
             $settings = array();
-
+		
+		if(isset($settings['email_caps']) && is_array($settings['email_caps'])) {
+			$caps = $settings['email_caps'];
+			unset($settings['email_caps']);
+		}
+		
+		
         //change time for CRON
         if ( 1 == $settings['cron_enable'] ) {
             wp_schedule_event( time(), 'enewsletter_min_2', $this->cron_send_name );
@@ -392,9 +398,16 @@ class Email_Newsletter_functions {
             $settings['smtp_pass'] = '';
 		
 
-        foreach( $settings as $key=>$item )
+        foreach( $settings as $key => $item )
              $result = $wpdb->query( $wpdb->prepare( "REPLACE INTO {$this->tb_prefix}enewsletter_settings SET `key` = '%s', `value` = '%s'", $key, stripslashes( $item ) ) );
 		
+		
+		foreach ($caps as $cap => $role) {
+			$role_obj = get_role($role);
+			if($role_obj) {
+				$role_obj->add_cap($cap);
+			}
+		}
 		
         $this->get_settings();
 
@@ -511,7 +524,62 @@ class Email_Newsletter_functions {
         $newsletter = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_newsletters WHERE newsletter_id = %d", $newsletter_id ), "ARRAY_A");
         return $newsletter;
     }
-
+	
+	/**
+     * Get a single email metakey value of a single newsletter
+	 * Similar to get_post_meta()
+     **/
+     function get_newsletter_meta( $id, $meta_key, $default=false ) {
+     	global $wpdb;
+        $result = $wpdb->get_row($wpdb->prepare( "SELECT meta_value FROM {$this->tb_prefix}enewsletter_meta WHERE email_id = %d AND meta_key = %s", $id, $meta_key ), "ARRAY_A");
+                
+        if( is_array($result) && !empty($result) && $result != false )
+        	return $result['meta_value'];
+		else if($default !== false)
+			return $default;
+		else
+			return false;       
+        
+	 }
+	 
+	 /**
+     * Get all email meta data of a single newsletter
+	 * Similar to get_post_custom()
+     **/
+     function get_newsletter_custom( $newsletter_id ) {
+     	global $wpdb;
+        $newsletter = $wpdb->get_row( $wpdb->prepare( "SELECT meta_value FROM {$this->tb_prefix}enewsletter_meta WHERE email_id = %d", $newsletter_id ), "ARRAY_A");
+        
+        if(!empty($newsletter) && $newsletter != false)
+        	return $newsletter;
+		else
+			return false;
+	 }
+	 /**
+     * Update email meta data of a single newsletter
+	 * Similar to update_post_meta()
+     **/
+     function update_newsletter_meta( $newsletter_id, $key, $value ) {
+     	global $wpdb;
+		
+		$where = array(
+			'email_id' => $newsletter_id,
+			'meta_key' => $key,
+		);
+		$data = array(
+			'email_id' => $newsletter_id,
+			'meta_value' => $value,
+			'meta_key' => $key
+		);
+		
+		if( $this->get_newsletter_meta($newsletter_id,$key) !== false) {
+			$wpdb->update( "{$this->tb_prefix}enewsletter_meta", $data, $where);
+		} else {
+			$wpdb->insert( "{$this->tb_prefix}enewsletter_meta", $data );
+		}
+	 }
+	 
+	
     /**
      * Get all data of all newsletters
      **/
@@ -771,37 +839,6 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * change plugin's icon
-     **/
-    function change_icon( ) {
-
-       ?>
-        <style type="text/css">
-            #toplevel_page_newsletters-dashboard .wp-menu-image a img,
-            #toplevel_page_newsletters-settings .wp-menu-image a img {
-                display: none;
-            }
-
-            #toplevel_page_newsletters-dashboard div.wp-menu-image,
-            #toplevel_page_newsletters-settings div.wp-menu-image {
-                background: url("<?php echo $this->plugin_url; ?>email-newsletter-files/images/icon.png") no-repeat scroll 0px 0px transparent;
-            }
-
-            #toplevel_page_newsletters-dashboard:hover div.wp-menu-image,
-            #toplevel_page_newsletters-settings:hover div.wp-menu-image {
-                background: url("<?php echo $this->plugin_url; ?>email-newsletter-files/images/icon.png") no-repeat scroll 0px -32px transparent;
-            }
-
-            #toplevel_page_newsletters-dashboard.wp-has-current-submenu div.wp-menu-image,
-            #toplevel_page_newsletters-settings.wp-has-current-submenu div.wp-menu-image {
-                background: url("<?php echo $this->plugin_url; ?>email-newsletter-files/images/icon.png") no-repeat scroll 0px -32px transparent;
-            }
-        </style>
-    <?php
-    }
-
-
-    /**
      * tinymce includes
      **/
     function tinymce_includes( ) {
@@ -818,6 +855,23 @@ class Email_Newsletter_functions {
             //if ( function_exists( 'wp_editor' ) ) wp_editor();
         }
     }
+	
+	function import_wpmu_plugins() {
+		if(class_exists('Marketpress')) {
+			register_enewsletter_plugin_template('mp_new_order','MarketPress','New Order');
+			add_filter('mp_order_notification_body',array(&$this,'process_marketpress_body'), 999, 2);
+			add_filter('email_newsletter_marketpress_stop_new_order_email', create_function("", 'return true;') );
+		}
+	}
+	function process_marketpress_body($msg,$order) {
+		global $mp;
+		$newsletters = $this->get_newsletters();
+		foreach($newsletters as $eletter) {
+			$meta = $this->get_newsletter_meta($eletter['newsletter_id'], 'plugin_template_id');
+			if($meta && $meta == 'mp_new_order')
+				return $mp->filter_email($order, $this->make_email_body($eletter['newsletter_id']));
+		}
+	}
 
     /**
      * import members
@@ -1080,10 +1134,58 @@ class Email_Newsletter_functions {
 
                 $result = $wpdb->query( $enewsletter_table );
             }
+			
+			// Added in v2.0
+			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_meta'" ) != "{$tb_prefix}enewsletter_meta" ) {
+
+                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_meta` (
+                    `meta_id` int(11) NOT NULL auto_increment,
+                    `email_id` int(11) NOT NULL,
+                    `meta_key` varchar(255),
+                    `meta_value` longtext,
+                    PRIMARY KEY (`meta_id`)
+                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
+
+                $result = $wpdb->query( $enewsletter_table );
+            }
 
         }
     }
+	
+	function upgrade( $blog_id = '' ) {
+		global $wpdb;
+		
+		if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id  && $_GET['networkwide'] == 1 ) {
+                $blogids = $wpdb->get_col( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs" ) );
+        } else {
+            if ( 0 !== $blog_id )
+                $blogids[] = $wpdb->blogid;
+            else
+                $blogids[] = $blog_id;
+        }
 
+        foreach ( $blogids as $blog_id ) {
+        	//Checking DB prefix
+            if ( 1 < $blog_id )
+                $tb_prefix = $wpdb->base_prefix . $blog_id . '_';
+            else
+                $tb_prefix = $wpdb->base_prefix;
+                
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_meta'" ) != "{$tb_prefix}enewsletter_meta" ) {
+
+                $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_meta` (
+                    `meta_id` int(11) NOT NULL auto_increment,
+                    `email_id` int(11) NOT NULL,
+                    `meta_key` varchar(255),
+                    `meta_value` longtext,
+                    PRIMARY KEY (`meta_id`)
+                ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
+
+                $result = $wpdb->query( $enewsletter_table );
+            }
+			
+		}
+	}
 
     /**
      * Deleting tables from DB
