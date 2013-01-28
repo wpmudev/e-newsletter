@@ -1,12 +1,14 @@
 <?php
 
     $newsletters_sent = $this->get_sent_newsletters();
-    if ( 5 < count( $newsletters_sent ) )
-        $newsletters_sent = array_slice ( $newsletters_sent, 0, 5 );
+	$newsletter_count = count( $newsletters_sent );
+    if ( 5 < $newsletter_count ) {
+        $newsletters_sent = array_slice ( $newsletters_sent, $newsletter_count - 5, 5 );
+	}
 
-    $members = $this->get_members( array( 'limit' => 'LIMIT 0,5' ) );
+    $members = $this->get_members( array( 'limit' => 'LIMIT 0,5','orderby' => 'join_date','order' => 'DESC' ) );
     if ( 5 < count( $members ) )
-        $members = array_slice ( array_reverse( $members ), 0, 5 );
+        $members = array_slice ($members, 0, 5 );
 
 
     //Display status message

@@ -1,30 +1,33 @@
 <?php
 class Builder_TinyMCE_Control extends WP_Customize_Control {
 	public $type = 'tinymce';
-
+	
+	
 	public function render_content() {
 		$rich_editing = user_can_richedit();
 		?>
 		<span class="customize-control-title"><?php echo $this->label; ?></span>
-		<textarea id="email_content" style="display:none" <?php echo $this->link(); ?>><?php echo esc_textarea($this->value()); ?></textarea>
+		<textarea id="<?php echo $this->id; ?>" style="display:none" <?php echo $this->link(); ?>><?php echo esc_textarea($this->value()); ?></textarea>
 		<?php
 		$quick_tags = false;
 		$tinymce_options = array(
-			'teeny' => true,
+			'teeny' => false,
 			'media_buttons' => true,
 			'quicktags' => $quick_tags,
+			'textarea_rows' => 25,
 			'tinymce' => array(
 				'onchange_callback' => 'builder_tinymce_onchange_callback'
-			)
+			),
+			'editor_css' => '<style type="text/css">body { background: #000; }</style>',
 		);
 		
 		?>
 		<style type="text/css">
 			.wp-full-overlay.expanded.wider {
-				margin-left:500px;
+				margin-left:550px;
 			}
 			.wp-full-overlay.expanded.wider #customize-controls {
-				width:500px;
+				width:550px;
 			}
 		</style>
 		
@@ -34,10 +37,8 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 				window.builder_tinymce_onchange_callback = function(inst) {
 					
 					var content = tinyMCE.activeEditor.getContent();
-					
-					console.log(content);
-					
-					jQuery('#email_content').html(content).trigger('change');
+										
+					jQuery('#<?php echo $this->id; ?>').html(content).trigger('change');
 				}
 				window.builder_check_sidebar = function() {
 					var sectionClicked = jQuery(this).attr('id');

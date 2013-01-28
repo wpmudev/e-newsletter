@@ -6,7 +6,8 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 == Changelog ==
 
 = 2.0 =
-* Double Opt-In Email Subject is now translation ready
+* New E-Mail template builder
+* POP3 bounce password now properly encrypted
 
 = 1.2.2 =
 * Fixed issue with escaping quotes in some settings

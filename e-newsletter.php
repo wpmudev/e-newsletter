@@ -26,15 +26,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 if( !defined('EMAIL_NEWSLETTER_VERSION') )
 	define('EMAIL_NEWSLETTER_VERSION', '2.0');
 
-if ( !function_exists( 'wdp_un_check' ) ) {
-  add_action( 'admin_notices', 'wdp_un_check', 5 );
-  add_action( 'network_admin_notices', 'wdp_un_check', 5 );
-  function wdp_un_check() {
-    if ( !class_exists( 'WPMUDEV_Update_Notifications' ) && current_user_can( 'install_plugins' ) )
-      echo '<div class="error fade"><p>' . __('Please install the latest version of <a href="http://premium.wpmudev.org/project/update-notifications/" title="Download Now &raquo;">our free Update Notifications plugin</a> which helps you stay up-to-date with the most stable, secure versions of WPMU DEV themes and plugins. <a href="http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/">More information &raquo;</a>', 'email-newsletter') . '</a></p></div>';
-  }
-}
-
 include_once( 'email-newsletter-files/class.functions.php' );
 require_once( 'email-newsletter-files/builder/class.builder.php' );
 
@@ -85,6 +76,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             wp_die( __('There was an issue determining where WPMU DEV Update Notifications is installed. Please reinstall.', 'email-newsletter' ) );
         }
 		
+		include_once($this->plugin_dir . '/email-newsletter-files/class.wpmudev_dash_notification.php');
 		
 		// Setup all plugin capabilities
 		$this->capabilities['create_newsletter'] = __('Create Newsletters','email-newsletter');
@@ -174,12 +166,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
 
         //ajax action for sent preview (test) email
-        add_action( 'wp_ajax_nopriv_send_preview', array( &$this, 'send_preview_ajax' ) );
-        add_action( 'wp_ajax_send_preview', array( &$this, 'send_preview_ajax' ) );
+        //add_action( 'wp_ajax_nopriv_send_preview', array( &$this, 'send_preview_ajax' ) );
+        add_action( 'wp_ajax_send_email_preview', array( &$this, 'send_preview_ajax' ) );
 
         //ajax action for show plreview of newsletter
-        add_action( 'wp_ajax_nopriv_show_preview', array( &$this, 'show_preview_ajax' ) );
-        add_action( 'wp_ajax_show_preview', array( &$this, 'show_preview_ajax' ) );
+        //add_action( 'wp_ajax_nopriv_show_preview', array( &$this, 'show_preview_ajax' ) );
+        //add_action( 'wp_ajax_show_preview', array( &$this, 'show_preview_ajax' ) );
 
         //ajax action for change member's group on members page
         add_action( 'wp_ajax_nopriv_change_groups', array( &$this, 'change_groups_ajax' ) );
@@ -207,8 +199,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         add_action( 'template_redirect', array( &$this, 'template_redirect' ), 12 );
 		
-		$prev = get_option('email_newsletter_version', FALSE);
-		$cur = (defined(EMAIL_NEWSLETTER_VERSION) ? EMAIL_NEWSLETTER_VERSION : FALSE);
+		$prev = get_option('email_newsletter_version', false);
+		$cur = (defined(EMAIL_NEWSLETTER_VERSION) ? EMAIL_NEWSLETTER_VERSION : false);
 		
 
 		$version_result = version_compare($prev, $cur);
@@ -755,8 +747,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		if(empty($newsletter_id))
 			$newsletter_id = $data['newsletter_id'];
 
-        $content        = base64_decode( str_replace( "-", "+", $data['content_encoded'] ) );
-        $contact_info   = base64_decode( str_replace( "-", "+", $data['contact_info'] ) );
+        $content        = base64_decode( str_replace( "-", "+", (isset($data['content_encoded']) ? $data['content_encoded'] : '' ) ) );
+        $contact_info   = base64_decode( str_replace( "-", "+", (isset($data['contact_info']) ? $data['contact_info'] : '' ) ) );
 
         $fields = array(
             "template"      => $data['newsletter_template'],
@@ -1000,7 +992,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         global $wpdb;
 
         if ( $_REQUEST['check_key'] != $_SESSION['check_key'] )
-            die('error1');
+            die('Key Security Error');
 
         $send_id = $_REQUEST['send_id'];
         //get data of newsletter
@@ -1024,24 +1016,28 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $unsubscribe_code = $member_data['unsubscribe_code'];
 
-        $siteurl = get_option( 'siteurl' );
-
-        $mail = new PHPMailer();
-
+		$mail =  new PHPMailer();
+		
         $mail->CharSet = 'UTF-8';
 
         //Set Sending Method
         switch( $this->settings['outbound_type'] ) {
             case 'smtp':
                 $mail->IsSMTP();
-                $mail->Host     = $this->settings['smtp_host'];
+                $mail->Host = $this->settings['smtp_host'];
+                
+                if($this->settings['smtp_secure_method'] == 'tls' || $this->settings['smtp_secure_method'] == 'ssl')
+					$mail->SMTPSecure = $this->settings['smtp_secure_method'];
+				if(!empty($this->settings['smtp_port']))
+					$mail->Port = $this->settings['smtp_port'];
+                
                 $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
+                
                 if( $mail->SMTPAuth ){
-                    $mail->Username = $this->settings['smtp_user'];
+                    $mail->Username = esc_attr($this->settings['smtp_user']);
                     $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
                 }
                 break;
-
             case 'mail':
                 $mail->IsMail();
                 break;
@@ -1052,14 +1048,18 @@ class Email_Newsletter extends Email_Newsletter_functions {
         }
 
         $contents = $send_data['email_body'];
-        //Replace content of template
-        $contents = str_replace( "{OPENED_TRACKER}", '<img src="' . $siteurl . '/wp-admin/admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_data['member_id'] . '" width="1" height="1" style="display:none;" />', $contents );
-
-        $contents = str_replace( "{UNSUBSCRIBE_URL}", $siteurl . '/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/', $contents );
-
-        $mail->From         = $newsletter_data['from_email'];
-        $mail->FromName     = $newsletter_data['from_name'];
-        $mail->Subject      = $newsletter_data["subject"];
+		
+		
+        //Replace some content inside the email body
+        
+        $wp_user = ($member_data['wp_user_id'] == 0 ? false : get_user_by('id', $member_data['wp_user_id']));
+		$contents = str_replace( "{USER_NAME}", (is_a($wp_user,'WP_User') ? $wp_user->user_login : ''), $contents );
+        $contents = str_replace( "{OPENED_TRACKER}", '<img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_data['member_id']) . '" width="1" height="1" style="display:none;" />', $contents );
+        $contents = str_replace( "{UNSUBSCRIBE_URL}", site_url('/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/'), $contents );
+		// TO-DO apply_filters('the_content')
+		//$contents = 
+		$mail->SetFrom($newsletter_data['from_email'],$newsletter_data['from_name']);
+        $mail->Subject = $newsletter_data["subject"];
 
         $mail->MsgHTML( $contents );
 
@@ -1068,15 +1068,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );
 
         if( ! $mail->Send() ) {
-//            return "Mailer Error: " . $mail->ErrorInfo;
-            die('error');
+        	$mail_error = $mail->ErrorInfo;
+            die('Mail Send Error: '.$mail_error);
         } else {
             //write info of Sent in DB
             $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent' WHERE send_id = %d AND member_id = %d", $send_id, $send_member['member_id'] ) );
             if ( $result )
                 die('ok');
             else
-                die('error');
+                die('DB Update Error');
         }
     }
 
@@ -1191,14 +1191,21 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     //Set Sending Method
                     switch( $this->settings['outbound_type'] ) {
                         case 'smtp':
-                            $mail->IsSMTP();
-                            $mail->Host     = $this->settings['smtp_host'];
-                            $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
-                            if( $mail->SMTPAuth ){
-                                $mail->Username = $this->settings['smtp_user'];
-                                $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
-                            }
-                            break;
+			                $mail->IsSMTP();
+			                $mail->Host = $this->settings['smtp_host'];
+			                
+			                if($this->settings['smtp_secure_method'] == 'tls' || $this->settings['smtp_secure_method'] == 'ssl')
+								$mail->SMTPSecure = $this->settings['smtp_secure_method'];
+							if(!empty($this->settings['smtp_port']))
+								$mail->Port = $this->settings['smtp_port'];
+			                
+			                $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
+			                
+			                if( $mail->SMTPAuth ){
+			                    $mail->Username = esc_attr($this->settings['smtp_user']);
+			                    $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
+			                }
+			                break;
 
                         case 'mail':
                             $mail->IsMail();
@@ -1274,10 +1281,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * Send Preview (Test) newsletter email
      **/
     function send_preview_ajax() {
-
+		
+		$newsletter_id = (isset($_REQUEST['newsletter_id']) ? $_REQUEST['newsletter_id'] : false);
+		
+		if(!$newsletter_id)
+			die('No valid newsletter ID supplied');
+		
         if ( !class_exists( 'PHPMailer' ) )
             require_once( $this->plugin_dir . 'email-newsletter-files/phpmailer/class.phpmailer.php' );
-
+		
         $mail = new PHPMailer();
 
         $mail->CharSet = 'UTF-8';
@@ -1286,14 +1298,20 @@ class Email_Newsletter extends Email_Newsletter_functions {
         switch( $this->settings['outbound_type'] ) {
             case 'smtp':
                 $mail->IsSMTP();
-                $mail->Host     = $this->settings['smtp_host'];
+                $mail->Host = $this->settings['smtp_host'];
+                
+                if($this->settings['smtp_secure_method'] == 'tls' || $this->settings['smtp_secure_method'] == 'ssl')
+					$mail->SMTPSecure = $this->settings['smtp_secure_method'];
+				if(!empty($this->settings['smtp_port']))
+					$mail->Port = $this->settings['smtp_port'];
+                
                 $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
+                
                 if( $mail->SMTPAuth ){
-                    $mail->Username = $this->settings['smtp_user'];
+                    $mail->Username = esc_attr($this->settings['smtp_user']);
                     $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
                 }
                 break;
-
             case 'mail':
                 $mail->IsMail();
                 break;
@@ -1304,7 +1322,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         }
 
         //open template file
-        $filename   = $this->plugin_dir . "email-newsletter-files/templates/" . $_REQUEST['template'] . "/template.html";
+        /*$filename   = $this->plugin_dir . "email-newsletter-files/templates/" . $_REQUEST['template'] . "/template.html";
         $handle     = fopen( $filename, "r" );
         $contents   = fread( $handle, filesize( $filename ) );
         fclose( $handle );
@@ -1322,24 +1340,30 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $contents = str_replace( "{FROM_EMAIL}", $_REQUEST['from_email'], $contents );
         $contents = str_replace( "{CONTACT_INFO}", $contact_info, $contents );
 		$contents = str_replace( "{DATE}", date("F j, Y"), $contents );
-        $contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $_REQUEST['template'] . "/images/", $contents );
-
-        $mail->From     = $_REQUEST['from_email'];
-        $mail->FromName = stripslashes ( $_REQUEST['from_name'] );
-        $mail->Subject  = stripslashes ( $_REQUEST["subject"] );
-
-        $mail->MsgHTML( $contents );
-
-        $mail->AddAddress( $_REQUEST["preview_email"] );
-
-        if( $this->settings['bounce_email'] ) {
-            $mail->Sender = $this->settings['bounce_email'];
-        }
-
-        if( ! $mail->Send() )
-            die( "Mailer Error: " . $mail->ErrorInfo );
-        else
-            die( "Test Email was sent" );
+        $contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $_REQUEST['template'] . "/images/", $contents ); */
+        
+				
+        $newsletter_data = $this->get_newsletter_data( $newsletter_id );
+		$content = $this->make_email_body($newsletter_id);
+		$content = str_replace( "{UNSUBSCRIBE_URL}", '#', $content );
+		$content = str_replace( "{OPENED_TRACKER}", '', $content );
+        if($newsletter_data && $content) {
+	        $mail->SetFrom($newsletter_data['from_email'],$newsletter_data['from_name']);
+	        $mail->Subject = '(PREVIEW) '.$newsletter_data['subject'];
+	        $mail->MsgHTML( $content );
+	        $mail->AddAddress( $_REQUEST['preview_email'] );
+	
+	        if( $this->settings['bounce_email'] ) {
+	            $mail->Sender = $this->settings['bounce_email'];
+	        }
+	
+	        if( ! $mail->Send() )
+	            die( "Mailer Error: " . $mail->ErrorInfo );
+	        else
+	            die( "Your test email has been sent." );
+		} else {
+			die( "Failed to generate email body." );
+		}
     }
 
 
@@ -1350,6 +1374,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
         //get data of newsletter
         $newsletter_data = $this->get_newsletter_data( $newsletter_id );
 		
+		if(!$newsletter_data || empty($newsletter_data))
+			return false;
+		
         //open template file
         $filename   = $this->plugin_dir . "email-newsletter-files/templates/" . $newsletter_data['template'] . "/template.html";
         $handle     = fopen( $filename, "r" );
@@ -1359,29 +1386,51 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $newsletter_data['content'] = '{OPENED_TRACKER}' . $newsletter_data['content'];
 		
 		// Extra Meta Replacements
-		// Use the "email_newsletter_make_email_body" filter below to filter your own meta data
-		if( $bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color') )
-			$contents = str_replace( "{BG_COLOR}", $bg_color, $contents);
+		// Use the "email_newsletter_make_email_body" filter below to filter your own custom data
 		
-		if( $link_color = $this->get_newsletter_meta($newsletter_id,'link_color') )
-			$contents = str_replace( "{LINK_COLOR}", $link_color, $contents);
+		// We check for meta-data then look for a defined default coming from
+		// the newsletter template then we pick something anyways using the
+		// get_default_builder_var() located in class.functions.php
 		
-		$contents = str_replace( "{EMAIL_TITLE}", $this->get_newsletter_meta($newsletter_id,'email_title',''), $contents);
+		// BG COLOR
+		$bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color', $this->get_default_builder_var('bg_color'));
+		$bg_color = apply_filters('email_newsletter_make_email_bgcolor',$bg_color,$newsletter_id);
+		$contents = str_replace( "{BG_COLOR}", $bg_color, $contents);
 		
-		if( $header_image = $this->get_newsletter_meta($newsletter_id,'header_image') )
-			$contents = str_replace( "{HEADER_IMAGE}", $header_image, $contents);
+		// LINK COLOR
+		$link_color = $this->get_newsletter_meta($newsletter_id,'link_color', $this->get_default_builder_var('link_color'));
+		$link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$newsletter_id);
+		$contents = str_replace( "{LINK_COLOR}", $link_color, $contents);
+		
+		// BODY COLOR
+		$body_color = $this->get_newsletter_meta($newsletter_id,'body_color', $this->get_default_builder_var('body_color'));
+		$body_color = apply_filters('email_newsletter_make_email_body_color',$body_color,$newsletter_id);
+		$contents = str_replace( "{BODY_COLOR}", $body_color, $contents);
+		
+		$email_title = $this->get_newsletter_meta($newsletter_id,'email_title', $this->get_default_builder_var('email_title') );
+		$email_title = apply_filters('email_newsletter_make_email_title',$email_title,$newsletter_id);
+		$contents = str_replace( "{EMAIL_TITLE}", $email_title, $contents);
+		
+		// HEADER IMAGE
+		$header_image = $this->get_newsletter_meta($newsletter_id,'header_image', $this->get_default_builder_var('header_image'));
+		$header_image = apply_filters('email_newsletter_make_email_header_image',$header_image,$newsletter_id);
+		$contents = str_replace( "{HEADER_IMAGE}", $header_image, $contents);
 		
 		
         //Replace content of template
         $contents = str_replace( "{EMAIL_BODY}", $newsletter_data['content'], $contents );
         $contents = str_replace( "{EMAIL_SUBJECT}", $newsletter_data['subject'], $contents );
-        $contents = str_replace( "{FROM_NAME}", $newsletter_data['from_name'], $contents );
-        $contents = str_replace( "{FROM_EMAIL}", $newsletter_data['from_email'], $contents );
+        $contents = str_replace( "{FROM_NAME}", (isset($newsletter_data['from_name']) ? $newsletter_data['from_name'] : $this->settings['from_name']), $contents );
+        $contents = str_replace( "{FROM_EMAIL}", (isset($newsletter_data['from_email']) ? $newsletter_data['from_email'] : $this->settings['from_email']), $contents );
         $contents = str_replace( "{CONTACT_INFO}", $newsletter_data['contact_info'], $contents );
-        $contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $newsletter_data['template'] . "/images/", $contents );
-		$contents = str_replace( "{DATE}", date("F j, Y"), $contents );
+        //$contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $newsletter_data['template'] . "/images/", $contents );
 		
-		return apply_filters('email_newsletter_make_email_body', $contents);
+		$date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
+		$contents = str_replace( "{DATE}", date($date_format), $contents );
+		
+		$contents = apply_filters('the_content',$contents);
+		
+		return apply_filters('email_newsletter_make_email_body', $contents, $newsletter_id);
     }
 
     /**
@@ -1503,20 +1552,20 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ( $this->settings ) {
         	
                 add_menu_page( __( 'eNewsletter', 'email-newsletter' ), __( 'eNewsletter', 'email-newsletter' ), 'read', 'newsletters-dashboard', null, $this->plugin_url . 'email-newsletter-files/images/icon.png');
-                $page = add_submenu_page( 'newsletters-dashboard', __( 'Dashboard', 'email-newsletter' ), __( 'Dashboard', 'email-newsletter' ), 'view_newsletter_dashboard', 'newsletters-dashboard', array( &$this, 'newsletters_dashboard_page' ) );
-                $page = add_submenu_page( 'newsletters-dashboard', __( 'Newsletters', 'email-newsletter' ), __( 'Newsletters', 'email-newsletter' ), 'save_newsletter', 'newsletters', array( &$this, 'newsletters_page' ) );
-                $page = add_submenu_page( 'newsletters-dashboard', __( 'Create Newsletter', 'email-newsletter' ), __( 'Create Newsletter', 'email-newsletter' ), 'create_newsletter', 'newsletters-create', array( &$this, 'create_newsletter_page' ) );
-                $page = add_submenu_page( 'newsletters-dashboard', __( 'Member Groups', 'email-newsletter' ), __( 'Member Groups', 'email-newsletter' ), 'edit_newsletter_group', 'newsletters-groups', array( &$this, 'member_groups_page' ) );
-                $page = add_submenu_page( 'newsletters-dashboard', __( 'Members', 'email-newsletter' ), __( 'Members', 'email-newsletter' ), 'view_newsletter_members', 'newsletters-members',  array( &$this, 'members_page' ) );
-                $page = add_submenu_page( 'newsletters-dashboard', __( 'Settings', 'email-newsletter' ), __( 'Settings', 'email-newsletter' ), 'save_newsletter_settings', 'newsletters-settings', array( &$this, 'settings_page' ) );
+                add_submenu_page( 'newsletters-dashboard', __( 'Reports', 'email-newsletter' ), __( 'Reports', 'email-newsletter' ), 'view_newsletter_dashboard', 'newsletters-dashboard', array( &$this, 'newsletters_dashboard_page' ) );
+                add_submenu_page( 'newsletters-dashboard', __( 'Newsletters', 'email-newsletter' ), __( 'Newsletters', 'email-newsletter' ), 'save_newsletter', 'newsletters', array( &$this, 'newsletters_page' ) );
+                add_submenu_page( 'newsletters-dashboard', __( 'Create Newsletter', 'email-newsletter' ), __( 'Create Newsletter', 'email-newsletter' ), 'create_newsletter', 'newsletters-create', array( &$this, 'create_newsletter_page' ) );
+				add_submenu_page( 'newsletters-dashboard', __( 'Member Groups', 'email-newsletter' ), __( 'Member Groups', 'email-newsletter' ), 'edit_newsletter_group', 'newsletters-groups', array( &$this, 'member_groups_page' ) );
+                add_submenu_page( 'newsletters-dashboard', __( 'Members', 'email-newsletter' ), __( 'Members', 'email-newsletter' ), 'view_newsletter_members', 'newsletters-members',  array( &$this, 'members_page' ) );
+                add_submenu_page( 'newsletters-dashboard', __( 'Settings', 'email-newsletter' ), __( 'Settings', 'email-newsletter' ), 'save_newsletter_settings', 'newsletters-settings', array( &$this, 'settings_page' ) );
 
                 //menu for lowest level users
-                $page = add_submenu_page( 'newsletters-dashboard', __( 'My Subscriptions', 'email-newsletter' ), __( 'My Subscriptions', 'email-newsletter' ), 'read', 'newsletters-subscribes', array( &$this, 'newsletters_subscribe_page' ) );
+                add_submenu_page( 'newsletters-dashboard', __( 'My Subscriptions', 'email-newsletter' ), __( 'My Subscriptions', 'email-newsletter' ), 'read', 'newsletters-subscribes', array( &$this, 'newsletters_subscribe_page' ) );
 				
         } else {
             //first start of plugin
             add_menu_page( __( 'eNewsletter', 'email-newsletter' ), __( 'eNewsletter', 'email-newsletter' ), $mu_cap, 'newsletters-settings' );
-            $page = add_submenu_page( 'newsletters-settings', __( 'Install Settings', 'email-newsletter' ), __( 'Install Settings', 'email-newsletter' ), $mu_cap, 'newsletters-settings', array( &$this, 'settings_page' ) );
+            add_submenu_page( 'newsletters-settings', __( 'Install Settings', 'email-newsletter' ), __( 'Install Settings', 'email-newsletter' ), $mu_cap, 'newsletters-settings', array( &$this, 'settings_page' ) );
         }
     }
 
@@ -1592,7 +1641,8 @@ class e_newsletter_subscribe extends WP_Widget {
     function e_newsletter_subscribe() {
         if( isset( $_REQUEST['wp3_newsletter_subscribe'] ) ) {
         }
-        session_start();
+		if (session_id() == "" || !isset($_SESSION))
+      		session_start();
 
         $widget_ops = array( 'description' => __( 'Allow people to subscribe to your newsletter database.') );
         parent::WP_Widget( false, __( 'eNewsletter: Subscribe' ), $widget_ops );
@@ -1639,8 +1689,8 @@ class e_newsletter_subscribe extends WP_Widget {
         ?>
             <div id="message" style="background-color: #FFFFE0;border-color: #E6DB55;margin: 5px 0 15px;-moz-border-radius: 3px 3px 3px 3px;border-style: solid;border-width: 1px;padding: 5px;">
             <?php
-            echo $_SESSION['newsletter_widget_status'] ;
-            session_unregister( 'newsletter_widget_status' );
+            echo $_SESSION['newsletter_widget_status'];
+            unset($_SESSION['newsletter_widget_status']);
             ?>
 
             </div>
@@ -1804,13 +1854,20 @@ class e_newsletter_subscribe extends WP_Widget {
 add_action( 'widgets_init', create_function( '', 'return register_widget("e_newsletter_subscribe");' ) );
 add_action( 'init', 'email_newsletter_widgets_scripts' );
 
-function register_enewsletter_plugin_template($id,$plugin_name,$email_type) {
+function register_enewsletter_plugin_template( $template_id, $plugin_name, $email_type) {
 	global $email_newsletter;
 	$return = array(
 		'name' => $plugin_name,
 		'type' => $email_type,
 	);
-	$email_newsletter->plugin_templates[$id] = $return;
+	$email_newsletter->plugin_templates[$template_id] = $return;
+}
+function is_active_enewsletter_plugin_template( $template_id ) {
+	// To-Do Make additional is_active check
+	if(isset($email_newsletter->plugin_templates[$template_id]) && is_array($email_newsletter->plugin_templates[$template_id]))
+		return true;
+	else
+		return false;
 }
 
 function email_newsletter_widgets_scripts() {

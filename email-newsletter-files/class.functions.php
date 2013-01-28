@@ -3,7 +3,30 @@
 * Plugin functions class
 **/
 class Email_Newsletter_functions {
-
+	
+	function get_default_builder_var($type='') {
+		switch($type) {
+			case 'bg_color':
+				$return = (defined('BUILDER_DEFAULT_BG_COLOR') ? BUILDER_DEFAULT_BG_COLOR : '#FFF' );
+				break;
+			case 'link_color':
+				$return = (defined('BUILDER_DEFAULT_LINK_COLOR') ? BUILDER_DEFAULT_LINK_COLOR : '#1155cc' );
+				break;
+			case 'email_title':
+				$return = (defined('BUILDER_DEFAULT_EMAIL_TITLE') ? BUILDER_DEFAULT_EMAIL_TITLE : __('Default Email Title','email-newsletter'));
+				break;
+			case 'header_iamge':
+				$return = (defined('BUILDER_DEFAULT_HEADER_IMAGE') ? BUILDER_DEFAULT_HEADER_IMAGE : '' );
+				break;
+			case 'body_color':
+				$return = (defined('BUILDER_DEFAULT_BODY_COLOR') ? BUILDER_DEFAULT_BODY_COLOR : '#000' );
+				break;
+			default:
+				$return = '';
+				break;
+		}
+		return apply_filters('email_newsletter_get_default_builder_var',$return,$type);
+	}
 
     /**
      * load template for page
@@ -248,7 +271,7 @@ class Email_Newsletter_functions {
                 }
             }
         }
-
+        
         require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
 
         $mail = new PHPMailer();
@@ -653,7 +676,7 @@ class Email_Newsletter_functions {
                 $orderby .= " ". $arg['order'];
         }
 
-        $results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members ". $where . " ".  $orderby . " " . $limit ), "ARRAY_A" );
+        $results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members ". $where . " ".  $orderby . " " . $limit, null), "ARRAY_A");
 
         if ( $results )
                 foreach( $results as $member ) {
@@ -1155,7 +1178,7 @@ class Email_Newsletter_functions {
 	function upgrade( $blog_id = '' ) {
 		global $wpdb;
 		
-		if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id  && $_GET['networkwide'] == 1 ) {
+		if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id  && isset($_GET['networkwide']) && $_GET['networkwide'] == 1 ) {
                 $blogids = $wpdb->get_col( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs" ) );
         } else {
             if ( 0 !== $blog_id )

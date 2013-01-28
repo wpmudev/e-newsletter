@@ -14,15 +14,21 @@ class Email_Newsletter_Builder  {
 	function parse_theme_settings() {
 		global $email_newsletter;
 		$filename = $email_newsletter->plugin_dir . 'email-newsletter-files/templates/' . $this->get_builder_theme() . '/template.html';
-		$handle = fopen($filename,'r');
-		$contents = fread($handle,filesize($filename));
-		fclose($handle);
+
+		if(file_exists($filename)) {
+			$handle = fopen($filename,'r');
+			$contents = fread($handle,filesize($filename));
+			fclose($handle);
 		
-		$pattern = '/\{(?P<name>\w*)\}/';
-		$matches = array();
-		$match_count = preg_match_all($pattern,$contents,$matches);
+			$pattern = '/\{(?P<name>\w*)\}/';
+			$matches = array();
+			$match_count = preg_match_all($pattern,$contents,$matches);
+			$this->settings = $matches['name'];
+		} else {
+			$this->settings = array();
+		}
 		
-		$this->settings = $matches['name'];
+		
 	}
 	function generate_builder_link($id=false, $return_url=NULL, $url=false) {
 		if(!$id)
@@ -51,13 +57,17 @@ class Email_Newsletter_Builder  {
 				$builder_id = $_REQUEST['newsletter_id'];
 				delete_transient('builder_email_id_'.$current_user->ID);
 				set_transient('builder_email_id_'.$current_user->ID, $builder_id);
-			} else {
+			} elseif($_REQUEST['newsletter_id'] == 'new') {
 				// We pass an empty array to create a new newsletter and get our ID
 				$builder_id = $this->save_builder(array());
 				delete_transient('builder_email_id_'.$current_user->ID);
 				set_transient('builder_email_id_'.$current_user->ID, $builder_id);
+				
+				// Now redirect to our new newsletter builder
 				wp_redirect($this->generate_builder_link($builder_id));
 				exit;
+			} else {
+				die(__('Something is wrong, we can not determine what your trying to do.','email-newsletter'));
 			}
 		}
 		
@@ -120,7 +130,7 @@ class Email_Newsletter_Builder  {
 		?><script type="text/javascript">
 			_wpCustomizeControlsL10n.save = "<?php _e('Save Newsletter','email-newsletter'); ?>";
 			ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
-			var current_theme = "<?php echo $_GET['theme']; ?>";
+			<?php /* var current_theme = "<?php echo $_GET['theme']; ?>";
 			email_templates = [
 				<?php foreach($themes as $theme): ?>
 				{	"name": "<?php echo $theme->get('Name'); ?>", 
@@ -134,7 +144,7 @@ class Email_Newsletter_Builder  {
 			_info
 				.prepend('<a href="#" class="arrow left" />')
 				.prepend('<a href="#" class="arrow right" />')
-				.prepend('<a href="#" class="change_theme">Change Theme</a>');
+				.prepend('<a href="#" class="change_theme"><?php _e('Update','email-newsletter'); ?></a>');
 			jQuery.each(email_templates, function(i,e) {
 				var clone = _info.clone().addClass('hidden');
 				if(e.screenshot != _info.find('img.theme-screenshot').attr('src')) {
@@ -145,7 +155,7 @@ class Email_Newsletter_Builder  {
 				} else {
 					// Use this opportunity to change the theme preview area
 					var current_name = jQuery('#customize-info .preview-notice .theme-name');
-					jQuery('#customize-info .preview-notice').html('Click to change theme').prepend(current_name);
+					jQuery('#customize-info .preview-notice').html("<?php _e('Click to change theme','email-newsletter'); ?>").prepend(current_name);
 					_info.data('theme',e);
 				}
 				
@@ -187,7 +197,7 @@ class Email_Newsletter_Builder  {
 				if(current_theme != new_theme)
 					window.location.href = window.location.href.replace('theme='+current_theme,'theme='+new_theme)
 			});
-			
+			*/ ?>
 		</script>
 		
 		<style type="text/css">
@@ -233,7 +243,7 @@ class Email_Newsletter_Builder  {
 			return $_GET['theme'];
 		} else {
 			$data = $email_newsletter->get_newsletter_data($email_id);
-			return $data['template'];
+			return (isset($data['template']) ? $data['template'] : 'iletter');
 		}
 
 	}
@@ -298,6 +308,7 @@ class Email_Newsletter_Builder  {
 		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.textarea-control.php');
 		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.multiadd-control.php');
 		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.hidden-control.php');
+		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.preview-control.php');
 		
 		if( in_array('HEADER_IMAGE', $this->settings)) {
 			$instance->add_section( 'header_image', array(
@@ -307,7 +318,7 @@ class Email_Newsletter_Builder  {
 			$instance->add_setting( 'header_image', array(
 				//'subject'        => '',
 				//'capability' => NULL,
-				'default' => (defined('BUILDER_DEFAULT_HEADER_IMAGE') ? BUILDER_DEFAULT_HEADER_IMAGE : ''),
+				'default' => $email_newsletter->get_default_builder_var('header_image'),
 				'type' => 'newsletter_save'
 			) );
 			$instance->add_control( new WP_Customize_Image_Control( $instance, 'header_image', array(
@@ -340,7 +351,7 @@ class Email_Newsletter_Builder  {
 			) ));
 		}
 		
-		if( in_array('BG_COLOR', $this->settings) || in_array('LINK_COLOR', $this->settings) ) {
+		if( in_array('BG_COLOR', $this->settings) || in_array('LINK_COLOR', $this->settings) || in_array('BODY_COLOR', $this->settings) ) {
 			
 			$instance->add_section( 'builder_colors', array(
 				'title' => __('Colors','email-newsletter'),
@@ -351,7 +362,7 @@ class Email_Newsletter_Builder  {
 				$instance->add_setting( 'bg_color', array(
 					//'subject'        => '',
 					//'capability' => NULL,
-					'default' => (defined('BUILDER_DEFAULT_BG_COLOR') ? BUILDER_DEFAULT_BG_COLOR : '#FFF'),
+					'default' => $email_newsletter->get_default_builder_var('bg_color'),
 					'type' => 'newsletter_save'
 				) );
 				$instance->add_control( new WP_Customize_Color_Control( $instance, 'bg_color', array(
@@ -361,11 +372,25 @@ class Email_Newsletter_Builder  {
 				) ) );
 			}
 			
+			if( in_array('BODY_COLOR', $this->settings) ) {
+				$instance->add_setting( 'body_color', array(
+					//'subject'        => '',
+					//'capability' => NULL,
+					'default' => $email_newsletter->get_default_builder_var('body_color'),
+					'type' => 'newsletter_save'
+				) );
+				$instance->add_control( new WP_Customize_Color_Control( $instance, 'body_color', array(
+					'label'        => __( 'Body Text Color', 'email-newsletter' ),
+					'section'    => 'builder_colors',
+					'settings'   => 'body_color',
+				) ) );
+			}
+			
 			if( in_array('LINK_COLOR', $this->settings) ) {
 				$instance->add_setting( 'link_color', array(
 					//'subject'        => '',
 					//'capability' => NULL,
-					'default' => (defined('BUILDER_DEFAULT_LINK_COLOR') ? BUILDER_DEFAULT_LINK_COLOR : '#4CA6C'),
+					'default' => $email_newsletter->get_default_builder_var('link_color'),
 					'type' => 'newsletter_save'
 				) );
 				$instance->add_control( new WP_Customize_Color_Control( $instance, 'link_color', array(
@@ -378,7 +403,7 @@ class Email_Newsletter_Builder  {
 		
 		if( in_array('EMAIL_TITLE',$this->settings) ) {
 			$instance->add_setting( 'email_title', array(
-				'default' => '',
+				'default' => $email_newsletter->get_default_builder_var('email_title'),
 				'type' => 'newsletter_save'
 			) );
 			$instance->add_control( 'email_title', array(
@@ -398,6 +423,10 @@ class Email_Newsletter_Builder  {
 		$instance->add_section( 'builder_email_content', array(
 			'title'          => 'Content',
 			'priority'       => 36,
+		) );
+		$instance->add_section( 'builder_preview', array(
+			'title'          => __('Preview','email-newsletter'),
+			'priority'       => 40,
 		) );
 		
 		// Setup Settings
@@ -435,12 +464,26 @@ class Email_Newsletter_Builder  {
 			'default' => __('Insert Content Here','email-newsletter'),
 			'type' => 'newsletter_save'
 		) );
-		$instance->add_setting( 'contact_info', array(
+		$instance->add_setting( 'email_preview', array(
 			//'subject'        => '',
 			//'capability' => NULL,
-			'default' => __('Contact Info Goes Here','email-newsletter'),
-			'type' => 'newsletter_save',
+			'default' => '',
+			'type' => 'newsletter_save'
 		) );
+		
+		if( in_array('CONTACT_INFO',$this->settings) ) {
+			$instance->add_setting( 'contact_info', array(
+				//'subject'        => '',
+				//'capability' => NULL,
+				'default' => __('Contact Info Goes Here','email-newsletter'),
+				'type' => 'newsletter_save',
+			) );
+			$instance->add_control( new Builder_TextArea_Control( $instance, 'contact_info', array(
+				'label'   => __('Contact Info','email-newsletter'),
+				'section' => 'builder_email_content',
+				'settings'   => 'contact_info',
+			) ) );
+		}
 		
 		
 		// Setup Controls
@@ -474,11 +517,11 @@ class Email_Newsletter_Builder  {
 			'section' => 'builder_email_content',
 			'settings'   => 'email_content',
 		) ) );
-		$instance->add_control( new Builder_TextArea_Control( $instance, 'contact_info', array(
-			'label'   => __('Contact Info','email-newsletter'),
-			'section' => 'builder_email_content',
-			'settings'   => 'contact_info',
+		$instance->add_control( new Builder_Preview_Control($instance, 'email_preview', array(
+			'label'   => __('Send Preview To Email','email-newsletter'),
+			'section' => 'builder_preview',
 		) ) );
+		
 		
 		
 		
@@ -730,6 +773,13 @@ class Email_Newsletter_Builder  {
 						});
 					});
 				<?php endif; ?>
+				<?php if( in_array('BODY_COLOR',$this->settings)) : ?>
+					wp.customize('body_color',function( value ) {
+						value.bind(function(to) {
+							$('[data-builder="body_color"]').css( 'color', to ? to : '' );
+						});
+					});
+				<?php endif; ?>
 				<?php if( in_array('HEADER_IMAGE',$this->settings)) : ?>
 					wp.customize('header_image',function( value ) {
 						value.bind(function(to) {
@@ -767,93 +817,39 @@ class Email_Newsletter_Builder  {
 	   return $return_string;
 	}
 	public function prepare_preview($content = '') {
+		global $email_newsletter;
 		// Fix the tracker image from showing up in the preview
 		$content = str_replace('{OPENED_TRACKER}','',$content);
 		$content = str_replace('{UNSUBSCRIBE_URL}','#',$content);
-		return apply_filters('the_content',$content);
+		
+		$date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
+		$content = str_replace( "{DATE}", date($date_format), $content );
+		
+		// We have to change our order to make images show up in preview correctly?
+		//if(!defined('DOING_AJAX') || DOING_AJAX != true)
+			$content = apply_filters('the_content',$content);
+		
+		if(!class_exists('CssToInlineStyles'))
+			require_once($email_newsletter->plugin_dir.'email-newsletter-files/builder/lib/css-inline.php');
+		
+		$themedata = $this->find_builder_theme();
+		if($themedata) {
+			$style_path = $themedata->theme_root . '/' . $themedata->stylesheet . '/style.css';
+			if(file_exists($style_path)) {
+				$handle = fopen( $style_path, "r" );
+        		$style_content = fread( $handle, filesize( $style_path ) );
+        		$css_inline = new CssToInlineStyles($content,'<style type="text/css">'.$style_content.'</style>');
+				$content = $css_inline->convert();
+			}
+		}
+		
+		//if(defined('DOING_AJAX') && DOING_AJAX)
+			//$content = apply_filters('the_content',$content);
+			
+		return $content;
 	}
 	public function print_preview_head() {
-		?>
-		<style type="text/css">
-		    a:link, a, a:visited{color:#eebb00;}
-		    a:hover { text-decoration: none !important; color:#eebb00;}
-		    h2, h3, h4, h5, h6{padding: 0px 0px 10px 0px;margin:0px;}
-			.alignleft { display: inline; float: left; margin-right: 1.625em; }
-			.alignright { display: inline; float: right; margin-left: 1.625em; }
-			.aligncenter { clear: both; display: block;	margin-left: auto; margin-right: auto; }
-			img.alignleft, img.alignright, img.aligncenter { margin-bottom: 1.625em; }
-			.alignleft {
-				float: left;
-			}
-			.alignright {
-				float: right;
-			}
-			.aligncenter {
-				display: block;
-				margin-left: auto;
-				margin-right: auto;
-			}
-			.entry-content img,
-			.comment-content img,
-			.widget img,
-			img.header-image,
-			.author-avatar img,
-			img.wp-post-image {
-				/* Add fancy borders to all WordPress-added images but not things like badges and icons and the like */
-				border-radius: 3px;
-				box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-			}
-			.wp-caption {
-				max-width: 100%; /* Keep wide captions from overflowing their container. */
-				padding: 4px;
-			}
-			.wp-caption .wp-caption-text,
-			.gallery-caption,
-			.entry-caption {
-				font-style: italic;
-				font-size: 12px;
-				font-size: 0.857142857rem;
-				line-height: 2;
-				color: #777;
-			}
-			img.wp-smiley,
-			.rsswidget img {
-				border: 0;
-				border-radius: 0;
-				box-shadow: none;
-				margin-bottom: 0;
-				margin-top: 0;
-				padding: 0;
-			}
-			.entry-content dl.gallery-item {
-				margin: 0;
-			}
-			.gallery-item a,
-			.gallery-caption {
-				width: 90%;
-			}
-			.gallery-item a {
-				display: block;
-			}
-			.gallery-caption a {
-				display: inline;
-			}
-			.gallery-columns-1 .gallery-item a {
-				max-width: 100%;
-				width: auto;
-			}
-			.gallery .gallery-icon img {
-				height: auto;
-				max-width: 90%;
-				padding: 5%;
-			}
-			.gallery-columns-1 .gallery-icon img {
-				padding: 3%;
-			}
-		</style>
-		<?php
 		do_action('builder_head');
-		
 	}
 	function print_preview_footer() {
 		do_action('wp_footer');

@@ -89,7 +89,7 @@
                     <input type="hidden" name="cron" value="add_to_cron" />
                     <input type="button" id="send_pause" value="<?php echo _e( 'Pause', 'email-newsletter' ) ?>" />
                     <input type="button" id="send_cron" value="<?php echo _e( 'Pause, and send by WP-CRON', 'email-newsletter' ) ?>" />
-                    <input type="button" id="send_cancel" value="<?php echo _e( 'Cancel', 'email-newsletter' ) ?>" />
+                    <input type="button" id="send_cancel" value="<?php echo _e( 'Go Back', 'email-newsletter' ) ?>" />
                 </form>
             </center>
 
@@ -137,7 +137,7 @@
                     jQuery.fn.send_email = function ( ) {
                         jQuery.ajax({
                             type: 'POST',
-                            url: '<?php echo $siteurl;?>/wp-admin/admin-ajax.php',
+                            url: ajaxurl,
                             data: 'action=send_email_to_member&send_id=<?php echo $send_id ; ?>&check_key=<?php echo $_REQUEST['check_key'] ; ?>',
                             success: function( html ){
                                 if ( 'ok' == html ) {
@@ -158,6 +158,8 @@
                                      jQuery( "#send_cron" ).hide();
                                      jQuery( "#progressbar_text" ).html( '<?php echo _e( 'Done', 'email-newsletter' ) ?>' );
                                 } else {
+                                	if(typeof console.log != 'undefined')
+                                		console.log(html);
                                     alert( html );
                                 }
                             }

@@ -164,7 +164,7 @@
                                     <?php _e( 'Double Opt In:', 'email-newsletter' ) ?>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="settings[double_opt_in]" value="1" <?php echo (isset($settings['double_opt_in'])&&$settings['double_opt_in']) ? ' checked':'';?> />
+                                    <input type="checkbox" name="settings[double_opt_in]" value="1" <?php checked('1',$settings['double_opt_in']); ?> />
                                     <span class="description"><?php _e( 'Yes, members will get confirmation email to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
@@ -173,7 +173,7 @@
                                     <?php _e( 'Double Opt In Subject:', 'email-newsletter' ) ?>
                                 </td>
                                 <td>
-                                    <input type="text" name="settings[double_opt_in_subject]" value="1" <?php echo (isset($settings['double_opt_in_subject'])&&$settings['double_opt_in_subject']) ? ' checked':'';?> />
+                                    <input type="text" name="settings[double_opt_in_subject]" value="<?php echo esc_attr($settings['double_opt_in_subject']); ?>" />
                                     <span class="description"><?php _e( 'Yes, members will get confirmation email to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
@@ -244,14 +244,14 @@
                                 <tr>
                                     <td><?php _e( 'SMTP Outgoing Server', 'email-newsletter' ) ?>:</td>
                                     <td>
-                                        <input type="text" id="smtp_host" name="settings[smtp_host]" value="<?php echo htmlspecialchars($settings['smtp_host']);?>" />
-                                        <span class="description"><?php _e( '(eg: smtp.someserver.com, ssl://smtp.gmail.com:465)', 'email-newsletter' ) ?></span>
+                                        <input type="text" id="smtp_host" name="settings[smtp_host]" value="<?php echo htmlspecialchars(esc_attr($settings['smtp_host']));?>" />
+                                        <span class="description"><?php _e( '(eg: smtp.someserver.com)', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><?php _e( 'SMTP Username:', 'email-newsletter' ) ?></td>
                                     <td>
-                                        <input type="text" name="settings[smtp_user]" value="<?php echo htmlspecialchars($settings['smtp_user']);?>" />
+                                        <input type="text" name="settings[smtp_user]" value="<?php echo htmlspecialchars(esc_attr($settings['smtp_user']));?>" />
                                         <span class="description"><?php _e( '(leave blank for none)', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
@@ -263,6 +263,27 @@
                                     </td>
                                 </tr>
                             </tbody>
+                            <tbody>
+                            	<tr>
+                                    <td><?php _e( 'Secure SMTP?', 'email-newsletter' ) ?>:</td>
+                                    <td>
+                                        <select name="settings[smtp_secure_method]" >
+                                        	<option value="0" <?php selected('0',$settings['smtp_secure_method']); ?>><?php _e( 'None', 'email-newsletter' ) ?></option>
+                                            <option value="ssl" <?php selected('ssl',$settings['smtp_secure_method']); ?>><?php _e( 'SSL', 'email-newsletter' ) ?></option>
+                                            <option value="tls" <?php selected('tls',$settings['smtp_secure_method']); ?>><?php _e( 'TLS', 'email-newsletter' ) ?></option>
+                                        </select>
+                                        <span class="description"><?php _e( 'Choose and optional type of connection', 'email-newsletter' ) ?></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><?php _e( 'SMTP Port', 'email-newsletter' ) ?>:</td>
+                                    <td>
+                                        <input type="text" id="smtp_port" name="settings[smtp_port]" value="<?php echo htmlspecialchars(esc_attr($settings['smtp_port']));?>" />
+                                        <span class="description"><?php _e( 'Defaults to 25.  Gmail uses 465 or 587', 'email-newsletter' ) ?></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tbody>
                                 <tr>
                                     <td>
                                         <?php _e( 'Enable', 'email-newsletter' ) ?>
@@ -270,8 +291,8 @@
                                     </td>
                                     <td>
                                         <select name="settings[cron_enable]" >
-                                            <option value="1" <?php echo ( 1 == $settings['cron_enable'] ) ? 'selected' : ''; ?> ><?php _e( 'Enable', 'email-newsletter' ) ?></option>
-                                            <option value="2" <?php echo ( 2 == $settings['cron_enable'] ) ? 'selected' : ''; ?> ><?php _e( 'Disable', 'email-newsletter' ) ?></option>
+                                            <option value="1" <?php selected('1',esc_attr($settings['cron_enable'])); ?>><?php _e( 'Enable', 'email-newsletter' ) ?></option>
+                                            <option value="2" <?php selected('2',esc_attr($settings['cron_enable'])); ?>><?php _e( 'Disable', 'email-newsletter' ) ?></option>
                                         </select>
                                         <span class="description"><?php _e( "('Disable' - not use CRON for sending emails)", 'email-newsletter' ) ?></span>
                                     </td>
@@ -299,6 +320,7 @@
                                         </select>
                                     </td>
                                 </tr>
+							</tbody>
                         </table>
                     </div>
 

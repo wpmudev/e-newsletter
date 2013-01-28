@@ -10,15 +10,15 @@
 ?>
 
     <div class="wrap">
-        <h2><?php _e( 'Newsletters', 'email-newsletter' ) ?><a href="<?php echo admin_url('admin.php?page=newsletters-create'); ?>" class="add-new-h2"><?php _e('Create New','email-newsletter'); ?></a></h2>
+        <h2>
+        	<?php _e( 'Newsletters', 'email-newsletter' ) ?>
+        	<a href="<?php echo admin_url('admin.php?page=newsletters-create'); ?>" class="add-new-h2"><?php _e('Create New','email-newsletter'); ?></a>
+        </h2>
         <p><?php _e( 'This page contains the list of all Newsletters.', 'email-newsletter' ) ?></p>
-        <table class="widefat post">
+        <table id="newsletterList" class="widefat post">
             <thead>
                 <tr>
-                    <th>
-                        <?php _e( 'Date of creation', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
+                    <th class="subjectCol">
                         <?php _e( 'Email Subject', 'email-newsletter' ) ?>
                     </th>
                     <th>
@@ -33,7 +33,7 @@
                     <th>
                         <?php _e( 'Opened', 'email-newsletter' ) ?>
                     </th>
-                    <th>
+                    <th class="actionCol">
                         <?php _e( 'Actions', 'email-newsletter' ) ?>
                     </th>
                 </tr>
@@ -59,11 +59,9 @@
 
                 $i++;
         ?>
-                <td style="vertical-align: middle;">
-                   <?php echo date( $this->settings['date_format'] . " h:i:s", $newsletter['create_date'] ); ?>
-                </td>
-                <td style="vertical-align: middle;">
-                    <?php echo $newsletter['subject']; ?>
+                <td class="subjectCol" style="vertical-align: middle;">
+                    <?php echo $newsletter['subject']; ?><br />
+                    <span class="description"><?php echo date( $this->settings['date_format'] . " h:i:s", $newsletter['create_date'] ); ?></span>
                 </td>
                 <td style="vertical-align: middle;">
                     <?php echo $newsletter['template']; ?>
@@ -77,15 +75,15 @@
                 <td style="vertical-align: middle;">
                     <?php echo $this->get_count_opened( $newsletter['newsletter_id'] ); ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
-                <td style="vertical-align: middle; width: 140px;">
-                    <a href="<?php echo $email_builder->generate_builder_link($newsletter['newsletter_id'],'admin.php?page=newsletters') ?>">
-                        <input type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
+                <td class="actionCol">
+                    <a class="button button-secondary" href="<?php echo $email_builder->generate_builder_link($newsletter['newsletter_id'],'admin.php?page=newsletters') ?>">
+                        <?php _e( 'Edit', 'email-newsletter' ) ?>
                     </a>
-                    <a href="?page=newsletters&newsletter_action=delete_newsletter&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
-                        <input type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" />
+                    <a class="deleteNewsletter button button-secondary" href="?page=newsletters&newsletter_action=delete_newsletter&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
+                        <?php _e( 'Delete', 'email-newsletter' ) ?>
                     </a>
-                    <a href="?page=newsletters&newsletter_action=send_newsletter&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
-                        <input type="button" value="<?php _e( 'Send', 'email-newsletter' ) ?>" />
+                    <a class="button button-secondary"  href="?page=newsletters&newsletter_action=send_newsletter&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
+                        <?php _e( 'Send', 'email-newsletter' ) ?>
                     </a>
                 </td>
             </tr>
@@ -93,7 +91,7 @@
             }
         ?>
         </table>
-        <h2><?php _e('WPMU Plugin Templates','email-newsletter'); ?></h2>
+        <?php /* <h2><?php _e('WPMU DEV Plugin Templates','email-newsletter'); ?></h2>
         <p><?php _e('Here you can create custom email templates for other WPMU plugins you have installed.','email-newsletter'); ?></p>
         <table id="wpmuTemplates" class="widefat post">
             <thead>
@@ -142,5 +140,32 @@
 
            		<?php endforeach; ?>
            	</tbody>
-       </table>
+       </table> */ ?>
     </div><!--/wrap-->
+    <style type="text/css">
+    	#newsletterList tbody td {
+    		vertical-align: middle;
+    	}
+    	td.subjectCol,
+    	th.subjectCol {
+    		width: 350px;
+    	}
+    	td.actionCol,
+    	th.actionCol {
+    		width: 161px;
+    	}
+    	#newsletterList thead th.actionCol {
+    		text-align: center;
+    	} 
+    </style>
+    <script type="text/javascript">
+    	jQuery(document).ready( function($) {
+    		$('.deleteNewsletter').on('click', function() {
+    			var choice = confirm("<?php _e('Are you sure you want to delete this newsletter?','email-newsletter'); ?>");
+    			if(choice)
+    				return true;
+    			else
+    				return false;
+    		});
+    	});
+    </script>
