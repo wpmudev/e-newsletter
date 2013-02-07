@@ -127,7 +127,7 @@
                      <?php echo $one_sent['count_opened']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
                 <td style="width: 280px;">
-                    <a href="?page=newsletters-create&newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
+                    <a href="<?php $email_builder->generate_builder_link($one_sent['newsletter_id']); ?>">
                         <input type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
                     </a>
                     <a href="?page=newsletters-dashboard&newsletter_action=delete_newsletter&newsletter_id=<?php echo $one_sent['newsletter_id'];?>">

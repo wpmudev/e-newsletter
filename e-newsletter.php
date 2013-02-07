@@ -1546,11 +1546,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * Creating admin menu
      **/
     function admin_page() {
-				
+    	
+			
 		$mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
 		
         if ( $this->settings ) {
-        	
+        	global $email_builder, $submenu;
                 add_menu_page( __( 'eNewsletter', 'email-newsletter' ), __( 'eNewsletter', 'email-newsletter' ), 'read', 'newsletters-dashboard', null, $this->plugin_url . 'email-newsletter-files/images/icon.png');
                 add_submenu_page( 'newsletters-dashboard', __( 'Reports', 'email-newsletter' ), __( 'Reports', 'email-newsletter' ), 'view_newsletter_dashboard', 'newsletters-dashboard', array( &$this, 'newsletters_dashboard_page' ) );
                 add_submenu_page( 'newsletters-dashboard', __( 'Newsletters', 'email-newsletter' ), __( 'Newsletters', 'email-newsletter' ), 'save_newsletter', 'newsletters', array( &$this, 'newsletters_page' ) );
@@ -1561,6 +1562,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 //menu for lowest level users
                 add_submenu_page( 'newsletters-dashboard', __( 'My Subscriptions', 'email-newsletter' ), __( 'My Subscriptions', 'email-newsletter' ), 'read', 'newsletters-subscribes', array( &$this, 'newsletters_subscribe_page' ) );
+
+				if(isset($submenu['newsletters-dashboard'])) {
+					foreach($submenu['newsletters-dashboard'] as $k => $v) {
+						if(isset($v[2]) && $v[2] == 'newsletters-create') {
+							$submenu['newsletters-dashboard'][$k][2] = $email_builder->generate_builder_link('new');
+						}
+					}
+				}
+				
 				
         } else {
             //first start of plugin
