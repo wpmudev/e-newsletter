@@ -8,6 +8,14 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 = 2.0 =
 * New E-Mail template builder
 * POP3 bounce password now properly encrypted
+* SMTP settings page has been improved
+* SSL/TLS and Port option now separated please double check your sending settings
+* 
+
+= 1.2.4 =
+* Fixed $wpdb->prepare() errors
+* Bounce Email Address Password is Now Properly Encrypted
+* ( Please make sure and RE-Enter and Save Your Bounce Password! )
 
 = 1.2.2 =
 * Fixed issue with escaping quotes in some settings

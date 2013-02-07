@@ -400,7 +400,6 @@ class Email_Newsletter_functions {
 			unset($settings['email_caps']);
 		}
 		
-		
         //change time for CRON
         if ( 1 == $settings['cron_enable'] ) {
             wp_schedule_event( time(), 'enewsletter_min_2', $this->cron_send_name );
@@ -424,14 +423,15 @@ class Email_Newsletter_functions {
         foreach( $settings as $key => $item )
              $result = $wpdb->query( $wpdb->prepare( "REPLACE INTO {$this->tb_prefix}enewsletter_settings SET `key` = '%s', `value` = '%s'", $key, stripslashes( $item ) ) );
 		
-		
-		foreach ($caps as $cap => $role) {
-			$role_obj = get_role($role);
-			if($role_obj) {
-				$role_obj->add_cap($cap);
+		if(isset($caps)) {
+			foreach ($caps as $cap => $role) {
+				$role_obj = get_role($role);
+				if($role_obj) {
+					$role_obj->add_cap($cap);
+				}
 			}
 		}
-		
+
         $this->get_settings();
 
         if ( "install" == $_REQUEST['mode']) {

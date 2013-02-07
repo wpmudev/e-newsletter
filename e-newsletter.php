@@ -563,7 +563,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $dmsg = "";
 
-        if ( 0 < email_exists( $member_data['email'] ) ) {
+        if ( email_exists( $member_data['email'] ) !== false ) {
             //if email of new member == email of site user
 
             $wp_user_id = email_exists( $member_data['email'] );
