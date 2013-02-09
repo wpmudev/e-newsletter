@@ -98,6 +98,13 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		$this->capabilities['install_newsletter'] = __('First Time Install','email-newsletter');
 		$this->capabilities['uninstall_newsletter'] = __('Un-Install Blog Data','email-newsletter');
 		
+		$admin_role = get_role('administrator');
+		foreach($this->capabilities as $key => $cap) {
+			if(!isset($admin_role->capabilities[$key]) || $admin_role->capabilities[$key] == false ) {
+				$admin_role->add_cap($key,true);
+			}
+		}
+		
         //add new rewrite rules
         register_activation_hook( $this->plugin_dir . 'e-newsletter.php', array( &$this, 'update_rewrite_rules' ) );
         add_filter( 'rewrite_rules_array', array( &$this, 'insert_rewrite_rules' ) );

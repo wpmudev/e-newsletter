@@ -1,5 +1,5 @@
 <?php
-
+	global $email_builder;
     $newsletters_sent = $this->get_sent_newsletters();
 	$newsletter_count = count( $newsletters_sent );
     if ( 5 < $newsletter_count ) {
@@ -145,9 +145,7 @@
         </table>
         <br clear="all"/>
         <center>
-            <a href="?page=newsletters-create" style="text-decoration: none;" >
-                <input type="button" value="<?php _e( 'Create New Newsletter', 'email-newsletter' ) ?>" />
-            </a>
+            <a class="button button-primary" href="<?php echo $email_builder->generate_builder_link('new'); ?>"><?php _e( 'Create New Newsletter', 'email-newsletter' ) ?></a>
         </center>
         <br clear="all"/>
 

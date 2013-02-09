@@ -375,6 +375,7 @@
 						<p><?php _e('Here you can set your desired permissions for each user role on your site'); ?></p>
 						<div class="metabox-holder">
 							<?php foreach($wp_roles->get_names() as $name => $label) : ?>
+								<?php if($name == 'administrator') continue; ?>
 								<?php $role_obj = get_role($name); ?>
 								<div class="postbox">
 									<h3 class="hndle"><span><?php echo $label; ?></span></h3>
@@ -389,7 +390,9 @@
 											<tbody>
 												<?php foreach($this->capabilities as $key => $label) : ?>
 													<tr>
-														<th class="check-column" scope="row"><input id="<?php echo $name.'_'.$key; ?>" type="checkbox" value="<?php echo $name; ?>" name="settings[email_caps][<?php echo $key; ?>]" <?php checked($wp_roles->roles[$name]['capabilities'][$key],true); ?> /></th>
+														<th class="check-column" scope="row">
+															<input id="<?php echo $name.'_'.$key; ?>" type="checkbox" value="1" name="settings[email_caps][<?php echo $key; ?>][<?php echo $name; ?>]" <?php checked($wp_roles->roles[$name]['capabilities'][$key],true); ?> />
+														</th>
 														<th style="" class="manage-column column-<?php echo $key; ?>" id="<?php echo $key; ?>" scope="col">
 															<label for="<?php echo $name.'_'.$key; ?>"><?php echo $label; ?></label>
 														</th>

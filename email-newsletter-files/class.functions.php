@@ -396,8 +396,23 @@ class Email_Newsletter_functions {
             $settings = array();
 		
 		if(isset($settings['email_caps']) && is_array($settings['email_caps'])) {
+			global $wp_roles;
 			$caps = $settings['email_caps'];
 			unset($settings['email_caps']);
+			
+			foreach($wp_roles->get_names() as $name => $obj) {
+				if($name == 'administrator') continue;
+				$role_obj = get_role($name);
+				if($role_obj) {
+					foreach($this->capabilities as $cap => $label) {
+						if(isset($caps[$cap][$name])) {
+							$role_obj->add_cap($cap);
+						} else {
+							$role_obj->remove_cap($cap);
+						}
+					}
+				}
+			}
 		}
 		
         //change time for CRON
@@ -423,14 +438,7 @@ class Email_Newsletter_functions {
         foreach( $settings as $key => $item )
              $result = $wpdb->query( $wpdb->prepare( "REPLACE INTO {$this->tb_prefix}enewsletter_settings SET `key` = '%s', `value` = '%s'", $key, stripslashes( $item ) ) );
 		
-		if(isset($caps)) {
-			foreach ($caps as $cap => $role) {
-				$role_obj = get_role($role);
-				if($role_obj) {
-					$role_obj->add_cap($cap);
-				}
-			}
-		}
+		
 
         $this->get_settings();
 
