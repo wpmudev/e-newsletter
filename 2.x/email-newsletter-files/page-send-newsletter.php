@@ -157,6 +157,7 @@
                                      jQuery( "#send_pause" ).hide();
                                      jQuery( "#send_cron" ).hide();
                                      jQuery( "#progressbar_text" ).html( '<?php echo _e( 'Done', 'email-newsletter' ) ?>' );
+									 jQuery( "#send_cancel" ).val('finish');
                                 } else {
                                 	if(typeof console.log != 'undefined')
                                 		console.log(html);

@@ -10,7 +10,12 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 * POP3 bounce password now properly encrypted
 * SMTP settings page has been improved
 * SSL/TLS and Port option now separated please double check your sending settings
-* 
+
+= 1.2.5 =
+* Fixed possibility of new users not being added to eNewsletter Members
+* Replaced use of "session_unregister" with simple "unset"
+* Possible fix for unnecessary alerts when sending newsletter through user interface
+* Upgraded mailing engine
 
 = 1.2.4 =
 * Fixed $wpdb->prepare() errors

@@ -141,14 +141,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
         // filter schedules
         add_filter( 'cron_schedules', array( &$this, 'add_new_cron_time' ) );
 
-        add_action( 'init', array( &$this, 'init' ) );
-
-        //changing list of members when we create or delete user of the site
-        add_action( 'user_register', array( &$this, 'user_create' ) );
-        add_action( 'delete_user', array( &$this, 'user_delete' ) );
+        add_action( 'init', array( &$this, 'init' ) );	
 
         //some actions for MultiSite
         if ( function_exists( 'is_multisite' ) && is_multisite() ) {
+			add_action( 'wpmu_activate_user', array( &$this, 'user_create' ) );
             add_action( 'added_existing_user', array( &$this, 'user_create' ) );
             add_action( 'remove_user_from_blog', array( &$this, 'user_remove_from_site' ) );
             add_action( 'wpmu_delete_user', array( &$this, 'user_delete' ) );
@@ -157,6 +154,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
 			add_action( 'network_admin_menu', array( &$this, 'admin_page' ) );
 			add_action( 'network_admin_menu', array( &$this, 'network_admin_menu' ) );
         }
+		else {
+			//changing list of members when we create or delete user of the standard site
+			add_action( 'user_register', array( &$this, 'user_create' ) );
+			add_action( 'delete_user', array( &$this, 'user_delete' ) );			
+		}
 
         //creating menu of the plugin
         add_action( 'admin_menu', array( &$this, 'admin_page' ) );
