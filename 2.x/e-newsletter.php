@@ -4,7 +4,7 @@ Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: E-Newsletter
 Version: 2.0
-Author: Cole / Andrey (Incsub)
+Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
 
@@ -63,7 +63,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $this->cron_send_name = "e_newsletter_cron_send_" . $wpdb->blogid;
 
         //setup proper directories
-        if ( is_multisite() && defined( 'WPMU_PLUGIN_URL' ) && defined( 'WPMU_PLUGIN_DIR' ) && file_exists( WPMU_PLUGIN_DIR . '/' . basename( __FILE__ ) ) ) {
+/*MANIU MOD        
+		if ( is_multisite() && defined( 'WPMU_PLUGIN_URL' ) && defined( 'WPMU_PLUGIN_DIR' ) && file_exists( WPMU_PLUGIN_DIR . '/' . basename( __FILE__ ) ) ) {
             $this->plugin_dir = WPMU_PLUGIN_DIR . '/e-newsletter/';
             $this->plugin_url = WPMU_PLUGIN_URL . '/e-newsletter/';
         } else if ( defined( 'WP_PLUGIN_URL' ) && defined( 'WP_PLUGIN_DIR' ) && file_exists( WP_PLUGIN_DIR . '/e-newsletter/' . basename( __FILE__ ) ) ) {
@@ -75,6 +76,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
         } else {
             wp_die( __('There was an issue determining where WPMU DEV Update Notifications is installed. Please reinstall.', 'email-newsletter' ) );
         }
+*/
+		$this->plugin_dir = plugin_dir_path( __FILE__ );
+		$this->plugin_url = plugins_url( '/', __FILE__ );
+		if(!isset($this->plugin_dir) || !isset($this->plugin_url))
+            wp_die( __('There was an issue determining plugin path or url', 'email-newsletter' ) );
 		
 		include_once($this->plugin_dir . '/email-newsletter-files/class.wpmudev_dash_notification.php');
 		
@@ -217,6 +223,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 			// First time upgrade.  1.3.1 -> 2.0
 			$this->upgrade();
 		}
+
     }
 
     /**
@@ -492,23 +499,25 @@ class Email_Newsletter extends Email_Newsletter_functions {
         global $wpdb, $current_user;
 
         $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
-
-        //deleting old list of groups for user
-        $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
-
-        //creating new list of groups for user
-        if ( $groups_id )
-            foreach( $groups_id as $group_id )
-                $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
-
-        if ( "" == $redirect_to ) {
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'dmsg' => urlencode( __( 'Subscriptions are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
-            exit;
-        } else {
-            $_SESSION['newsletter_widget_status'] = __( 'Subscribes were saved!', 'email-newsletter' );
-            wp_redirect( $redirect_to );
-            exit;
-        }
+		
+		if(!empty($member_id)) {
+			//deleting old list of groups for user
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
+	
+			//creating new list of groups for user
+			if ( $groups_id )
+				foreach( $groups_id as $group_id )
+					$result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
+		}	
+	
+		if ( "" == $redirect_to ) {
+			wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'dmsg' => urlencode( __( 'Subscriptions are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
+			exit;
+		} else {
+			$_SESSION['newsletter_widget_status'] = __( 'Subscribes were saved!', 'email-newsletter' );
+			wp_redirect( $redirect_to );
+			exit;
+		}
     }
 
     /**
@@ -521,8 +530,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
             $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
 
         $unsubscribe_code = $this->gen_unsubscribe_code();
-
-        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '%s' WHERE member_id = %d", $unsubscribe_code, $member_id ) );
+		
+		if(isset($member_id) && isset($unsubscribe_code))
+			$result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '%s' WHERE member_id = %d", $unsubscribe_code, $member_id ) );
 
         if ( "false" != $redirect_to )
             if ( "" == $redirect_to ) {
@@ -693,7 +703,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         global $wpdb;
 
         if ( function_exists('is_multisite' ) && is_multisite() ) {
-                $blogids = $wpdb->get_col( $wpdb->prepare( "SELECT blog_id FROM $wpdb->blogs" ) );
+                $blogids = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
         } else {
                 $blogids[] = 1;
         }
@@ -753,7 +763,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		if(empty($data))
 			$data = $_REQUEST;
 		
-		if(empty($newsletter_id))
+		if(isset($data['newsletter_id']) && empty($newsletter_id))
 			$newsletter_id = $data['newsletter_id'];
 
         $content        = base64_decode( str_replace( "-", "+", (isset($data['content_encoded']) ? $data['content_encoded'] : '' ) ) );
@@ -1406,6 +1416,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		$bg_color = apply_filters('email_newsletter_make_email_bgcolor',$bg_color,$newsletter_id);
 		$contents = str_replace( "{BG_COLOR}", $bg_color, $contents);
 		
+		// BG IMAGE
+		$bg_image = $this->get_newsletter_meta($newsletter_id,'bg_image', $this->get_default_builder_var('bg_image'));
+		$bg_image = apply_filters('email_newsletter_make_email_bg_image',$bg_image,$newsletter_id);
+		$contents = str_replace( "{BG_IMAGE}", $bg_image, $contents);
+		
 		// LINK COLOR
 		$link_color = $this->get_newsletter_meta($newsletter_id,'link_color', $this->get_default_builder_var('link_color'));
 		$link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$newsletter_id);
@@ -1890,7 +1905,7 @@ function is_active_enewsletter_plugin_template( $template_id ) {
 }
 
 function email_newsletter_widgets_scripts() {
-    wp_register_script( 'email-newsletter-widget-scripts', WP_PLUGIN_URL . '/e-newsletter/email-newsletter-files/js/widget_script.js', array( 'jquery', 'jquery-form' ) );
+    wp_register_script( 'email-newsletter-widget-scripts', plugins_url( '/email-newsletter-files/js/widget_script.js', __FILE__ ), array( 'jquery', 'jquery-form' ) );
     wp_enqueue_script( 'email-newsletter-widget-scripts' );
 }
 

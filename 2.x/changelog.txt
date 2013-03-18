@@ -1,5 +1,5 @@
 === e-newsletter ===
-Authors: Cole / Andrey (Incsub)
+Authors: Cole / Andrey (Incsub), Maniu (Incsub)
 Plugin Page: http://premium.wpmudev.org/project/e-newsletter    
 
  
@@ -10,6 +10,7 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 * POP3 bounce password now properly encrypted
 * SMTP settings page has been improved
 * SSL/TLS and Port option now separated please double check your sending settings
+* Improved look of user interface
 
 = 1.2.5 =
 * Fixed possibility of new users not being added to eNewsletter Members
