@@ -210,8 +210,8 @@ vertical-align: middle !important;
 }
 
 .newsletter_table_center th,
-.newsletter_table_center td {
-    text-align: center;
+.newsletter_table_center td,
+#groups_table td  {
     vertical-align: middle;
 }
 
@@ -231,4 +231,17 @@ vertical-align: middle !important;
 
 #settings_form .email_out_smtp input {
     width: 225px;
+}
+#groups_table {
+	width:auto;
+}
+#subscribes_table input {
+	margin-right:5px;
+}
+#newsletter_user_permissions {
+	overflow:hidden;
+}
+#newsletter_user_permissions .postbox {
+	float:left;
+	margin:5px;
 }

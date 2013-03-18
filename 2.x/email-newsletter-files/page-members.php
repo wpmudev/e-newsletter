@@ -56,9 +56,9 @@
 
             $filter = "&filter=group&group_id=" . $_REQUEST['group_id'];
 
-            if ( isset( $arg['orderby'] ) )
+            if ( isset( $arg['orderby'] ) && !empty( $arg['orderby'] ) )
                 $members = $this->sort_array_by_field( $members, $arg['orderby'], $arg['order'] );
-            else if ( isset( $arg['sortby'] ) )
+            else if ( isset( $arg['sortby'] ) && !empty( $arg['sortby'] )  )
                 $members = $this->sort_array_by_field( $members, $arg['sortby'], $arg['order'] );
         }
 
@@ -106,7 +106,7 @@
                     data: "action=change_groups&member_id=" + id,
                     success: function(html){
                         jQuery( "#change_group_block_" + id ).html( html );
-                        jQuery( "#close_block_" + id ).html( '<input type="button" onClick="jQuery(this).closeChangeGroups( ' + id + ' );" value="<?php _e( 'Close', 'email-newsletter' ) ?>" />' );
+                        jQuery( "#close_block_" + id ).html( '<input class="button button-secondary" type="button" onClick="jQuery(this).closeChangeGroups( ' + id + ' );" value="<?php _e( 'Close', 'email-newsletter' ) ?>" />' );
 
                         jQuery( "#change_button_" + id ).val('<?php _e( 'Save Groups', 'email-newsletter' ) ?>');
 
@@ -268,7 +268,7 @@
 
                                 <tr>
                                     <td colspan="2">
-                                        <input type="button" name="add_member" id="add_member" value="<?php _e( 'Add Member', 'email-newsletter' ) ?>" />
+                                        <input class="button button-secondary" type="button" name="add_member" id="add_member" value="<?php _e( 'Add Member', 'email-newsletter' ) ?>" />
                                     </td>
                                 </tr>
                             </table>
@@ -327,7 +327,7 @@
                                 <?php endif;?>
                                 <tr>
                                     <td colspan="2">
-                                        <input type="button" name="import_members" id="import_members" value="<?php _e( 'Import members', 'email-newsletter' ) ?>" />
+                                        <input class="button button-secondary" type="button" name="import_members" id="import_members" value="<?php _e( 'Import members', 'email-newsletter' ) ?>" />
                                     </td>
                                 </tr>
                             </table>
@@ -340,37 +340,37 @@
         <form method="post" action="" name="form_members" id="form_members" >
             <input type="hidden" name="member_id" id="member_id" value="" />
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
-            <table width="700px" class="widefat post fixed" style="width:95%;">
+            <table class="widefat post fixed">
                 <thead>
                     <tr>
                         <th style="" class="manage-column column-cb check-column" id="cb" scope="col">
                             <input type="checkbox">
                         </th>
-                        <th class="manage-column column-name <?php echo "member_email" == $_REQUEST['orderby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
+                        <th class="manage-column column-name <?php echo (isset($arg['orderby']) && "member_email" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
                             <a href="admin.php?page=newsletters-members&orderby=member_email&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ?><?php echo '&per_page=' . $per_page ?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
                                 <span><?php _e( 'Email Address', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
-                        <th class="manage-column column-name <?php echo "member_fname" == $_REQUEST['orderby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
+                        <th class="manage-column column-name <?php echo (isset($arg['orderby']) && "member_fname" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
                             <a href="admin.php?page=newsletters-members&orderby=member_fname&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo '&per_page=' . $per_page ?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
                                 <span><?php _e( 'Name', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
-                        <th class="manage-column column-name <?php echo "join_date" == $_REQUEST['orderby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
+                        <th class="manage-column column-name <?php echo (isset($arg['orderby']) && "join_date" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
                             <a href="admin.php?page=newsletters-members&orderby=join_date&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo '&per_page=' . $per_page ?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
                                 <span><?php _e( 'Join Date', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
-                        <th class="manage-column column-name <?php echo "count_sent" == $_REQUEST['sortby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
+                        <th class="manage-column column-name <?php echo (isset($arg['sortby']) && "count_sent" == $arg['sortby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
                             <a href="admin.php?page=newsletters-members&sortby=count_sent&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo '&per_page=' . $per_page ?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
                                 <span><?php _e( 'Number Sent', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
-                        <th class="manage-column column-name <?php echo "count_opened" == $_REQUEST['sortby'] ? 'sorted ' . $_REQUEST['order'] : 'sortable desc';?>">
+                        <th class="manage-column column-name <?php echo (isset($arg['sortby']) && "count_opened" == $arg['sortby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
                             <a href="admin.php?page=newsletters-members&sortby=count_opened&order=<?php echo $order;?><?php echo ( isset( $filter ) ) ? $filter : ''; ;?><?php echo '&per_page=' . $per_page ?><?php echo ( isset( $members_pagination['cpage_str'] ) ) ? $members_pagination['cpage_str'] : ''; ?>">
                                 <span><?php _e( 'Number Opened', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
@@ -441,7 +441,7 @@
                     <td style="vertical-align: middle;">
                         <span id="close_block_<?php echo $member['member_id'];?>"></span>
                         <div id="change_group_block_<?php echo $member['member_id'];?>"></div>
-                        <input type="button" id="change_button_<?php echo $member['member_id'];?>" value="<?php _e( 'Change groups', 'email-newsletter' ) ?>" onclick="jQuery(this).changeGroups( <?php echo $member['member_id'];?> );" />
+                        <input class="button button-secondary" type="button" id="change_button_<?php echo $member['member_id'];?>" value="<?php _e( 'Change groups', 'email-newsletter' ) ?>" onclick="jQuery(this).changeGroups( <?php echo $member['member_id'];?> );" />
                     </td>
                 </tr>
             <?php

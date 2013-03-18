@@ -98,17 +98,21 @@
         <form method="post" action="" name="create_group" id="create_group" >
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
             <table class="form-table">
-                <tr>
-                    <td>
+                <tr class="top">
+                    <th scope="row">
+						
                         <?php _e( 'Group Name:', 'email-newsletter' ) ?><span class="required">*</span>
-                        <input type="text" class="input" name="group_name" id="group_name" value="" size="30" />
-                        <label>
-                            <input type="checkbox" name="public" id="public" value="1" /> <?php _e( 'public users can join this group', 'email-newsletter' ) ?>
-                        </label>
-                        <input type="button" name="save" id="add_group" value="<?php _e( 'Add Group', 'email-newsletter' ) ?>" />
+      
+					</th>
+					<td>
+						<input type="text" class="input" name="group_name" id="group_name" value="" size="30" />
+						<br/>
+						<input type="checkbox" name="public" id="public" value="1" />
+						<label><?php _e( 'public users can join this group', 'email-newsletter' ) ?></label>
                     </td>
                 </tr>
             </table>
+			<p class="submit"><input class="button button-primary" type="button" name="save" id="add_group" value="<?php _e( 'Add Group', 'email-newsletter' ) ?>" /></p>
         </form>
 
 
@@ -117,7 +121,7 @@
         <form method="post" action="" name="edit_group" id="edit_group" >
             <input type="hidden" name="newsletter_action" id="newsletter_action2" value="" />
             <input type="hidden" name="group_id" id="group_id" value="" />
-            <table width="700px" class="widefat post fixed" style="width:95%;">
+            <table id="groups_table" class="widefat post">
                 <thead>
                     <tr>
                         <th>
@@ -150,7 +154,7 @@
                             <?php echo $group['group_name']; ?>
                         </span>
                     </td>
-                    <td style="vertical-align: middle;">
+                    <td>
                         <span id="public_block_<?php echo $group['group_id'];?>">
                             <?php
                             if ( "1" == $group['public'] )
@@ -160,13 +164,13 @@
                             ?>
                         </span>
                     </td>
-                    <td style="vertical-align: middle;">
+                    <td>
                         <?php echo count( $this->get_members_of_group( $group['group_id'] ) ); ?>
                     </td>
-                    <td style="vertical-align: middle;">
-                        <input type="button" id="edit_button_<?php echo $group['group_id'];?>" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" onclick="jQuery(this).editGroup( <?php echo $group['group_id'];?> );" />
+                    <td>
+                        <input class="button button-secondary" type="button" id="edit_button_<?php echo $group['group_id'];?>" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" onclick="jQuery(this).editGroup( <?php echo $group['group_id'];?> );" />
                         <span id="save_block_<?php echo $group['group_id'];?>"></span>
-                        <input type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" onclick="jQuery(this).deleteGroup( <?php echo $group['group_id'];?> );" />
+                        <input class="button button-secondary" type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" onclick="jQuery(this).deleteGroup( <?php echo $group['group_id'];?> );" />
                     </td>
                 </tr>
             <?php

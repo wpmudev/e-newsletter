@@ -16,7 +16,8 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 			'quicktags' => $quick_tags,
 			'textarea_rows' => 25,
 			'tinymce' => array(
-				'onchange_callback' => 'builder_tinymce_onchange_callback'
+				'onchange_callback' => 'builder_tinymce_onchange_callback',
+				'theme_advanced_buttons1_add' => 'code'
 			),
 			'editor_css' => '<style type="text/css">body { background: #000; }</style>',
 		);

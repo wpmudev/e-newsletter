@@ -46,6 +46,8 @@ class Email_Newsletter_Builder  {
 	function plugins_loaded() {
 		global $current_user, $pagenow, $builder_id, $email_newsletter;
 		
+		get_currentuserinfo();
+		
 		$this->template_directory = $email_newsletter->plugin_dir . 'email-newsletter-files/templates';
 		register_theme_directory($this->template_directory);
 		
@@ -59,7 +61,7 @@ class Email_Newsletter_Builder  {
 				set_transient('builder_email_id_'.$current_user->ID, $builder_id);
 			} elseif($_REQUEST['newsletter_id'] == 'new') {
 				// We pass an empty array to create a new newsletter and get our ID
-				$builder_id = $this->save_builder(array());
+				$builder_id = $this->save_builder(array('template' => $_REQUEST['theme']));
 				delete_transient('builder_email_id_'.$current_user->ID);
 				set_transient('builder_email_id_'.$current_user->ID, $builder_id);
 				
@@ -117,9 +119,6 @@ class Email_Newsletter_Builder  {
 	}
 	function customize_controls_print_footer_scripts() {
 		
-		do_action('admin_print_footer_scripts');
-		do_action('admin_footer');
-		
 		// Collect other theme info so we can allow changes
 		$themes = wp_get_themes();
 		
@@ -129,13 +128,15 @@ class Email_Newsletter_Builder  {
 		}
 		?><script type="text/javascript">
 			_wpCustomizeControlsL10n.save = "<?php _e('Save Newsletter','email-newsletter'); ?>";
+			
+
 			ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
-			<?php /* var current_theme = "<?php echo $_GET['theme']; ?>";
+			var current_theme = "<?php echo $_GET['theme']; ?>";
 			email_templates = [
 				<?php foreach($themes as $theme): ?>
 				{	"name": "<?php echo $theme->get('Name'); ?>", 
 					"description": "<?php echo $theme->get('Description'); ?>",
-					"screenshot": "<?php echo $theme->get_screenshot(); ?>",
+					"screenshot": "<?php //echo $theme->get_screenshot(); ?>",
 					"stylesheet": "<?php echo $theme->stylesheet; ?>",
 				},
 				<?php endforeach; ?>
@@ -144,10 +145,11 @@ class Email_Newsletter_Builder  {
 			_info
 				.prepend('<a href="#" class="arrow left" />')
 				.prepend('<a href="#" class="arrow right" />')
-				.prepend('<a href="#" class="change_theme"><?php _e('Update','email-newsletter'); ?></a>');
+			
 			jQuery.each(email_templates, function(i,e) {
 				var clone = _info.clone().addClass('hidden');
-				if(e.screenshot != _info.find('img.theme-screenshot').attr('src')) {
+				
+				if( e.stylesheet != current_theme ) {
 					clone.find('img.theme-screenshot').attr('src',e.screenshot);
 					clone.find('.theme-description').text(e.description);
 					clone.data('theme',e);
@@ -155,52 +157,57 @@ class Email_Newsletter_Builder  {
 				} else {
 					// Use this opportunity to change the theme preview area
 					var current_name = jQuery('#customize-info .preview-notice .theme-name');
-					jQuery('#customize-info .preview-notice').html("<?php _e('Click to change theme','email-newsletter'); ?>").prepend(current_name);
+					jQuery('#customize-info .preview-notice').html("<?php _e('Manage template (Save to see changes)','email-newsletter'); ?>").prepend(current_name);
 					_info.data('theme',e);
 				}
 				
 			});
-			
-			jQuery('.arrow').on('click', function() {
-				var _this = jQuery(this);
-				var next = _this.parent().next('.customize-section-content');
-				var prev = _this.parent().prev('.customize-section-content');
 				
-				if(_this.hasClass('left')) {
-					if(prev.length > 0) {
-						_this.parent().addClass('hidden');
-						prev.removeClass('hidden');
-						var data = prev.data('theme');
-						console.log(data);
+			jQuery('#customize-info').on('click', function() {
+											
+				jQuery('.arrow').on('click', function() {
+					var _this = jQuery(this);
+					var data = jQuery(this).parent().data('theme');
+					
+					var next = _this.parent().next('.customize-section-content');
+					var prev = _this.parent().prev('.customize-section-content');
+					
+					if(_this.hasClass('left')) {
+						if(prev.length > 0) {
+							_this.parent().slideUp("slow");
+							prev.slideDown("slow");
+							var data = prev.data('theme');
+						}
+					} else {
+						if(next.length > 0) {
+							_this.parent().slideUp("slow");
+							next.slideDown("slow");
+							var data = next.data('theme');
+						}
 					}
-				} else {
-					if(next.length > 0) {
-						_this.parent().addClass('hidden');
-						next.removeClass('hidden');
-						var data = next.data('theme');
-						console.log(data);
+					
+					if( typeof data != 'undefined') {
+						// Use string replace to redirect the url
+						jQuery('[data-customize-setting-link="template"]').val(data.stylesheet).trigger('change');
+						
+						//changes name in sidebar
+						jQuery('.theme-name').text(data.name);
 					}
-				}
-				return false;
+					return false;
+				});
+				wp.customize.bind( 'saved', function() {
+					var new_theme = jQuery('[data-customize-setting-link="template"]').val();
+					if(current_theme != new_theme)
+						window.location.href = window.location.href.replace('theme='+current_theme,'theme='+new_theme)
+				});
 			});
-			jQuery('.change_theme').on('click', function() {
-				var data = jQuery(this).parent().data('theme');
-				
-				if( typeof data != 'undefined') {
-					// Use string replace to redirect the url
-					jQuery('[data-customize-setting-link="template"]').val(data.stylesheet).trigger('change');
-				}
-				return false;
-			});
-			wp.customize.bind( 'saved', function() {
-				var new_theme = jQuery('[data-customize-setting-link="template"]').val();
-				if(current_theme != new_theme)
-					window.location.href = window.location.href.replace('theme='+current_theme,'theme='+new_theme)
-			});
-			*/ ?>
+
 		</script>
 		
 		<style type="text/css">
+			.theme-screenshot {
+				min-height:258px;	
+			}
 			.wp-full-overlay {
 				z-index: 15000;
 			}
@@ -208,22 +215,31 @@ class Email_Newsletter_Builder  {
 				z-index: 16000!important;
 			}
 			.customize-section.open .customize-section-content.hidden {
-				display: none;
+				display:none;
 			}
 			.arrow {
-				width: 20px;
-				height: 20px;
+				width: 22px;
+				height: 22px;
 				display: block;
 				position: absolute;
-				background: #007CBD; 
+				background-color: #fff;
+				border-radius:5px;
+				border:1px solid #174C63;
+				opacity:0.7;
+				top: 200px;
+			}
+			.arrow:hover {
+				opacity:1;
 			}
 			.arrow.right {
 				right: 35px;
-				top: 200px;
+				background-image:url('<?php echo admin_url().'/images/arrows-dark-vs-2x.png'; ?>');
+				background-position: center 27px;
 			}
 			.arrow.left {
 				left: 35px;
-				top: 200px;
+				background-image:url('<?php echo admin_url().'/images/arrows-dark-vs-2x.png'; ?>');
+				background-position: center 98px;
 			}
 		</style>
 		<?php
@@ -243,7 +259,7 @@ class Email_Newsletter_Builder  {
 			return $_GET['theme'];
 		} else {
 			$data = $email_newsletter->get_newsletter_data($email_id);
-			return (isset($data['template']) ? $data['template'] : 'iletter');
+			return (isset($data['template']) ? $data['template'] : 'iletter2');
 		}
 
 	}
@@ -324,6 +340,23 @@ class Email_Newsletter_Builder  {
 			$instance->add_control( new WP_Customize_Image_Control( $instance, 'header_image', array(
 				'label'   => __('Header Image','email-newsletter'),
 				'section' => 'header_image',
+			)) );
+		}
+		
+		if( in_array('BG_IMAGE', $this->settings)) {
+			$instance->add_section( 'bg_image', array(
+				'title'          => __('Background Image','email-newsletter'),
+				'priority'       => 37,
+			) );
+			$instance->add_setting( 'bg_image', array(
+				//'subject'        => '',
+				//'capability' => NULL,
+				'default' => $email_newsletter->get_default_builder_var('bg_image'),
+				'type' => 'newsletter_save'
+			) );
+			$instance->add_control( new WP_Customize_Image_Control( $instance, 'bg_image', array(
+				'label'   => __('Background Image','email-newsletter'),
+				'section' => 'bg_image',
 			)) );
 		}
 		
@@ -431,7 +464,7 @@ class Email_Newsletter_Builder  {
 		
 		// Setup Settings
 		$instance->add_setting( 'template', array(
-			'default' => 'iletter',
+			'default' => $_REQUEST['theme'],
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'subject', array(
@@ -534,6 +567,7 @@ class Email_Newsletter_Builder  {
 		$instance->get_setting('from_email')->transport='postMessage';
 		$instance->get_setting('contact_info')->transport='postMessage';
 		$instance->get_setting('bg_color')->transport='postMessage';
+		$instance->get_setting('bg_image')->transport='postMessage';
 		$instance->get_setting('link_color')->transport='postMessage';
 		$instance->get_setting('header_image')->transport='postMessage';
 		
@@ -548,6 +582,7 @@ class Email_Newsletter_Builder  {
 		add_filter( 'customize_value_bg_color', array( &$this, 'get_builder_bg_color') );
 		add_filter( 'customize_value_link_color', array( &$this, 'get_builder_link_color') );
 		add_filter( 'customize_value_header_image', array( &$this, 'get_builder_header_image') );
+		add_filter( 'customize_value_bg_image', array( &$this, 'get_builder_bg_image') );
 		
 	}
 
@@ -556,7 +591,6 @@ class Email_Newsletter_Builder  {
 		
 		$data = array();
 		$default = array(
-			'newsletter_template' => 'iletter',
 			'subject' => '',
 			'content_ecoded' => '',
 			'contact_info' => '',
@@ -566,12 +600,12 @@ class Email_Newsletter_Builder  {
 			'meta' => array(),
 		);
 		
-		if(!$new_values)
+		if(!$new_values && isset($_POST['customized']))
 			$new_values = json_decode(stripslashes($_POST['customized']), true);
 			
 		if(isset($new_values['template']) )
 			$data['newsletter_template'] = $new_values['template'];
-		
+			
 		if(isset($new_values['subject']))
 			$data['subject'] = $new_values['subject'];
 		
@@ -601,6 +635,9 @@ class Email_Newsletter_Builder  {
 		
 		if(isset($new_values['header_image']))
 			$data['meta']['header_image'] = $new_values['header_image'];
+
+		if(isset($new_values['bg_image']))
+			$data['meta']['bg_image'] = $new_values['bg_image'];
 
 		
 		$data = array_merge($default,$data);
@@ -657,6 +694,15 @@ class Email_Newsletter_Builder  {
 		else
 			return $default;
 	}
+	function get_builder_bg_image($default) {
+		global $builder_id, $email_newsletter;
+		
+		$bg_image = $email_newsletter->get_newsletter_meta($builder_id,'bg_image');
+		if(!empty($bg_image))
+			return $bg_image;
+		else
+			return $default;
+	}
 
 	function get_builder_value($default) {
 		global $builder_id, $email_newsletter;
@@ -710,6 +756,13 @@ class Email_Newsletter_Builder  {
 				$header_img = $email_newsletter->get_newsletter_meta($builder_id,'header_image');
 				if(!empty($header_img))
 					return $header_img;
+				else
+					return $default;
+			break;
+			case __('Your Bg','email-newsletter'):
+				$bg_img = $email_newsletter->get_newsletter_meta($builder_id,'bg_image');
+				if(!empty($bg_img))
+					return $bg_img;
 				else
 					return $default;
 			break;
@@ -784,6 +837,16 @@ class Email_Newsletter_Builder  {
 					wp.customize('header_image',function( value ) {
 						value.bind(function(to) {
 							$('[data-builder="header_image"]').attr( 'src', to ? to : '' );
+						});
+					});
+				<?php endif; ?>
+				<?php if( in_array('BG_IMAGE',$this->settings)) : ?>
+					var value = 'url(' + value + ')';
+					wp.customize('bg_image',function( value ) {
+						
+						value.bind(function(to) {
+							console.log(value);
+							$('[data-builder="bg_image"]').css( 'background-image', to ? to : '' );
 						});
 					});
 				<?php endif; ?>

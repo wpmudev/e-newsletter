@@ -46,37 +46,40 @@
         <form action="" method="post" name="subscribes_form" id="subscribes_form" >
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
             <input type="hidden" name="unsubscribe_code" value="<?php echo $member_data['unsubscribe_code']; ?>" />
-            <table>
-                <tr>
-                    <td>
+            <table id="subscribes_table" class="form-table">
+                <tr valign="top">
+                    <th scope="row">
                         <?php _e( 'Newsletters:', 'email-newsletter' ) ?>
-                    </td>
-                 </tr>
-                 <tr>
+                    </th>
                     <td>
                         <?php
                             $groups = $this->get_groups();
+							$groups_echo = array();
                             if ( $groups )
                                 foreach( $groups as $group ){
                                     if ( false === array_search ( $group['group_id'], $member_groups ) )
                                         $checked = '';
                                     else
                                         $checked = 'checked="checked"';
-                                    echo '<label><input type="checkbox" name="e_newsletter_groups_id[]" ' . $checked . ' value="' . $group['group_id'] . '" />' . $group['group_name'] . '</label><br />';
+										
+                                    $groups_echo[] = '<input type="checkbox" name="e_newsletter_groups_id[]" ' . $checked . ' value="' . $group['group_id'] . '" /><label>' . $group['group_name'] . '</label>';
                                 }
+							echo implode('<br/>', $groups_echo);
                         ?>
                     </td>
                 </tr>
             </table>
-            <input type="button" id="save_subscribes" value="<?php _e( 'Save Subscribes', 'email-newsletter' ) ?>" />
-            <input type="button" id="unsubscribe" value="<?php _e( 'Unsubscribe', 'email-newsletter' ) ?>" />
+			<p class="submit">
+				<input class="button button-primary" type="button" id="save_subscribes" value="<?php _e( 'Save Subscribes', 'email-newsletter' ) ?>" />
+				<input class="button button-secondary" type="button" id="unsubscribe" value="<?php _e( 'Unsubscribe from all newsletters', 'email-newsletter' ) ?>" />
+			</p>
         </form>
         <?php
         } else {
         ?>
         <form action="" method="post" name="" id="" >
             <input type="hidden" name="newsletter_action" id="subscribe" value="subscribe" />
-            <input type="submit" value="<?php _e( 'Subscribe on Newsletters', 'email-newsletter' ) ?>" />
+            <input class="button button-primary" type="submit" value="<?php _e( 'Subscribe on Newsletters', 'email-newsletter' ) ?>" />
         </form>
         <?php
         }

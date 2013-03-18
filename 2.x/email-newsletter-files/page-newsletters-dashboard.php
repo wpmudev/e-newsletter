@@ -20,7 +20,10 @@
 
     <div class="wrap">
         <h2><?php _e( 'Newsletters Dashboard', 'email-newsletter' ) ?></h2>
-        <table width="700px" class="widefat post newsletter_table_center" style="width:95%;">
+		<p><?php _e( 'Take a look at newsletter reports.', 'email-newsletter' ) ?></p>
+		
+		<h3><?php _e( 'Statistics:', 'email-newsletter' ) ?></h3>
+        <table class="widefat post newsletter_table_center">
             <thead>
                 <tr>
                     <th>
@@ -46,7 +49,7 @@
                 </tr>
             </thead>
 
-            <tr class='alternate'>
+            <tr class="alternate">
                 <td>
                     <?php echo $this->get_count_newsletters(); ?>
                 </td>
@@ -67,10 +70,9 @@
                 </td>
             </tr>
         </table>
-        <br clear="all"/>
 
         <h3><?php _e( '5 Latest Sent Newsletters:', 'email-newsletter' ) ?></h3>
-        <table width="700px" class="widefat post newsletter_table_center" style="width:95%;">
+        <table class="widefat post newsletter_table_center">
             <thead>
                 <tr>
                     <th>
@@ -143,14 +145,12 @@
         ?>
 
         </table>
-        <br clear="all"/>
-        <center>
+		<p class="submit">
             <a class="button button-primary" href="<?php echo $email_builder->generate_builder_link('new'); ?>"><?php _e( 'Create New Newsletter', 'email-newsletter' ) ?></a>
-        </center>
-        <br clear="all"/>
+        </p>
 
         <h3><?php _e( '5 Latest Members:', 'email-newsletter' ) ?></h3>
-        <table width="700px" class="widefat post newsletter_table_center" style="width:95%; table-layout: inherit;">
+        <table class="widefat post newsletter_table_center">
             <thead>
                 <tr>
                     <th>

@@ -143,7 +143,7 @@
 
         <form method="post" name="settings_form" id="settings_form" >
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
-            <input type="hidden" name="mode"  value="<?php echo $mode; ?>" />
+            <?php if(isset($mode)) echo '<input type="hidden" name="mode"  value="'.$mode.'" />'; ?>
 			
             <div class="newsletter-settings-tabs">
                
@@ -362,7 +362,7 @@
                                     <td><div id="test_bounce_loading"></div></td>
                                     <td>
                                         <br />
-                                        <input type="button" name="" id="test_bounce_conn" value="<?php _e( 'Test Connection', 'email-newsletter' ) ?>" />
+                                        <input class="button button-secondary" type="button" name="" id="test_bounce_conn" value="<?php _e( 'Test Connection', 'email-newsletter' ) ?>" />
                                         <span class="description"><?php _e( 'We will send test email on Bounce address and will try read this email', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
@@ -373,7 +373,7 @@
 						<?php global $wp_roles; ?>
 						<h3><?php _e('User Permissions','email-newsletter'); ?></h3>
 						<p><?php _e('Here you can set your desired permissions for each user role on your site'); ?></p>
-						<div class="metabox-holder">
+						<div class="metabox-holder" id="newsletter_user_permissions">
 							<?php foreach($wp_roles->get_names() as $name => $label) : ?>
 								<?php if($name == 'administrator') continue; ?>
 								<?php $role_obj = get_role($name); ?>
@@ -391,7 +391,7 @@
 												<?php foreach($this->capabilities as $key => $label) : ?>
 													<tr>
 														<th class="check-column" scope="row">
-															<input id="<?php echo $name.'_'.$key; ?>" type="checkbox" value="1" name="settings[email_caps][<?php echo $key; ?>][<?php echo $name; ?>]" <?php checked($wp_roles->roles[$name]['capabilities'][$key],true); ?> />
+															<input id="<?php echo $name.'_'.$key; ?>" type="checkbox" value="1" name="settings[email_caps][<?php echo $key; ?>][<?php echo $name; ?>]" <?php checked(isset($wp_roles->roles[$name]['capabilities'][$key]) ? $wp_roles->roles[$name]['capabilities'][$key] : '',true); ?> />
 														</th>
 														<th style="" class="manage-column column-<?php echo $key; ?>" id="<?php echo $key; ?>" scope="col">
 															<label for="<?php echo $name.'_'.$key; ?>"><?php echo $label; ?></label>
@@ -415,7 +415,7 @@
                                     <td></td>
                                     <td>
                                         <br />
-                                        <input type="button" name="uninstall" id="uninstall" value="<?php _e( 'Delete data', 'email-newsletter' ) ?>" />
+                                        <input class="button button-secondary" type="button" name="uninstall" id="uninstall" value="<?php _e( 'Delete data', 'email-newsletter' ) ?>" />
                                         <span class="description" style="color: red;"><?php _e( "Delete all plugin's data from DB.", 'email-newsletter' ) ?></span>
                                         <div id="uninstall_confirm" style="display: none;">
                                             <span class="description"><?php _e( 'Are you sure?', 'email-newsletter' ) ?></span>
@@ -432,12 +432,13 @@
 
             </div><!--/.newsletter-tabs-settings-->
 		
-            <br />
+            <p class="submit">
             <?php if ( isset( $mode ) && "install" == $mode ) { ?>
-                <input type="button" class="button" name="install" id="install" value="<?php _e( 'Install', 'email-newsletter' ) ?>" />
+                <input class="button button-primary" type="button" name="install" id="install" value="<?php _e( 'Install', 'email-newsletter' ) ?>" />
             <?php } else { ?>
-                <input type="button" class="button" name="save" value="<?php _e( 'Save all Settings', 'email-newsletter' ) ?>" />
+                <input class="button button-primary" type="button" name="save" value="<?php _e( 'Save all Settings', 'email-newsletter' ) ?>" />
             <?php } ?>
+			</p>
 
         </form>
 

@@ -1,4 +1,5 @@
 <?php
+	global $email_builder;
 
     $newsletters = $this->get_newsletters();
 
@@ -12,7 +13,7 @@
     <div class="wrap">
         <h2>
         	<?php _e( 'Newsletters', 'email-newsletter' ) ?>
-        	<a href="<?php echo admin_url('admin.php?page=newsletters-create'); ?>" class="add-new-h2"><?php _e('Create New','email-newsletter'); ?></a>
+        	<a href="<?php echo $email_builder->generate_builder_link('new'); ?>" class="add-new-h2"><?php _e('Create New','email-newsletter'); ?></a>
         </h2>
         <p><?php _e( 'This page contains the list of all Newsletters.', 'email-newsletter' ) ?></p>
         <table id="newsletterList" class="widefat post">
@@ -76,13 +77,13 @@
                     <?php echo $this->get_count_opened( $newsletter['newsletter_id'] ); ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
                 <td class="actionCol">
-                    <a class="button button-secondary" href="<?php echo $email_builder->generate_builder_link($newsletter['newsletter_id'],'admin.php?page=newsletters') ?>">
-                        <?php _e( 'Edit', 'email-newsletter' ) ?>
-                    </a>
                     <a class="deleteNewsletter button button-secondary" href="?page=newsletters&newsletter_action=delete_newsletter&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
                         <?php _e( 'Delete', 'email-newsletter' ) ?>
                     </a>
-                    <a class="button button-secondary"  href="?page=newsletters&newsletter_action=send_newsletter&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
+                    <a class="button button-secondary" href="<?php echo $email_builder->generate_builder_link($newsletter['newsletter_id'],'admin.php?page=newsletters') ?>">
+                        <?php _e( 'Edit', 'email-newsletter' ) ?>
+                    </a>
+                    <a class="button button-primary"  href="?page=newsletters&newsletter_action=send_newsletter&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
                         <?php _e( 'Send', 'email-newsletter' ) ?>
                     </a>
                 </td>

@@ -3,6 +3,8 @@
 
 define('BUILDER_DEFAULT_BG_COLOR','#dedede');
 
+define('BUILDER_DEFAULT_BG_IMAGE','');
+
 define('BUILDER_DEFAULT_LINK_COLOR','#999');
 
 define('BUILDER_DEFAULT_HEADER_IMAGE','');
