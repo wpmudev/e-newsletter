@@ -919,7 +919,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     }
 
     /**
-     * Show Preview
+     * Show Preview MANIU MOD - delete?
      **/
     function show_preview_ajax() {
 
@@ -940,7 +940,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $contents = str_replace( "{FROM_NAME}", stripslashes ( $_REQUEST['from_name'] ), $contents );
         $contents = str_replace( "{FROM_EMAIL}", stripslashes ( $_REQUEST['from_email'] ), $contents );
         $contents = str_replace( "{CONTACT_INFO}", $contact_info, $contents );
-        //$contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $_REQUEST['template'] . "/images/", $contents );
+        $contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $_REQUEST['template'] . "/images/", $contents );
 
         die( $contents );
     }
@@ -1433,6 +1433,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		// the newsletter template then we pick something anyways using the
 		// get_default_builder_var() located in class.functions.php
 		
+		// REPLACE THE LINKS AT THE START
+		$contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $newsletter_data['template'] . "/images/", $contents );
+		
 		// BG COLOR
 		$bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color', $this->get_default_builder_var('bg_color'));
 		$bg_color = apply_filters('email_newsletter_make_email_bgcolor',$bg_color,$newsletter_id);
@@ -1468,7 +1471,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $contents = str_replace( "{FROM_NAME}", (isset($newsletter_data['from_name']) ? $newsletter_data['from_name'] : $this->settings['from_name']), $contents );
         $contents = str_replace( "{FROM_EMAIL}", (isset($newsletter_data['from_email']) ? $newsletter_data['from_email'] : $this->settings['from_email']), $contents );
         $contents = str_replace( "{CONTACT_INFO}", (isset($newsletter_data['contact_info']) ? $newsletter_data['contact_info'] : $this->settings['contact_info']), $contents );
-        //$contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $newsletter_data['template'] . "/images/", $contents );
 		
 		$date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
 		$contents = str_replace( "{DATE}", date($date_format), $contents );

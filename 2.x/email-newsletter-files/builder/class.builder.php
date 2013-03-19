@@ -257,7 +257,7 @@ class Email_Newsletter_Builder  {
 			return $_GET['theme'];
 		} else {
 			$data = $email_newsletter->get_newsletter_data($email_id);
-			return (isset($data['template']) ? $data['template'] : 'disco');
+			return (isset($data['template']) ? $data['template'] : 'Disco');
 		}
 
 	}
@@ -448,7 +448,7 @@ class Email_Newsletter_Builder  {
 			'priority'       => 36,
 		) );
 		$instance->add_section( 'builder_preview', array(
-			'title'          => __('Preview','email-newsletter'),
+			'title'          => __('Send Preview','email-newsletter'),
 			'priority'       => 40,
 		) );
 		
@@ -861,10 +861,6 @@ class Email_Newsletter_Builder  {
 		$date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
 		$content = str_replace( "{DATE}", date($date_format), $content );
 		
-		// We have to change our order to make images show up in preview correctly?
-		//if(!defined('DOING_AJAX') || DOING_AJAX != true)
-			$content = apply_filters('the_content',$content);
-		
 		if(!class_exists('CssToInlineStyles'))
 			require_once($email_newsletter->plugin_dir.'email-newsletter-files/builder/lib/css-inline.php');
 		
@@ -880,8 +876,7 @@ class Email_Newsletter_Builder  {
 			}
 		}
 		
-		//if(defined('DOING_AJAX') && DOING_AJAX)
-			//$content = apply_filters('the_content',$content);
+		$content = apply_filters('the_content',$content);
 			
 		return $content;
 	}
