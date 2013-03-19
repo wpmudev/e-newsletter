@@ -157,7 +157,8 @@
 						 <?php endif; ?>
 					</h3>
                     <div class="active" id="tabs-1">
-                        <h3><?php _e( 'General Settings', 'email-newsletter' ) ?></h3>
+                        <h3><?php _e( 'Double Opt In Settings', 'email-newsletter' ) ?></h3>
+						
                         <table class="settings-form">
                             <tr>
                                 <td>
@@ -177,6 +178,11 @@
                                     <span class="description"><?php _e( 'Yes, members will get confirmation email to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
+						</table>
+						
+						<h3><?php _e( 'Default Info Settings', 'email-newsletter' ) ?></h3>
+						
+						<table class="settings-form">
                             <tr>
                                 <td>
                                     <?php _e( 'From email:', 'email-newsletter' ) ?>

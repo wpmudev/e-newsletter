@@ -2,7 +2,7 @@
 <?php global $email_builder; ?>
 <html lang="en">
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <title>iLetter</title>
         <?php $email_builder->print_preview_head(); ?>
         <?php //wp_head(); ?>

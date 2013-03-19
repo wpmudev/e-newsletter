@@ -1,4 +1,4 @@
-<table data-builder="bg_color" width="100%" border="0" cellspacing="0" cellpadding="0" style="padding: 10px 100px 10px 100px; margin: 0; font-family:Arial, Sans-serif; line-height:22px; color:{LINK_COLOR}; font-size:12px; background-color: {BG_COLOR}; background-image: url('{BG_IMAGE}');">
+<table data-builder="bg" width="100%" border="0" cellspacing="0" cellpadding="0" style="padding: 10px 100px 10px 100px; margin: 0; font-family:Arial, Sans-serif; line-height:22px; color:#cccccc; font-size:12px; background-color: {BG_COLOR}; background-image: url({BG_IMAGE});">
 <tr>
     <td>
         <!-- start header -->
@@ -25,7 +25,11 @@
                            <tr>
                                <td style="font-size:12px; line-height:22px; color:#cccccc;">
 							    <h2 style="margin:0px; padding-top:10px; color:#eebb00 !important;">From <span data-builder="from_name">{FROM_NAME}</span> (<span data-builder="from_email">{FROM_EMAIL}</span>)</h2>
-							    <div data-builder="email_content">{EMAIL_BODY}</div>
+								<div data-builder="body_color" style="color: {BODY_COLOR}">
+									<div data-builder="email_content">
+										{EMAIL_BODY}
+									</div>
+								</div>
                                 <p data-builder="contact_info">{CONTACT_INFO}</p>
                                 </td>
 						    </tr>
@@ -46,7 +50,7 @@
        	    <table width="500" border="0" align="center" cellpadding="0" cellspacing="0" style="margin-bottom:30px;">
            	    <tr>
 				    <td style="padding-top:20px; text-align:center; color:#666666; text-shadow:-1px -1px 0px #111111; font-weight:bold; ">
-					    Not interested anymore? <a href="{UNSUBSCRIBE_URL}" style="color:#999999;" >Unsubscribe</a> Instantly.
+					    Not interested anymore? <a href="{UNSUBSCRIBE_URL}" style="color:{LINK_COLOR};" >Unsubscribe</a> Instantly.
 				    </td>
 			     </tr>
        	    </table>

@@ -7,13 +7,13 @@ class Email_Newsletter_functions {
 	function get_default_builder_var($type='') {
 		switch($type) {
 			case 'bg_color':
-				$return = (defined('BUILDER_DEFAULT_BG_COLOR') ? BUILDER_DEFAULT_BG_COLOR : '#FFF' );
+				$return = (defined('BUILDER_DEFAULT_BG_COLOR') ? BUILDER_DEFAULT_BG_COLOR : '' );
 				break;
 			case 'bg_image':
 				$return = (defined('BUILDER_DEFAULT_BG_IMAGE') ? BUILDER_DEFAULT_BG_IMAGE : '' );
 				break;
 			case 'link_color':
-				$return = (defined('BUILDER_DEFAULT_LINK_COLOR') ? BUILDER_DEFAULT_LINK_COLOR : '#1155cc' );
+				$return = (defined('BUILDER_DEFAULT_LINK_COLOR') ? BUILDER_DEFAULT_LINK_COLOR : '' );
 				break;
 			case 'email_title':
 				$return = (defined('BUILDER_DEFAULT_EMAIL_TITLE') ? BUILDER_DEFAULT_EMAIL_TITLE : __('Default Email Title','email-newsletter'));
@@ -22,7 +22,7 @@ class Email_Newsletter_functions {
 				$return = (defined('BUILDER_DEFAULT_HEADER_IMAGE') ? BUILDER_DEFAULT_HEADER_IMAGE : '' );
 				break;
 			case 'body_color':
-				$return = (defined('BUILDER_DEFAULT_BODY_COLOR') ? BUILDER_DEFAULT_BODY_COLOR : '#000' );
+				$return = (defined('BUILDER_DEFAULT_BODY_COLOR') ? BUILDER_DEFAULT_BODY_COLOR : '' );
 				break;
 			default:
 				$return = '';
@@ -611,6 +611,45 @@ class Email_Newsletter_functions {
 		} else {
 			$wpdb->insert( "{$this->tb_prefix}enewsletter_meta", $data );
 		}
+	 }
+	 /**
+     * Delete email meta data of a single newsletter
+	 * Similar to update_post_meta()
+     **/	 
+     function delete_newsletter_meta( $newsletter_id, $key = false, $exclude = 0 ) {
+		global $wpdb;
+		
+     	if($key !== false) {
+			
+			if($exclude == 1)
+				$query = $wpdb->prepare( 
+					"
+					DELETE FROM {$this->tb_prefix}enewsletter_meta
+					WHERE email_id = %d
+					AND meta_key != %s
+					",
+					$newsletter_id, $key 
+					);
+			else
+				$query = $wpdb->prepare( 
+					"
+					DELETE FROM {$this->tb_prefix}enewsletter_meta
+					WHERE email_id = %d
+					AND meta_key == %s
+					",
+					$newsletter_id, $key 
+					);
+		}
+		else
+			$query = $wpdb->prepare( 
+				"
+				DELETE FROM {$this->tb_prefix}enewsletter_meta
+				WHERE email_id = %d
+				",
+				$newsletter_id 
+				);
+			
+		$wpdb->query($query);
 	 }
 	 
 	

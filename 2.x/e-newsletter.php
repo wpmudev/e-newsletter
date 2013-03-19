@@ -137,6 +137,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         }
 		
 		add_action('plugins_loaded',array(&$this,'import_wpmu_plugins'));
+		add_action('plugins_loaded',array(&$this,'set_current_user'));
 
         //plugin_icon
         //add_action( 'admin_head', array( &$this, 'tinymce_includes' ) );
@@ -224,6 +225,17 @@ class Email_Newsletter extends Email_Newsletter_functions {
 			$this->upgrade();
 		}
 
+    }
+	
+    /**
+     * MANIU MOD Sets current user
+     *
+     * @return void
+     */
+    function set_current_user() {
+		global $current_user;
+		
+		get_currentuserinfo();
     }
 
     /**
@@ -749,6 +761,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_newsletters WHERE newsletter_id = %d", $newsletter_id ) );
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_send WHERE newsletter_id = %d", $newsletter_id ) );
+		
+		$this->delete_newsletter_meta($newsletter_id);
 
         wp_redirect( add_query_arg( array( 'page' => $page_redirect, 'updated' => 'true', 'dmsg' => urlencode( __( 'The Newsletter is deleted!', 'email-newsletter' ) ) ), 'admin.php' ) );
         exit;
@@ -758,13 +772,16 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * Save Newsletter
      **/
     function save_newsletter( $newsletter_id = NULL, $page_redirect, $data = NULL ) {
-        global $wpdb;
+        global $wpdb, $email_builder;
 		
 		if(empty($data))
 			$data = $_REQUEST;
 		
-		if(isset($data['newsletter_id']) && empty($newsletter_id))
+		if(isset($data['newsletter_id']) && empty($newsletter_id)) {
 			$newsletter_id = $data['newsletter_id'];
+		}
+		
+		$current_theme = $email_builder->get_builder_theme($newsletter_id);
 
         $content        = base64_decode( str_replace( "-", "+", (isset($data['content_encoded']) ? $data['content_encoded'] : '' ) ) );
         $contact_info   = base64_decode( str_replace( "-", "+", (isset($data['contact_info']) ? $data['contact_info'] : '' ) ) );
@@ -781,9 +798,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		
 		$meta = $data['meta'];
 		
-		foreach($meta as $meta_key => $meta_value) {
-			$this->update_newsletter_meta($newsletter_id, $meta_key, $meta_value);
-		}
+		if($data['newsletter_template'] != $current_theme)
+			$this->delete_newsletter_meta($newsletter_id, 'email_title', 1 );
+		else		
+			foreach($meta as $meta_key => $meta_value) {
+				$this->update_newsletter_meta($newsletter_id, $meta_key, $meta_value);
+			}
 
         if( ! $newsletter_id ) {
             $sql    = "INSERT INTO {$this->tb_prefix}enewsletter_newsletters SET create_date = " . time() . " ";
@@ -920,7 +940,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $contents = str_replace( "{FROM_NAME}", stripslashes ( $_REQUEST['from_name'] ), $contents );
         $contents = str_replace( "{FROM_EMAIL}", stripslashes ( $_REQUEST['from_email'] ), $contents );
         $contents = str_replace( "{CONTACT_INFO}", $contact_info, $contents );
-        $contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $_REQUEST['template'] . "/images/", $contents );
+        //$contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $_REQUEST['template'] . "/images/", $contents );
 
         die( $contents );
     }
@@ -1397,7 +1417,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
 			return false;
 		
         //open template file
-        $filename   = $this->plugin_dir . "email-newsletter-files/templates/" . $newsletter_data['template'] . "/template.html";
+		$template_path  = $this->plugin_dir . "email-newsletter-files/templates/" . $newsletter_data['template'].'/';
+		$template_url  = $this->plugin_url . "email-newsletter-files/templates/" . $newsletter_data['template'].'/';
+        $filename   = $template_path . "template.html";
         $handle     = fopen( $filename, "r" );
         $contents   = fread( $handle, filesize( $filename ) );
         fclose( $handle );
@@ -1416,8 +1438,13 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		$bg_color = apply_filters('email_newsletter_make_email_bgcolor',$bg_color,$newsletter_id);
 		$contents = str_replace( "{BG_COLOR}", $bg_color, $contents);
 		
-		// BG IMAGE
-		$bg_image = $this->get_newsletter_meta($newsletter_id,'bg_image', $this->get_default_builder_var('bg_image'));
+		// BG IMAGE			
+		$default_bg = $this->get_default_builder_var('bg_image');
+		if(!empty($default_bg))
+			$default_bg = $template_url.$default_bg;
+		else 
+			$default_bg = '';
+		$bg_image = $this->get_newsletter_meta($newsletter_id,'bg_image', $default_bg);
 		$bg_image = apply_filters('email_newsletter_make_email_bg_image',$bg_image,$newsletter_id);
 		$contents = str_replace( "{BG_IMAGE}", $bg_image, $contents);
 		
@@ -1435,18 +1462,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		$email_title = apply_filters('email_newsletter_make_email_title',$email_title,$newsletter_id);
 		$contents = str_replace( "{EMAIL_TITLE}", $email_title, $contents);
 		
-		// HEADER IMAGE
-		$header_image = $this->get_newsletter_meta($newsletter_id,'header_image', $this->get_default_builder_var('header_image'));
-		$header_image = apply_filters('email_newsletter_make_email_header_image',$header_image,$newsletter_id);
-		$contents = str_replace( "{HEADER_IMAGE}", $header_image, $contents);
-		
-		
         //Replace content of template
         $contents = str_replace( "{EMAIL_BODY}", $newsletter_data['content'], $contents );
         $contents = str_replace( "{EMAIL_SUBJECT}", $newsletter_data['subject'], $contents );
         $contents = str_replace( "{FROM_NAME}", (isset($newsletter_data['from_name']) ? $newsletter_data['from_name'] : $this->settings['from_name']), $contents );
         $contents = str_replace( "{FROM_EMAIL}", (isset($newsletter_data['from_email']) ? $newsletter_data['from_email'] : $this->settings['from_email']), $contents );
-        $contents = str_replace( "{CONTACT_INFO}", $newsletter_data['contact_info'], $contents );
+        $contents = str_replace( "{CONTACT_INFO}", (isset($newsletter_data['contact_info']) ? $newsletter_data['contact_info'] : $this->settings['contact_info']), $contents );
         //$contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $newsletter_data['template'] . "/images/", $contents );
 		
 		$date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");

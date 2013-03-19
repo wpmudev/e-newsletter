@@ -46,8 +46,6 @@ class Email_Newsletter_Builder  {
 	function plugins_loaded() {
 		global $current_user, $pagenow, $builder_id, $email_newsletter;
 		
-		get_currentuserinfo();
-		
 		$this->template_directory = $email_newsletter->plugin_dir . 'email-newsletter-files/templates';
 		register_theme_directory($this->template_directory);
 		
@@ -259,7 +257,7 @@ class Email_Newsletter_Builder  {
 			return $_GET['theme'];
 		} else {
 			$data = $email_newsletter->get_newsletter_data($email_id);
-			return (isset($data['template']) ? $data['template'] : 'iletter2');
+			return (isset($data['template']) ? $data['template'] : 'disco');
 		}
 
 	}
@@ -318,6 +316,8 @@ class Email_Newsletter_Builder  {
 		global $builder_id, $email_newsletter;
 		$email_data = $email_newsletter->get_newsletter_data($builder_id);
 		
+		$template_url  = $email_newsletter->plugin_url . "email-newsletter-files/templates/" . $email_data['template'].'/';
+		
 		
 		// Load our extra control classes
 		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.tinymce-control.php');
@@ -326,24 +326,14 @@ class Email_Newsletter_Builder  {
 		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.hidden-control.php');
 		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.preview-control.php');
 		
-		if( in_array('HEADER_IMAGE', $this->settings)) {
-			$instance->add_section( 'header_image', array(
-				'title'          => __('Header Image','email-newsletter'),
-				'priority'       => 37,
-			) );
-			$instance->add_setting( 'header_image', array(
-				//'subject'        => '',
-				//'capability' => NULL,
-				'default' => $email_newsletter->get_default_builder_var('header_image'),
-				'type' => 'newsletter_save'
-			) );
-			$instance->add_control( new WP_Customize_Image_Control( $instance, 'header_image', array(
-				'label'   => __('Header Image','email-newsletter'),
-				'section' => 'header_image',
-			)) );
-		}
-		
 		if( in_array('BG_IMAGE', $this->settings)) {
+
+			$bg_image = $email_newsletter->get_default_builder_var('bg_image');
+			if(!empty($bg_image))
+				$bg_image = $template_url.$bg_image;
+			else 
+				$bg_image = '';
+				
 			$instance->add_section( 'bg_image', array(
 				'title'          => __('Background Image','email-newsletter'),
 				'priority'       => 37,
@@ -351,7 +341,7 @@ class Email_Newsletter_Builder  {
 			$instance->add_setting( 'bg_image', array(
 				//'subject'        => '',
 				//'capability' => NULL,
-				'default' => $email_newsletter->get_default_builder_var('bg_image'),
+				'default' => $bg_image,
 				'type' => 'newsletter_save'
 			) );
 			$instance->add_control( new WP_Customize_Image_Control( $instance, 'bg_image', array(
@@ -470,37 +460,35 @@ class Email_Newsletter_Builder  {
 		$instance->add_setting( 'subject', array(
 			//'subject'        => '',
 			//'capability' => NULL,
-			'default' => __('Email Subject','email-newsletter'),
+			'default' => $email_newsletter->get_default_builder_var('email_title'),
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'from_name', array(
 			//'subject'        => '',
 			//'capability' => NULL,
-			'default' => __('From Name','email-newsletter'),
+			'default' => $email_newsletter->settings['from_name'],
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'from_email', array(
 			//'subject'        => '',
 			//'capability' => NULL,
-			'default' => __('From Email','email-newsletter'),
+			'default' => $email_newsletter->settings['from_email'],
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'bounce_email', array(
 			//'subject'        => '',
 			//'capability' => NULL,
-			'default' => __('bounce@email.com','email-newsletter'),
+			'default' => $email_newsletter->settings['bounce_email'],
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'email_content', array(
 			//'subject'        => '',
 			//'capability' => NULL,
-			'default' => __('Insert Content Here','email-newsletter'),
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'email_preview', array(
 			//'subject'        => '',
 			//'capability' => NULL,
-			'default' => '',
 			'type' => 'newsletter_save'
 		) );
 		
@@ -508,7 +496,7 @@ class Email_Newsletter_Builder  {
 			$instance->add_setting( 'contact_info', array(
 				//'subject'        => '',
 				//'capability' => NULL,
-				'default' => __('Contact Info Goes Here','email-newsletter'),
+				'default' => $email_newsletter->settings['contact_info'],
 				'type' => 'newsletter_save',
 			) );
 			$instance->add_control( new Builder_TextArea_Control( $instance, 'contact_info', array(
@@ -569,7 +557,7 @@ class Email_Newsletter_Builder  {
 		$instance->get_setting('bg_color')->transport='postMessage';
 		$instance->get_setting('bg_image')->transport='postMessage';
 		$instance->get_setting('link_color')->transport='postMessage';
-		$instance->get_setting('header_image')->transport='postMessage';
+		$instance->get_setting('body_color')->transport='postMessage';
 		
 		// Add all the filters we need for all the settings to save and be retreived
 		add_action( 'customize_save_subject', array( &$this, 'save_builder') );
@@ -581,7 +569,7 @@ class Email_Newsletter_Builder  {
 		add_filter( 'customize_value_contact_info', array( &$this, 'get_builder_value') );
 		add_filter( 'customize_value_bg_color', array( &$this, 'get_builder_bg_color') );
 		add_filter( 'customize_value_link_color', array( &$this, 'get_builder_link_color') );
-		add_filter( 'customize_value_header_image', array( &$this, 'get_builder_header_image') );
+		add_filter( 'customize_value_body_color', array( &$this, 'get_builder_body_color') );
 		add_filter( 'customize_value_bg_image', array( &$this, 'get_builder_bg_image') );
 		
 	}
@@ -593,18 +581,19 @@ class Email_Newsletter_Builder  {
 		$default = array(
 			'subject' => '',
 			'content_ecoded' => '',
-			'contact_info' => '',
-			'from_name' => '',
-			'from_email' => '',
-			'bounce_email' => '',
+			'contact_info' => base64_encode($email_newsletter->settings['contact_info']),
+			'from_name' => $email_newsletter->settings['from_name'],
+			'from_email' => $email_newsletter->settings['from_email'],
+			'bounce_email' => $email_newsletter->settings['bounce_email'],
 			'meta' => array(),
 		);
 		
 		if(!$new_values && isset($_POST['customized']))
 			$new_values = json_decode(stripslashes($_POST['customized']), true);
 			
-		if(isset($new_values['template']) )
+		if(isset($new_values['template']) ) {
 			$data['newsletter_template'] = $new_values['template'];
+		}
 			
 		if(isset($new_values['subject']))
 			$data['subject'] = $new_values['subject'];
@@ -629,12 +618,12 @@ class Email_Newsletter_Builder  {
 		
 		if(isset($new_values['bg_color']))
 			$data['meta']['bg_color'] = $new_values['bg_color'];
-		
+					
 		if(isset($new_values['link_color']))
 			$data['meta']['link_color'] = $new_values['link_color'];
-		
-		if(isset($new_values['header_image']))
-			$data['meta']['header_image'] = $new_values['header_image'];
+			
+		if(isset($new_values['body_color']))
+			$data['meta']['body_color'] = $new_values['body_color'];
 
 		if(isset($new_values['bg_image']))
 			$data['meta']['bg_image'] = $new_values['bg_image'];
@@ -666,6 +655,15 @@ class Email_Newsletter_Builder  {
 		else
 			return $default;
 	}
+	function get_builder_body_color($default) {
+		global $builder_id, $email_newsletter;
+		
+		$body_color = $email_newsletter->get_newsletter_meta($builder_id,'body_color');
+		if(!empty($body_color))
+			return $body_color;
+		else
+			return $default;
+	}
 	function get_builder_email_title($default) {
 		global $builder_id, $email_newsletter;
 		
@@ -682,15 +680,6 @@ class Email_Newsletter_Builder  {
 		
 		if(!empty($data['content']))
 			return $data['content'];
-		else
-			return $default;
-	}
-	function get_builder_header_image($default) {
-		global $builder_id, $email_newsletter;
-		
-		$header_image = $email_newsletter->get_newsletter_meta($builder_id,'header_image');
-		if(!empty($header_image))
-			return $header_image;
 		else
 			return $default;
 	}
@@ -752,13 +741,6 @@ class Email_Newsletter_Builder  {
 				else
 					return $default;
 			break;
-			case __('Your Image','email-newsletter'):
-				$header_img = $email_newsletter->get_newsletter_meta($builder_id,'header_image');
-				if(!empty($header_img))
-					return $header_img;
-				else
-					return $default;
-			break;
 			case __('Your Bg','email-newsletter'):
 				$bg_img = $email_newsletter->get_newsletter_meta($builder_id,'bg_image');
 				if(!empty($bg_img))
@@ -815,7 +797,7 @@ class Email_Newsletter_Builder  {
 				<?php if( in_array('BG_COLOR',$this->settings)) : ?>
 					wp.customize('bg_color',function( value ) {
 						value.bind(function(to) {
-							$('[data-builder="bg_color"]').css( 'background-color', to ? to : '' );
+							$('[data-builder="bg"]').css( 'background-color', to ? to : '' );
 						});
 					});
 				<?php endif; ?>
@@ -833,20 +815,11 @@ class Email_Newsletter_Builder  {
 						});
 					});
 				<?php endif; ?>
-				<?php if( in_array('HEADER_IMAGE',$this->settings)) : ?>
-					wp.customize('header_image',function( value ) {
-						value.bind(function(to) {
-							$('[data-builder="header_image"]').attr( 'src', to ? to : '' );
-						});
-					});
-				<?php endif; ?>
-				<?php if( in_array('BG_IMAGE',$this->settings)) : ?>
-					var value = 'url(' + value + ')';
+				<?php if( in_array('BG_IMAGE',$this->settings)) : ?>				
 					wp.customize('bg_image',function( value ) {
 						
 						value.bind(function(to) {
-							console.log(value);
-							$('[data-builder="bg_image"]').css( 'background-image', to ? to : '' );
+							$('[data-builder="bg"]').css( 'background-image', 'url(' + to + ')');
 						});
 					});
 				<?php endif; ?>
@@ -901,8 +874,9 @@ class Email_Newsletter_Builder  {
 			if(file_exists($style_path)) {
 				$handle = fopen( $style_path, "r" );
         		$style_content = fread( $handle, filesize( $style_path ) );
+				
         		$css_inline = new CssToInlineStyles($content,'<style type="text/css">'.$style_content.'</style>');
-				$content = $css_inline->convert();
+				//MANIU MOD $content = $css_inline->convert();
 			}
 		}
 		
