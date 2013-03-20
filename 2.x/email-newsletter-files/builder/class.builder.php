@@ -9,7 +9,10 @@ class Email_Newsletter_Builder  {
 	function Email_Newsletter_Builder() {
 		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded'), 999 );
 		add_action( 'wp_ajax_builder_do_shortcodes', array( &$this, 'ajax_do_shortcodes' ) );
-		add_shortcode('recent-posts', array( &$this, 'recent_posts'));
+		
+		//shorcodes
+		add_shortcode('recent-posts', array( &$this, 'recent_posts_shortcode'));
+		add_shortcode( 'n-gallery' , array( &$this,'n_gallery_shortcode') );
 	}
 	function parse_theme_settings() {
 		global $email_newsletter;
@@ -47,7 +50,10 @@ class Email_Newsletter_Builder  {
 		global $current_user, $pagenow, $builder_id, $email_newsletter;
 		
 		$this->template_directory = $email_newsletter->plugin_dir . 'email-newsletter-files/templates';
+		$this->template_custom_directory = $email_newsletter->get_custom_theme_dir();
+		register_theme_directory($this->template_custom_directory);
 		register_theme_directory($this->template_directory);
+
 		
 		// Start the id at false for checking
 		$builder_id = false;
@@ -99,29 +105,20 @@ class Email_Newsletter_Builder  {
 		do_action('admin_footer');
 		do_action('admin_print_footer_scripts');
 		do_action('wp_print_footer_scripts');
-		do_action('wp_footer');
-		
-		
-		/* add_action( 'admin_print_footer_scripts', array( __CLASS__, 'editor_js'), 50 );
-				add_action( 'admin_footer', array( __CLASS__, 'enqueue_scripts'), 1 );
-			} else {
-				add_action( 'wp_print_footer_scripts', array( __CLASS__, 'editor_js'), 50 );
-				add_action( 'wp_footer', array( __CLASS__, 'enqueue_scripts'), 1 ); */
-		
-		
-		
+		do_action('wp_footer');		
 	}
 	function customize_controls_print_scripts() {
 		do_action('admin_enqueue_scripts');
 		do_action('email_newsletter_template_builder_print_scripts');
 	}
 	function customize_controls_print_footer_scripts() {
+		global $email_newsletter;
 		
 		// Collect other theme info so we can allow changes
 		$themes = wp_get_themes();
 		
 		foreach($themes as $key => $theme) {
-			if($theme->theme_root != $this->template_directory)
+			if($theme->theme_root != $this->template_directory && $theme->theme_root != $this->template_custom_directory )
 				unset($themes[$key]);
 		}
 		?><script type="text/javascript">
@@ -132,10 +129,10 @@ class Email_Newsletter_Builder  {
 			var current_theme = "<?php echo $_GET['theme']; ?>";
 			email_templates = [
 				<?php foreach($themes as $theme): ?>
-				{	"name": "<?php echo $theme->get('Name'); ?>", 
-					"description": "<?php echo $theme->get('Description'); ?>",
-					"screenshot": "<?php //echo $theme->get_screenshot(); ?>",
-					"stylesheet": "<?php echo $theme->stylesheet; ?>",
+				{	"name": <?php echo json_encode($theme->get('Name')); ?>, 
+					"description": <?php echo json_encode($theme->get('Description')); ?>,
+					"screenshot": <?php echo json_encode($theme->get_screenshot()); ?>,
+					"stylesheet": <?php echo json_encode($theme->stylesheet); ?>,
 				},
 				<?php endforeach; ?>
 			];
@@ -767,9 +764,10 @@ class Email_Newsletter_Builder  {
 				<?php endif; ?>
 				wp.customize('email_content',function( value ) {
 					value.bind(function(to) {
+						console.log($('#customize-control-link_color').find('.wp-color-result').css("background-color"));
 						var data = {
 							action: 'builder_do_shortcodes',
-							content: to,
+							content: to
 						}
 						$.post('<?php echo $admin_url; ?>', data, function(response) {
 							if(response != '0') {
@@ -828,14 +826,43 @@ class Email_Newsletter_Builder  {
 	<?php 
 	}
 	public function ajax_do_shortcodes() {
-		if(!defined('DOING_AJAX') || DOING_AJAX != true || !isset($_POST['content']))
-			die();
-		
-		echo stripslashes($this->prepare_preview($_POST['content']));
+		echo stripslashes($this->prepare_preview($_POST['content'], true));
 		die();
-		
 	}
-	public function recent_posts($atts){
+	public function prepare_preview($content = '', $ajax = false) {
+		global $email_newsletter;
+		
+		// Fix the tracker image from showing up in the preview
+		$content = str_replace('{OPENED_TRACKER}','',$content);
+		$content = str_replace('{UNSUBSCRIBE_URL}','#',$content);
+		
+		$date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
+		$content = str_replace( "{DATE}", date($date_format), $content );
+		
+		if($ajax == true) {
+			$content = apply_filters('the_content',$content);
+			
+			$themedata = $this->find_builder_theme();
+			$content = $email_newsletter->do_inline_styles($themedata, $content);
+			
+			// LINK COLOR
+			$link_color = $email_newsletter->get_newsletter_meta($this->ID,'link_color', $email_newsletter->get_default_builder_var('link_color'));
+			$link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$this->ID);
+			$content = str_replace( "{LINK_COLOR}", $link_color, $content);
+			$content = str_replace( "#linkcolor", $link_color, $content);
+		}
+			
+		return $content;
+	}
+	public function print_preview_head() {
+		do_action('builder_head');
+	}
+	function print_preview_footer() {
+		do_action('wp_footer');
+	}
+	
+	//builders shortcodes
+	public function recent_posts_shortcode($atts){
 	   extract(shortcode_atts(array(
 	      'posts' => 1,
 	   ), $atts));
@@ -852,39 +879,9 @@ class Email_Newsletter_Builder  {
 	   wp_reset_query();
 	   return $return_string;
 	}
-	public function prepare_preview($content = '') {
-		global $email_newsletter;
-		// Fix the tracker image from showing up in the preview
-		$content = str_replace('{OPENED_TRACKER}','',$content);
-		$content = str_replace('{UNSUBSCRIBE_URL}','#',$content);
-		
-		$date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
-		$content = str_replace( "{DATE}", date($date_format), $content );
-		
-		if(!class_exists('CssToInlineStyles'))
-			require_once($email_newsletter->plugin_dir.'email-newsletter-files/builder/lib/css-inline.php');
-		
-		$themedata = $this->find_builder_theme();
-		if($themedata) {
-			$style_path = $themedata->theme_root . '/' . $themedata->stylesheet . '/style.css';
-			if(file_exists($style_path)) {
-				$handle = fopen( $style_path, "r" );
-        		$style_content = fread( $handle, filesize( $style_path ) );
-				
-        		$css_inline = new CssToInlineStyles($content,'<style type="text/css">'.$style_content.'</style>');
-				//MANIU MOD $content = $css_inline->convert();
-			}
-		}
-		
-		$content = apply_filters('the_content',$content);
-			
-		return $content;
-	}
-	public function print_preview_head() {
-		do_action('builder_head');
-	}
-	function print_preview_footer() {
-		do_action('wp_footer');
+	//wrapper for default wp gallery so it does not show up image that is destroying everything
+	public function n_gallery_shortcode($attr) {
+		return gallery_shortcode($attr);
 	}
 }
 ?>

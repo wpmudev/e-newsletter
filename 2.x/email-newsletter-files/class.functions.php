@@ -31,20 +31,6 @@ class Email_Newsletter_functions {
 		return apply_filters('email_newsletter_get_default_builder_var',$return,$type);
 	}
 
-    /**
-     * load template for page
-     **/
-    function load_template( $name ) {
-        $path = locate_template( $name );
-
-        if ( !$path ) {
-            $path = $this->plugin_dir . "email-newsletter-files/$name";
-        }
-
-        load_template( $path );
-        die;
-    }
-
     function add_rewrite_rule( $regex, $args, $position = 'top' ) {
         global $wp, $wp_rewrite;
 
@@ -183,44 +169,12 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * Get all templates
-     **/
-    function get_templates(){
-        $template_dirs = glob( $this->plugin_dir . "email-newsletter-files/templates/*" );
-        $templates = array();
-        foreach( $template_dirs as $template_dir ){
-            $templates[] = array(
-                "dir" => $template_dir,
-                "name" => basename( $template_dir ),
-            );
-        }
-        return $templates;
-    }
-
-    /**
-     * Get all uploads images
-     **/
-    function get_uploaded_images(){
-        $upload_files = glob( $this->plugin_dir . "email-newsletter-files/uploads/*" );
-
-        if ( !is_array( $upload_files ) )
-            return false;
-
-        $uploads = '<option value="">' . __( 'Select an image', 'email-newsletter' ) . '</option>';
-        foreach( $upload_files as $upload_file ) {
-            $uploads .='<option value="' . $this->plugin_url . 'email-newsletter-files/uploads/' . basename( $upload_file ) . '"> ' . basename( $upload_file ) . ' </option>';
-        }
-        return $uploads;
-    }
-
-    /**
      * checks that current page is e-newsletter's page
      **/
     function is_enewsletter_page ( $page = '' ) {
         switch ( $page ) {
             case 'newsletters':
             case 'newsletters-dashboard':
-            case 'newsletters-create':
             case 'newsletters-groups':
             case 'newsletters-members':
             case 'newsletters-subscribes':
@@ -401,6 +355,7 @@ class Email_Newsletter_functions {
 		if(isset($settings['email_caps']) && is_array($settings['email_caps'])) {
 			global $wp_roles;
 			$caps = $settings['email_caps'];
+
 			unset($settings['email_caps']);
 			
 			foreach($wp_roles->get_names() as $name => $obj) {
@@ -445,7 +400,7 @@ class Email_Newsletter_functions {
 
         $this->get_settings();
 
-        if ( "install" == $_REQUEST['mode']) {
+        if ( isset($_REQUEST['mode']) && "install" == $_REQUEST['mode']) {
             // first setup of plugin
             wp_redirect( add_query_arg( array( 'page' => 'newsletters-dashboard', 'updated' => 'true', 'dmsg' => urlencode( __( 'The Plugin is installed!', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
@@ -459,14 +414,6 @@ class Email_Newsletter_functions {
      * Get Settings
      **/
     function get_settings() {
-		
-		//Coming Soon
-		/*if(is_multisite() && is_network_admin()) {
-			$this->settings = get_site_option('enewsletter_settings');
-			return $this->settings;
-		}*/
-		
-		
         global $wpdb;
         if ( $wpdb->get_var( "SHOW TABLES LIKE '{$this->tb_prefix}enewsletter_settings'" ) == "{$this->tb_prefix}enewsletter_settings" ) {
             $results = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_settings ORDER BY `key`", "ARRAY_A" );
@@ -795,7 +742,7 @@ class Email_Newsletter_functions {
 
             } else {
                 //if group exist with other ID
-                wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'The Group already exists!!!', 'email-newsletter' ) ) ), 'admin.php' ) );
+                wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'The group already exists!', 'email-newsletter' ) ) ), 'admin.php' ) );
                 exit;
             }
         }
@@ -804,12 +751,12 @@ class Email_Newsletter_functions {
         if ( "0" != $group_id ) {
             //update when edit group
             $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_groups SET group_name = '%s', public = '%s' WHERE group_id = %d", trim( $group_name ), $public, $group_id ) );
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'The changes of the group are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'The group has been modified.', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         } else {
             //create new group
             $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_groups SET group_name = '%s', public = '%s'", trim( $group_name), $public ) );
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'Group is created!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'dmsg' => urlencode( __( 'The group has been created.', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         }
     }
@@ -909,24 +856,6 @@ class Email_Newsletter_functions {
             $groups[] = $group['group_id'];
         }
         return $groups;
-    }
-
-    /**
-     * tinymce includes
-     **/
-    function tinymce_includes( ) {
-
-        // Including files
-        if ( isset( $_REQUEST['page'] ) && 'newsletters-create' == $_REQUEST['page'] ) {
-            wp_admin_css( 'thickbox' );
-            wp_print_scripts( 'jquery-ui-core' );
-            wp_print_scripts( 'jquery-ui-tabs' );
-            wp_print_scripts( 'post' );
-            wp_print_scripts( 'editor' );
-            add_thickbox();
-            wp_print_scripts( 'media-upload' );
-            //if ( function_exists( 'wp_editor' ) ) wp_editor();
-        }
     }
 	
 	function import_wpmu_plugins() {
@@ -1031,6 +960,10 @@ class Email_Newsletter_functions {
                     foreach($exist_members as $exist_member )
                         $dmsg .= $exist_member . '<br />';
                 }
+				
+				if(empty($dmsg)) {
+					$dmsg .= 'Import ERROR: Nothing to import';
+				}
 
                 wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( $dmsg ) ), 'admin.php' ) );
                 exit;
@@ -1071,7 +1004,26 @@ class Email_Newsletter_functions {
         return NULL;
     }
 
-
+	function do_inline_styles($themedata, $contents) {
+		if($themedata) {
+			
+			if(!class_exists('CssToInlineStyles'))
+				require_once($this->plugin_dir.'email-newsletter-files/builder/lib/css-inline.php');
+				
+			$style_path = $themedata->theme_root . '/' . $themedata->stylesheet . '/style.css';
+			if(file_exists($style_path)) {
+				$handle = fopen( $style_path, "r" );
+        		$style_content = fread( $handle, filesize( $style_path ) );
+				
+        		$css_inline = new CssToInlineStyles("<head><meta http-equiv='Content-type' content='text/html; charset=UTF-8' /></head>".$contents,'<style type="text/css">'.$style_content.'</style>');
+				$contents = $css_inline->convert();
+				
+				$contents = str_replace("<head><meta http-equiv='Content-type' content='text/html; charset=UTF-8' /></head>", '', $contents) ;
+				
+				return $contents;
+			}
+		}	
+	}
 
     /**
      * Install of plugin - creating tables in DB
@@ -1221,6 +1173,13 @@ class Email_Newsletter_functions {
 
                 $result = $wpdb->query( $enewsletter_table );
             }
+			
+			//create folder for custom themes
+			$custom_theme_dir = $this->get_custom_theme_dir();
+			
+			if (!is_dir($custom_theme_dir)) {
+				mkdir($custom_theme_dir);
+			}
 
         }
     }
@@ -1316,6 +1275,12 @@ class Email_Newsletter_functions {
                 $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_settings" );
 
         }
+		
+		//remove folder for custom themes
+		$custom_theme_dir = $this->get_custom_theme_dir();
+		if (is_dir($custom_theme_dir)) {
+			$this->delete_dir($custom_theme_dir);
+		}
 
     }
 
@@ -1329,6 +1294,41 @@ class Email_Newsletter_functions {
         $data = date( "[Y-m-d H:i:s]" ) . $message . "\r\n";
         fwrite($handle, $data);
         fclose($handle);
+    }
+	
+    /**
+     * Get path to custom theme directory
+     **/
+    function get_custom_theme_dir() {
+		$enewsletter_themes_dir = wp_upload_dir();
+		$enewsletter_themes_dir = $enewsletter_themes_dir['basedir'];
+		//$enewsletter_themes_dir = substr($enewsletter_themes_dir, 0, strpos($enewsletter_themes_dir, '/uploads'));
+		
+		if(!empty($enewsletter_themes_dir)) {
+			$enewsletter_themes_dir = $enewsletter_themes_dir.'/enewsletter-custom-themes';
+			return $enewsletter_themes_dir;
+		}
+		
+		return false;
+    }
+	
+    /**
+     * Deletes whole dir
+     **/
+    function delete_dir($src) {
+		$dir = opendir($src);
+		while(false !== ( $file = readdir($dir)) ) { 
+			if (( $file != '.' ) && ( $file != '..' )) { 
+				if ( is_dir($src . '/' . $file) ) { 
+					delete_dir($src . '/' . $file); 
+				} 
+				else { 
+					unlink($src . '/' . $file); 
+				} 
+			} 
+		} 
+		rmdir($src);
+		closedir($dir); 
     }
 
     /**

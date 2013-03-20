@@ -87,62 +87,6 @@ Email-Newsletter CSS Styles
     padding: 0 0.6em;
 }
 
-/* Page create-newsletter*/
-
-
-#largeImg {
-    border: solid 1px #ccc;
-    width: 550px;
-    padding: 5px;
-}
-
-
-.newsletter-templates {
-    display: table-cell;
-}
-
-.preview-template {
-    display: table-cell;
-    vertical-align: top;
-}
-
-
-.newsletter-templates .template {
-    background-color: #EFEFEF;
-    border: 3px solid #FFFFFF;
-    cursor: pointer;
-    height: 120px;
-    margin: 5px;
-    text-align: center;
-    width: 100px;
-    float: left;
-    text-decoration: none;
-}
-
-.newsletter-templates .template.selected {
-    border: 3px solid #515151 !important;
-}
-
-.newsletter-templates .template-name {
-    background: url("images/555555_40x100_textures_03_highlight_soft_75.png") repeat-x scroll 50% 50% #555555;
-    color: #FFFFFF;
-    font-weight: bold;
-    clear:both;
-    padding:5px;
-    table-layout: inherit;
-}
-
-#selected_temp {
-    margin: 0px 0px 0px 20px;
-}
-
-#preview_block {
-    margin: 10px 0px 0px 0px;
-}
-
-/* end Page create-newsletter*/
-
-
 /* Add member block */
 
 #panel {

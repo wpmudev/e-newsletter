@@ -48,7 +48,7 @@
                     jQuery( this ).val('<?php _e( 'Close', 'email-newsletter' ) ?>');
                     jQuery( this ).attr( 'disabled', false );
 
-                    jQuery( "#save_block_" + id ).html( '<input type="button" name="save_button" onClick="jQuery(this).saveGroup();" value="<?php _e( 'Save', 'email-newsletter' ) ?>" />' );
+                    jQuery( "#save_block_" + id ).html( '<input class="button button-second" type="button" name="save_button" onClick="jQuery(this).saveGroup();" value="<?php _e( 'Save', 'email-newsletter' ) ?>" />' );
 
                     return;
                 }

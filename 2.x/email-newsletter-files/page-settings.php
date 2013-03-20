@@ -124,12 +124,10 @@
             });
             
             $('table.permissionTable thead .check-column input:checkbox').change(function() {
-            	console.log($(this).parents('table').find('.check-column input:checkbox'));
             	if($(this).is(':checked')) {
-            		console.log($(this).parents('table').find('.check-column input:checkbox'));
             		$(this).parents('table').find('.check-column input:checkbox').not($(this)).attr('checked','checked');
             	} else {
-            		$(this).parents('table').find('.check-column input:checkbox').not($(this)).attr('checked','');
+            		$(this).parents('table').find('.check-column input:checkbox').not($(this)).prop("checked", false);
             	}
             });
 
@@ -422,12 +420,14 @@
                                     <td>
                                         <br />
                                         <input class="button button-secondary" type="button" name="uninstall" id="uninstall" value="<?php _e( 'Delete data', 'email-newsletter' ) ?>" />
-                                        <span class="description" style="color: red;"><?php _e( "Delete all plugin's data from DB.", 'email-newsletter' ) ?></span>
+                                        <span class="description" style="color: red;"><?php _e( "Delete all plugin's data from DB and remove enewsletter-custom-themes folder.", 'email-newsletter' ) ?></span>
                                         <div id="uninstall_confirm" style="display: none;">
-                                            <span class="description"><?php _e( 'Are you sure?', 'email-newsletter' ) ?></span>
-                                            <br />
-                                            <input type="button" name="uninstall" id="uninstall_no" value="<?php _e( 'No', 'email-newsletter' ) ?>" />
-                                            <input type="button" name="uninstall" id="uninstall_yes" value="<?php _e( 'Yes', 'email-newsletter' ) ?>" />
+											<p>
+												<span class="description"><?php _e( 'Are you sure?', 'email-newsletter' ) ?></span>
+												<br />
+												<input class="button button-secondary" type="button" name="uninstall" id="uninstall_no" value="<?php _e( 'No', 'email-newsletter' ) ?>" />
+												<input class="button button-secondary" type="button" name="uninstall" id="uninstall_yes" value="<?php _e( 'Yes', 'email-newsletter' ) ?>" />
+											</p>
                                         </div>
                                     </td>
                                 </tr>

@@ -9,7 +9,7 @@ License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
 
-a:link, a, a:visited{color:#bb2219;}
+a:link, a, a:visited{color:#linkcolor;}
 a:hover { text-decoration: none !important; color:#bb2219;}
 h2, h3, h4, h5, h6{padding: 0px 0px 10px 0px;margin:0px;}
 .alignleft { display: inline; float: left; margin-right: 1.625em; }

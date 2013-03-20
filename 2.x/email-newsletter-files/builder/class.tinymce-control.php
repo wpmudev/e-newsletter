@@ -38,7 +38,6 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 				window.builder_tinymce_onchange_callback = function(inst) {
 					
 					var content = tinyMCE.activeEditor.getContent({format : 'raw'});
-					console.log(content);
 										
 					jQuery('#<?php echo $this->id; ?>').html(content).trigger('change');
 				}
