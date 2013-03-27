@@ -89,6 +89,7 @@
                 var bounce_port     = $( "#bounce_port" ).val();
                 var bounce_username = $( "#bounce_username" ).val();
                 var bounce_password = $( "#bounce_password" ).val();
+				var bounce_security = $( "#bounce_security" ).val();
 
                 $( "#test_bounce_loading" ).show();
                 $( "#test_bounce_conn" ).attr( 'disabled', true );
@@ -96,7 +97,7 @@
                 $.ajax({
                     type: "POST",
                     url: "<?php echo $siteurl;?>/wp-admin/admin-ajax.php",
-                    data: "action=test_bounces&bounce_email=" + bounce_email + "&bounce_host=" + bounce_host + "&bounce_port=" + bounce_port + "&bounce_username=" + bounce_username + "&bounce_password=" + bounce_password,
+                    data: "action=test_bounces&bounce_email=" + bounce_email + "&bounce_host=" + bounce_host + "&bounce_port=" + bounce_port + "&bounce_username=" + bounce_username + "&bounce_password=" + bounce_password + "&bounce_security=" + bounce_security,
                     success: function( html ){
                         $( "#test_bounce_conn" ).attr( 'disabled', false );
                         $( "#test_bounce_loading" ).hide();
@@ -186,7 +187,7 @@
                                     <?php _e( 'From email:', 'email-newsletter' ) ?>
                                 </td>
                                 <td>
-                                    <input type="text" name="settings[from_email]" value="<?php echo htmlspecialchars( $settings['from_email'] ? $settings['from_email'] : get_option( 'admin_email' ) );?>" />
+                                    <input type="text" name="settings[from_email]" value="<?php echo esc_attr( $settings['from_email'] ? $settings['from_email'] : get_option( 'admin_email' ) );?>" />
                                     <span class="description"><?php _e( 'Default "from" email address when sending newsletters.', 'email-newsletter' ) ?></span>
                                     <?php
                                     if ( "smtp" == $settings['outbound_type'] )
@@ -199,7 +200,7 @@
                                     <?php _e( 'From name:', 'email-newsletter' ) ?>
                                 </td>
                                 <td>
-                                    <input type="text" name="settings[from_name]" value="<?php echo htmlspecialchars( $settings['from_name'] ? $settings['from_name'] : get_option( 'blogname' ) );?>" />
+                                    <input type="text" name="settings[from_name]" value="<?php echo esc_attr( $settings['from_name'] ? $settings['from_name'] : get_option( 'blogname' ) );?>" />
                                     <span class="description"><?php _e( 'Default "from" name when sending newsletters.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
@@ -248,14 +249,14 @@
                                 <tr>
                                     <td><?php _e( 'SMTP Outgoing Server', 'email-newsletter' ) ?>:</td>
                                     <td>
-                                        <input type="text" id="smtp_host" name="settings[smtp_host]" value="<?php echo htmlspecialchars(esc_attr($settings['smtp_host']));?>" />
+                                        <input type="text" id="smtp_host" name="settings[smtp_host]" value="<?php echo esc_attr(esc_attr($settings['smtp_host']));?>" />
                                         <span class="description"><?php _e( '(eg: smtp.someserver.com)', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><?php _e( 'SMTP Username:', 'email-newsletter' ) ?></td>
                                     <td>
-                                        <input type="text" name="settings[smtp_user]" value="<?php echo htmlspecialchars(esc_attr($settings['smtp_user']));?>" />
+                                        <input type="text" name="settings[smtp_user]" value="<?php echo esc_attr(esc_attr($settings['smtp_user']));?>" />
                                         <span class="description"><?php _e( '(leave blank for none)', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
@@ -282,7 +283,7 @@
                                 <tr>
                                     <td><?php _e( 'SMTP Port', 'email-newsletter' ) ?>:</td>
                                     <td>
-                                        <input type="text" id="smtp_port" name="settings[smtp_port]" value="<?php echo htmlspecialchars(esc_attr($settings['smtp_port']));?>" />
+                                        <input type="text" id="smtp_port" name="settings[smtp_port]" value="<?php echo esc_attr(esc_attr($settings['smtp_port']));?>" />
                                         <span class="description"><?php _e( 'Defaults to 25.  Gmail uses 465 or 587', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
@@ -307,7 +308,7 @@
                                         <span class="description"><?php _e( ' (CRON)', 'email-newsletter' ) ?></span>
                                     </td>
                                     <td>
-                                        <input type="text" name="settings[send_limit]" value="<?php echo htmlspecialchars($settings['send_limit']);?>" />
+                                        <input type="text" name="settings[send_limit]" value="<?php echo esc_attr($settings['send_limit']);?>" />
                                         <span class="description"><?php _e( '(0 or blank for unlimited)', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
@@ -336,30 +337,41 @@
                                 <tr>
                                     <td><?php _e( 'Email Address:', 'email-newsletter' ) ?></td>
                                     <td>
-                                        <input type="text" name="settings[bounce_email]" id="bounce_email" value="<?php echo htmlspecialchars($settings['bounce_email']);?>" />
+                                        <input type="text" name="settings[bounce_email]" id="bounce_email" value="<?php echo esc_attr($settings['bounce_email']);?>" />
                                         <span class="description"><?php _e( 'email address where bounce emails will be sent by default', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><?php _e( 'POP3 Host:', 'email-newsletter' ) ?></td>
                                     <td>
-                                        <input type="text" name="settings[bounce_host]" id="bounce_host" value="<?php echo htmlspecialchars($settings['bounce_host']);?>" />:
-                                        <input type="text" name="settings[bounce_port]" id="bounce_port" value="<?php echo htmlspecialchars($settings['bounce_port']?$settings['bounce_port']:110);?>" size="2" />
+                                        <input type="text" name="settings[bounce_host]" id="bounce_host" value="<?php echo esc_attr($settings['bounce_host']);?>" />:
+                                        <input type="text" name="settings[bounce_port]" id="bounce_port" value="<?php echo esc_attr($settings['bounce_port']?$settings['bounce_port']:110);?>" size="2" />
                                         <span class="description"><?php _e( 'the hostname for the POP3 account, eg: mail.', 'email-newsletter' ) ?><?php echo $_SERVER['HTTP_HOST'];?></span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><?php _e( 'POP3 Username:', 'email-newsletter' ) ?></td>
                                     <td>
-                                        <input type="text" name="settings[bounce_username]" id="bounce_username" value="<?php echo htmlspecialchars($settings['bounce_username']);?>" />
+                                        <input type="text" name="settings[bounce_username]" id="bounce_username" value="<?php echo esc_attr($settings['bounce_username']);?>" />
                                         <span class="description"><?php _e( 'username for this bounce email account (usually the same as the above email address) ', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td><?php _e( 'POP3 Password:', 'email-newsletter' ) ?></td>
                                     <td>
-                                        <input type="text" name="settings[bounce_password]" id="bounce_password" value="<?php echo htmlspecialchars($settings['bounce_password']);?>" />
+                                        <input type="password" name="settings[bounce_password]" id="bounce_password" value="<?php echo ( isset( $settings['bounce_password'] ) && '' != $settings['bounce_password'] ) ? '********' : ''; ?>" />
                                         <span class="description"><?php _e( 'password to access this bounce email account', 'email-newsletter' ) ?></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <?php _e( 'Secure POP3?:', 'email-newsletter' );?>
+                                    </td>
+                                    <td>
+                                        <select name="settings[bounce_security]" id="bounce_security" >
+                                            <option value="/norsh" <?php echo ( '' == $settings['bounce_security'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'None', 'email-newsletter' ) ?></option>
+                                            <option value="/ssl" <?php echo ( '/ssl' == $settings['bounce_security'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'SSL', 'email-newsletter' ) ?></option>
+                                        </select>
                                     </td>
                                 </tr>
                                 <tr>
@@ -367,7 +379,7 @@
                                     <td>
                                         <br />
                                         <input class="button button-secondary" type="button" name="" id="test_bounce_conn" value="<?php _e( 'Test Connection', 'email-newsletter' ) ?>" />
-                                        <span class="description"><?php _e( 'We will send test email on Bounce address and will try read this email', 'email-newsletter' ) ?></span>
+                                        <span class="description"><?php _e( 'We will send test email on Bounce address and will try read this email and delete after(this part might not be possible)', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                             </tbody>

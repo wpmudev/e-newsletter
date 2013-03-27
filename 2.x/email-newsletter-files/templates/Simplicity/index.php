@@ -8,7 +8,7 @@ if(empty($wp_customize) || !$wp_customize->is_preview())
 <html lang="en">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Disco</title>
+        <title>Simplicity</title>
         <?php $email_builder->print_preview_head(); ?>
     </head>
     <body marginheight="0" topmargin="0" marginwidth="0" leftmargin="0">

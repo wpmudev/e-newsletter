@@ -130,13 +130,13 @@
                 </td>
                 <td style="width: 280px;">
                     <a href="<?php $email_builder->generate_builder_link($one_sent['newsletter_id']); ?>">
-                        <input type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
+                        <input class="button button-secondary" type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
                     </a>
                     <a href="?page=newsletters-dashboard&newsletter_action=delete_newsletter&newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
-                        <input type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" />
+                        <input class="button button-secondary" type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" />
                     </a>
                     <a href="?page=newsletters-dashboard&newsletter_action=send_newsletter&newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
-                        <input type="button" value="<?php _e( 'Send Page', 'email-newsletter' ) ?>" />
+                        <input class="button button-primary" type="button" value="<?php _e( 'Send', 'email-newsletter' ) ?>" />
                     </a>
                 </td>
             </tr>

@@ -197,8 +197,8 @@ class Email_Newsletter_functions {
      **/
     function add_new_cron_time( $schedules ) {
 
-        $schedules['enewsletter_min_2'] = array(
-            'interval' => 1*60,
+        $schedules['2mins'] = array(
+            'interval' => 2*60,
             'display' => __('every 2 min')
         );
 
@@ -238,14 +238,20 @@ class Email_Newsletter_functions {
         switch( $this->settings['outbound_type'] ) {
             case 'smtp':
                 $mail->IsSMTP();
-                $mail->Host     = $this->settings['smtp_host'];
+                $mail->Host = $this->settings['smtp_host'];
+                
+                if($this->settings['smtp_secure_method'] == 'tls' || $this->settings['smtp_secure_method'] == 'ssl')
+					$mail->SMTPSecure = $this->settings['smtp_secure_method'];
+				if(!empty($this->settings['smtp_port']))
+					$mail->Port = $this->settings['smtp_port'];
+                
                 $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
+                
                 if( $mail->SMTPAuth ){
-                    $mail->Username = $this->settings['smtp_user'];
+                    $mail->Username = esc_attr($this->settings['smtp_user']);
                     $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
                 }
                 break;
-
             case 'mail':
                 $mail->IsMail();
                 break;
@@ -285,7 +291,7 @@ class Email_Newsletter_functions {
             $mail->Sender = $options['bounce_email'];
         }
         if( $options['message_id'] ) {
-            $mail->MessageID = $options['message_id'];
+            $mail->XMailer = $options['message_id'];
         }
 
         if( ! $mail->Send() ) {
@@ -307,11 +313,15 @@ class Email_Newsletter_functions {
         $email_password = $this->settings['bounce_password'];
         $email_host     = trim( $this->settings['bounce_host'] );
         $email_port     = ( $this->settings['bounce_port'] ) ? $this->settings['bounce_port'] : 110;
+		
+		$email_password = $this->_decrypt($email_password);
 
         if( ! $email_host )
             return true;
+			
+		$email_security = ( $this->settings['bounce_security'] ) ? $this->settings['bounce_security'] : '/norsh';
 
-        $mbox = imap_open ( '{'.$email_host.':'.$email_port.'/pop3/notls}INBOX', $email_username, $email_password ) or die( imap_last_error() );
+        $mbox = imap_open ( '{'.$email_host.':'.$email_port.'/pop3/notls'.$email_security.'}INBOX', $email_username, $email_password ) or die( imap_last_error() );
 
         if( ! $mbox ) {
             return 'Error: Failed to connect when checking bounces!';
@@ -322,7 +332,8 @@ class Email_Newsletter_functions {
             foreach ( $mails as $mail ) {
                 $body = imap_body ( $mbox, $mail->msgno );
 
-                if( preg_match( '/Message-ID:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ) {
+                if( preg_match( '/X-Mailer:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ) {
+					//$this->write_log('bounce:'.$member_id);
 
                     $member_id      = ( int ) $matches[1];
                     $send_id        = ( int ) $matches[2];
@@ -346,8 +357,11 @@ class Email_Newsletter_functions {
     /**
      * Save Settings
      **/
-     function save_settings( $settings ) {
+     function save_settings( $settings, $tb_prefix = '', $redirect = 1 ) {
         global $wpdb;
+		
+		if(empty($tb_prefix))
+			$tb_prefix = $this->tb_prefix;
 
         if( ! is_array( $settings ) )
             $settings = array();
@@ -375,36 +389,42 @@ class Email_Newsletter_functions {
 		
         //change time for CRON
         if ( 1 == $settings['cron_enable'] ) {
-            wp_schedule_event( time(), 'enewsletter_min_2', $this->cron_send_name );
-        } else {
-            if ( wp_next_scheduled( $this->cron_send_name ) )
-                wp_clear_scheduled_hook( $this->cron_send_name );
+			if ( wp_next_scheduled( $this->cron_send_name ) )
+				wp_clear_scheduled_hook( $this->cron_send_name );
+				
+            wp_schedule_event( time(), '2mins', $this->cron_send_name );
         }
+		else
+			wp_clear_scheduled_hook( $this->cron_send_name );
 
         if ( $settings['send_limit'] )
             $settings['send_limit'] = (int) trim( $settings['send_limit'] );
 
-        //Encrypt password
+        //Encrypt SMTP password
         if ( isset( $settings['smtp_pass'] ) && '********' == $settings['smtp_pass'] )
             unset( $settings['smtp_pass'] );
         elseif( isset( $settings['smtp_pass'] ) && '' != $settings['smtp_pass'] )
             $settings['smtp_pass'] = $this->_encrypt( $settings['smtp_pass'] );
         else
             $settings['smtp_pass'] = '';
+			
+        //Encrypt POP3 password
+        if ( isset( $settings['bounce_password'] ) && '********' == $settings['bounce_password'] )
+            unset( $settings['bounce_password'] );
+        elseif( isset( $settings['bounce_password'] ) && '' != $settings['bounce_password'] )
+            $settings['bounce_password'] = $this->_encrypt( $settings['bounce_password'] );
+        else
+            $settings['bounce_password'] = '';
 		
 
         foreach( $settings as $key => $item )
-             $result = $wpdb->query( $wpdb->prepare( "REPLACE INTO {$this->tb_prefix}enewsletter_settings SET `key` = '%s', `value` = '%s'", $key, stripslashes( $item ) ) );
-		
-		
-
-        $this->get_settings();
+             $result = $wpdb->query( $wpdb->prepare( "REPLACE INTO {$tb_prefix}enewsletter_settings SET `key` = '%s', `value` = '%s'", $key, stripslashes( $item ) ) );
 
         if ( isset($_REQUEST['mode']) && "install" == $_REQUEST['mode']) {
             // first setup of plugin
             wp_redirect( add_query_arg( array( 'page' => 'newsletters-dashboard', 'updated' => 'true', 'dmsg' => urlencode( __( 'The Plugin is installed!', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
-        } else {
+        } elseif($redirect == 1) {
             wp_redirect( add_query_arg( array( 'page' => 'newsletters-settings', 'updated' => 'true', 'dmsg' => urlencode( __( 'The Settings are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         }
@@ -413,10 +433,14 @@ class Email_Newsletter_functions {
     /**
      * Get Settings
      **/
-    function get_settings() {
+    function get_settings($tb_prefix = '') {
         global $wpdb;
-        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$this->tb_prefix}enewsletter_settings'" ) == "{$this->tb_prefix}enewsletter_settings" ) {
-            $results = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_settings ORDER BY `key`", "ARRAY_A" );
+		
+		if(empty($tb_prefix))
+			$tb_prefix = $this->tb_prefix;
+        
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_settings'" ) == "{$tb_prefix}enewsletter_settings" ) {
+            $results = $wpdb->get_results( "SELECT * FROM {$tb_prefix}enewsletter_settings ORDER BY `key`", "ARRAY_A" );
 
             if ( $results ) {
                 foreach( $results as $setting )
@@ -1216,6 +1240,13 @@ class Email_Newsletter_functions {
                 $result = $wpdb->query( $enewsletter_table );
             }
 			
+			//Take care of pop3 encryption
+			$settings = $this->get_settings($tb_prefix);
+			if(isset($settings['bounce_password']) && strlen($settings['bounce_password']) != 44) {
+				$new_settings['bounce_password'] = $this->_encrypt($settings['bounce_password']);
+				$this->save_settings($new_settings, $tb_prefix, 0);
+			}
+			
 		}
 	}
 
@@ -1245,11 +1276,11 @@ class Email_Newsletter_functions {
             if ( wp_next_scheduled( $this->cron_send_name ) )
                 wp_clear_scheduled_hook( $this->cron_send_name );
 
-            if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_1' . $wpdb->blogid ) )
-                wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_1' . $wpdb->blogid );
+            if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' ) )
+                wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
 
-            if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid ) )
-                wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid );
+            if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' ) )
+                wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' );
 
             delete_option( 'enewsletter_cron_send_run' );
 

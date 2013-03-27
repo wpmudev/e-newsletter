@@ -92,56 +92,7 @@
             }
         ?>
         </table>
-        <?php /* <h2><?php _e('WPMU DEV Plugin Templates','email-newsletter'); ?></h2>
-        <p><?php _e('Here you can create custom email templates for other WPMU plugins you have installed.','email-newsletter'); ?></p>
-        <table id="wpmuTemplates" class="widefat post">
-            <thead>
-                <tr>
-                    <th>
-                        <?php _e( 'Plugin', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
-                        <?php _e( 'Email Type', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
-                        <?php _e( 'Template', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
-                        <?php _e( 'Active', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
-                        <?php _e( 'Actions', 'email-newsletter' ) ?>
-                    </th>
-                </tr>
-            </thead>
-           	<tbody>
-           		<?php foreach($this->plugin_templates as $k_id => $data) : ?>
-           			<tr>
-           				<td>
-           					<?php echo $data['name']; ?> 
-           				</td>
-           				<td>
-           					<?php echo $data['type']; ?>
-           				</td>
-           				<td></td>
-           				<td></td>
-           				<td>
-           					<?php if(isset($template_query[$k_id])) : ?>
-           					<a href="<?php echo $email_builder->generate_builder_link($template_query[$k_id]['newsletter_id'],'admin.php?page=newsletters') ?>">
-		                        <input type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
-		                    </a>
-		                    <a href="?page=newsletters&newsletter_action=delete_newsletter&newsletter_id=<?php echo $template_query[$k_id]['newsletter_id'];?>">
-		                        <input type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" />
-		                    </a>
-		                    <?php else: ?>
-		                    	<a href="#">Create New</a>
-		                    <?php endif; ?>
-           				</td>
-           			</tr>
-
-           		<?php endforeach; ?>
-           	</tbody>
-       </table> */ ?>
+		
     </div><!--/wrap-->
     <style type="text/css">
     	#newsletterList tbody td {

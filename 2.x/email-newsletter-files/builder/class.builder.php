@@ -53,7 +53,9 @@ class Email_Newsletter_Builder  {
 		$this->template_custom_directory = $email_newsletter->get_custom_theme_dir();
 		register_theme_directory($this->template_custom_directory);
 		register_theme_directory($this->template_directory);
-
+		
+		//cheating message fix
+		wp_clean_themes_cache();
 		
 		// Start the id at false for checking
 		$builder_id = false;
@@ -196,12 +198,16 @@ class Email_Newsletter_Builder  {
 						window.location.href = window.location.href.replace('theme='+current_theme,'theme='+new_theme)
 				});
 			});
+			jQuery(document).ready(function() {
+				jQuery("#save").click();
+			});
 
 		</script>
 		
 		<style type="text/css">
 			.theme-screenshot {
 				min-height:258px;	
+				display:block;
 			}
 			.wp-full-overlay {
 				z-index: 15000;
@@ -254,7 +260,7 @@ class Email_Newsletter_Builder  {
 			return $_GET['theme'];
 		} else {
 			$data = $email_newsletter->get_newsletter_data($email_id);
-			return (isset($data['template']) ? $data['template'] : 'Disco');
+			return (isset($data['template']) ? $data['template'] : 'iletter');
 		}
 
 	}
@@ -536,7 +542,7 @@ class Email_Newsletter_Builder  {
 			'settings'   => 'email_content',
 		) ) );
 		$instance->add_control( new Builder_Preview_Control($instance, 'email_preview', array(
-			'label'   => __('Send Preview To Email','email-newsletter'),
+			'label'   => __('Send Preview To Email (Save First)','email-newsletter'),
 			'section' => 'builder_preview',
 		) ) );
 		

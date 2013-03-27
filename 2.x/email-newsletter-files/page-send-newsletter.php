@@ -87,9 +87,11 @@
                     <input type="hidden" name="send_id" value="<?php echo $send_id; ?>">
                     <input type="hidden" name="action" value="send_newsletter">
                     <input type="hidden" name="cron" value="add_to_cron" />
-                    <input type="button" id="send_pause" value="<?php echo _e( 'Pause', 'email-newsletter' ) ?>" />
-                    <input type="button" id="send_cron" value="<?php echo _e( 'Pause, and send by WP-CRON', 'email-newsletter' ) ?>" />
-                    <input type="button" id="send_cancel" value="<?php echo _e( 'Go Back', 'email-newsletter' ) ?>" />
+					<p class="submit">
+                    <input class="button button-secondary" type="button" id="send_pause" value="<?php echo _e( 'Pause', 'email-newsletter' ) ?>" />
+                    <input class="button button-secondary" type="button" id="send_cron" value="<?php echo _e( 'Pause, and send by WP-CRON', 'email-newsletter' ) ?>" />
+                    <input class="button button-secondary" type="button" id="send_cancel" value="<?php echo _e( 'Go Back', 'email-newsletter' ) ?>" />
+					</p>
                 </form>
             </center>
 
@@ -183,50 +185,52 @@
             <input type="hidden" name="check_key" id="check_key" value="">
             <input type="hidden" name="action" value="send">
             <table cellpadding="10" cellspacing="10" class="widefat post">
-                <thead><tr>
-
-                        <th>
-                            <?php _e( 'Select which groups you would like to send to:', 'email-newsletter' ) ?>
-                        </th>
-
-                </tr></thead>
-                <tr>
-                    <td>
-                    <p>
-                        <label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members - except unsubscribed', 'email-newsletter' ) ?></strong> (<?php echo $this->get_count_members();?>)</label><br/>
-                        &nbsp;&nbsp;-or-<br/>
-                        <?php
-                            foreach ( array('administrator', 'editor', 'author', 'contributor', 'subscriber') as $role ) {
-                                $col = count ( get_users( array( 'role' => $role ) ) );
-                                if ( 0 < $col )
-                                    echo "<label><input type='checkbox' name='group_name[]' value='{$role}' /> All site {$role}s ({$col})</label><br>";
-                            }
-
-                            if ( $groups )
-                                foreach ( $groups as $group ) {
-                                    $col = count( $this->get_members_of_group( $group['group_id'] ) );
-                                    if ( 0 < $col )
-                                        echo "<label><input type='checkbox' name='group_id[]' value='{$group['group_id']}' /> {$group['group_name']} ({$col})</label><br>";
-                                }
-                        ?>
-                        <br />
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                         <label>
-                             <input type="checkbox" name="dont_send_duplicate" value="1" checked="checked" />
-                             <?php echo _e( "Don't send to people who've already received this:", 'email-newsletter' ) ?>
-                         </label>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input type="submit" name="send" value="<?php echo _e( 'Send Newsletter', 'email-newsletter' ) ?>" />
-                        <input type="button" name="send" id="add_cron" value="<?php echo _e( 'Add Newsletter to CRON list', 'email-newsletter' ) ?>" />
-                    </td>
-                </tr>
+				<thead>
+					<tr>
+						<th>
+							<?php _e( 'Select which groups you would like to send to:', 'email-newsletter' ) ?>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+						<p>
+							<label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members - except unsubscribed', 'email-newsletter' ) ?></strong> (<?php echo $this->get_count_members();?>)</label><br/>
+							&nbsp;&nbsp;-or-<br/>
+							<?php
+								foreach ( array('administrator', 'editor', 'author', 'contributor', 'subscriber') as $role ) {
+									$col = count ( get_users( array( 'role' => $role ) ) );
+									if ( 0 < $col )
+										echo "<label><input type='checkbox' name='group_name[]' value='{$role}' /> All site {$role}s ({$col})</label><br>";
+								}
+	
+								if ( $groups )
+									foreach ( $groups as $group ) {
+										$col = count( $this->get_members_of_group( $group['group_id'] ) );
+										if ( 0 < $col )
+											echo "<label><input type='checkbox' name='group_id[]' value='{$group['group_id']}' /> {$group['group_name']} ({$col})</label><br>";
+									}
+							?>
+							<br />
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							 <label>
+								 <input type="checkbox" name="dont_send_duplicate" value="1" checked="checked" />
+								 <?php echo _e( "Don't send to people who've already received this:", 'email-newsletter' ) ?>
+							 </label>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<input class="button button-primary" type="submit" name="send" value="<?php echo _e( 'Send Newsletter', 'email-newsletter' ) ?>" />
+							<input class="button button-secondary" type="button" name="send" id="add_cron" value="<?php echo _e( 'Add Newsletter to CRON list', 'email-newsletter' ) ?>" />
+						</td>
+					</tr>
+				</tbody>
             </table>
 
         </form>
@@ -263,7 +267,10 @@
             </thead>
         <?php
         $i = 0;
-        if ( $sends )
+        if ( $sends ) {
+		?>
+			<tbody>
+		<?php
             foreach( $sends as $send ) {
                 if ( $i % 2 == 0 )
                     echo "<tr class='alternate'>";
@@ -299,15 +306,15 @@
                         $total['sent'] += $send['count_sent'];
                     ?>
                 </td>
-                <td style="vertical-align: middle; width: 220px;">
+                <td style="vertical-align: middle; width: 250px;">
                 <?php
                     if ( 0 < $send['count_send_members'] ) :
                 ?>
                         <a href="?page=<?php echo $_REQUEST['page']; ?>&newsletter_action=send_newsletter&cron=add_to_cron&newsletter_id=<?php echo $newsletter_data["newsletter_id"];?>&send_id=<?php echo $send['send_id'];?>">
-                            <input type="button" value="<?php echo _e( "Add to CRON list", 'email-newsletter' ) ?>" />
+                            <input class="button button-secondary" type="button" value="<?php echo _e( "Add to CRON list", 'email-newsletter' ) ?>" />
                         </a>
                         <a href="?page=<?php echo $_REQUEST['page']; ?>&newsletter_action=send_newsletter&newsletter_id=<?php echo $newsletter_data["newsletter_id"];?>&send_id=<?php echo $send['send_id'];?>&check_key=<?php echo $check_key;?>">
-                            <input type="button" value="<?php _e( 'Continue Send', 'email-newsletter' ) ?>" />
+                            <input class="button button-secondary" type="button" value="<?php _e( 'Continue Send', 'email-newsletter' ) ?>" />
                         </a>
                 <?php
                     endif;
@@ -316,6 +323,10 @@
             </tr>
         <?php
             }
+		?>
+			</tbody>
+		<?php
+		}
         ?>
             <thead>
                 <tr>

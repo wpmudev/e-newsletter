@@ -150,7 +150,7 @@ vertical-align: middle !important;
 }
 #send_list th,
 #send_list td {
-    text-align: center;
+    vertical-align: middle;
 }
 
 .newsletter_table_center th,

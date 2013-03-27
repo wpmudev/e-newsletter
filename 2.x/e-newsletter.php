@@ -156,8 +156,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( $this->cron_send_name, array( &$this, 'send_by_wpcron' ) );
 
         //check bounces email by WP-CRON
-        add_action( 'e_newsletter_cron_check_bounces_1', array( &$this, 'check_bounces' ) );
-        add_action( 'e_newsletter_cron_check_bounces_2', array( &$this, 'check_bounces' ) );
+        add_action( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1', array( &$this, 'check_bounces' ) );
+        add_action( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2', array( &$this, 'check_bounces' ) );
 
 
         //ajax action for sent preview (test) email
@@ -190,12 +190,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         add_action( 'template_redirect', array( &$this, 'template_redirect' ), 12 );
 		
-		$prev = get_option('email_newsletter_version', false);
-		$cur = (defined(EMAIL_NEWSLETTER_VERSION) ? EMAIL_NEWSLETTER_VERSION : false);
 		
+		//sets up current version for future! ...also upgrades:)
+		$prev = get_option('email_newsletter_version', false);
 
-		$version_result = version_compare($prev, $cur);
-		if ($prev == FALSE) {
+		if ($prev == false) {
+			update_option('email_newsletter_version', (defined(EMAIL_NEWSLETTER_VERSION) ? EMAIL_NEWSLETTER_VERSION : false));
 			// First time upgrade.  1.3.1 -> 2.0
 			$this->upgrade();
 		}
@@ -218,6 +218,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
      *
      */
     function do_activation() {
+		global $email_builder;
+		
 		//Update rewrite_rules
         flush_rewrite_rules( false );
 		
@@ -995,8 +997,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $send_member = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send_members WHERE send_id = %d AND status = 'waiting_send' LIMIT 0, 1",  $send_id ), "ARRAY_A");
 
         if ( ! $send_member ) {
-            if ( ! wp_next_scheduled( 'e_newsletter_cron_check_bounces_1' . $wpdb->blogid ) )
-                wp_schedule_single_event( time() + 60, 'e_newsletter_cron_check_bounces_1' . $wpdb->blogid );
+            if ( ! wp_next_scheduled( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' ) )
+                wp_schedule_single_event( time() + 60*2, 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
+			else {
+				wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
+				wp_schedule_single_event( time() + 60*2, 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
+			}
 
             die('end');
         }
@@ -1045,12 +1051,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		
 		
         //Replace some content inside the email body
-        
         $wp_user = ($member_data['wp_user_id'] == 0 ? false : get_user_by('id', $member_data['wp_user_id']));
 		$contents = str_replace( "{USER_NAME}", (is_a($wp_user,'WP_User') ? $wp_user->user_login : ''), $contents );
         $contents = str_replace( "{OPENED_TRACKER}", '<img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_data['member_id']) . '" width="1" height="1" style="display:none;" />', $contents );
-        $contents = str_replace( "{UNSUBSCRIBE_URL}", site_url('/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/'), $contents );
-		// TO-DO apply_filters('the_content')
+        $contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", site_url('/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/'), $contents );
+
 
 		$mail->SetFrom($newsletter_data['from_email'],$newsletter_data['from_name']);
         $mail->Subject = $newsletter_data["subject"];
@@ -1059,7 +1064,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $mail->AddAddress( $member_data["member_email"] );
 
-        $mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );
+        $mail->XMailer = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );
 
         if( ! $mail->Send() ) {
         	$mail_error = $mail->ErrorInfo;
@@ -1085,7 +1090,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ( 1 > $wpdb->get_var( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron'") )
             return ;
 
-//        $process_id = time();
+        //$process_id = time();
         //writing some information in the plugin log file
         //$this->write_log( $process_id . " 01 - start" );
 
@@ -1129,8 +1134,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 }
 
                 //for test (every 2 min )
-//                $limit_time_start   = mktime( $hour , $min - 2, 0, $month, $day, $year ) ;
-//                $limit_time_end     = mktime( $hour, $min + 1, -1, $month, $day, $year );
+             $limit_time_start   = mktime( $hour , $min - 2, 0, $month, $day, $year ) ;
+              $limit_time_end     = mktime( $hour, $min + 1, -1, $month, $day, $year );
 
 
                 //writing some information in the plugin log file
@@ -1211,10 +1216,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     }
 
                     $contents = $send_data['email_body'];
-                    //Replace content of template
-                    $contents = str_replace( "{OPENED_TRACKER}", '<img src="' . $siteurl . '/wp-admin/admin-ajax.php?action=check_email_opened&send_id=' . $send_member['send_id'] . '&member_id=' . $member_data['member_id'] . '" width="1" height="1" style="display:none;" />', $contents );
+					
+					
+					//Replace some content inside the email body
+					$wp_user = ($member_data['wp_user_id'] == 0 ? false : get_user_by('id', $member_data['wp_user_id']));
+					$contents = str_replace( "{USER_NAME}", (is_a($wp_user,'WP_User') ? $wp_user->user_login : ''), $contents );
+					$contents = str_replace( "{OPENED_TRACKER}", '<img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_data['member_id']) . '" width="1" height="1" style="display:none;" />', $contents );
+					$contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", site_url('/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/'), $contents );
 
-                    $contents = str_replace( "{UNSUBSCRIBE_URL}", $siteurl . '/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/', $contents );
 
                     $mail->From         = $newsletter_data['from_email'];
                     $mail->FromName     = $newsletter_data['from_name'];
@@ -1224,7 +1233,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                     $mail->AddAddress( $member_data["member_email"] );
 
-                    $mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_member['send_id'] );
+                    $mail->XMailer = 'Newsletters-' . $send_member['member_id'] . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_member['send_id'] );
 
                     if( ! $mail->Send() ) {
                         //return "Mailer Error: " . $mail->ErrorInfo;
@@ -1246,14 +1255,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
                             delete_option( 'enewsletter_cron_send_run' );
                             die(2);
                         }
-        //                if ( ! $result )
-        //                    return 'error';
                     }
                 }
 
-                if ( ! wp_next_scheduled( 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid ) )
-                    wp_schedule_single_event( time() + 60, 'e_newsletter_cron_check_bounces_2' . $wpdb->blogid );
-
+                if ( ! wp_next_scheduled( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' ) )
+                    wp_schedule_single_event( time() + 60*5, 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' );
+				else {
+					wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' );
+					wp_schedule_single_event( time() + 60*5, 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' );
+				}
 
             } else {
                 delete_option( 'enewsletter_cron_send_run' );
@@ -1434,12 +1444,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $email_to           = $_REQUEST['bounce_email'];
         $email_from         = ( $this->settings['from_email'] ) ? $this->settings['from_email'] : $_REQUEST['bounce_email'];
         $email_from_name    = ( $this->settings['from_name'] ) ? $this->settings['from_name'] : $_REQUEST['bounce_email'];
-        $email_subject      = 'Test Connection Bounce';
+        $email_subject      = "Test-Connection-Bounce-". $email_id;
         $email_contents     = 'Test';
-        $options            = array (
-//            "bounce_email" => $_REQUEST['bounce_email'],
-            "message_id" => "Test-Connection-Bounce-". $email_id,
-        );
+        $options            = array ();
 
         if( ! $this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents, $options ) ) {
             die( "Failed to send test email!" );
@@ -1451,36 +1458,44 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $email_password = $_REQUEST['bounce_password'];
         $email_host     = trim( $_REQUEST['bounce_host'] );
         $email_port     = ( $_REQUEST['bounce_port'] ) ? $_REQUEST['bounce_port'] : 110;
-
+		
+		if($email_password == '********') {
+			$settings = $this->get_settings();
+			$email_password = $this->_decrypt($settings['bounce_password']);
+		}
+		
         if( ! $email_host )
             return true;
 
         sleep( 3 );
+		
+		$email_security = isset($_REQUEST['bounce_security']) ? $_REQUEST['bounce_security'] : '/norsh';
 
-        $mbox = imap_open ( '{'.$email_host.':'.$email_port.'/pop3/notls}INBOX', $email_username, $email_password ) or die( imap_last_error() );
+        $mbox = imap_open( '{'.$email_host.':'.$email_port.'/pop3/notls'.$email_security.'}INBOX', $email_username, $email_password ) or die( imap_last_error() );
 
         if( ! $mbox ) {
-            echo __( 'Failed to connect while checking bounces.', 'email-newsletter' );
+            die( __( 'Failed to connect while checking bounces.', 'email-newsletter' ) );
         } else {
-            $MC     = imap_check( $mbox );
+            $MC = imap_check( $mbox );
 
             //get all emails
             $mails = imap_fetch_overview( $mbox, "1:{$MC->Nmsgs}", 0 );
 
             foreach ( $mails as $mail ) {
                 //Search test email on server
-                if( preg_match( '/Test-Connection-Bounce-(\d+)/i', $mail->message_id, $matches) )
-                    if( ( int ) $matches[1] == $email_id ) {
-                        imap_delete( $mbox, $mail->msgno );
-                        imap_expunge( $mbox );
-                        imap_close( $mbox );
-                        die(  __( 'Successfully connected!', 'email-newsletter' ) );
-                    }
+                if( $mail->subject == 'Test-Connection-Bounce-'. $email_id ) {
+					imap_delete( $mbox, $mail->uid, FT_UID );
+					imap_expunge( $mbox );
+					imap_close( $mbox );
+					die(  __( 'Successfully connected!', 'email-newsletter' ) );
+				}
             }
             imap_expunge( $mbox );
             imap_close( $mbox );
             die(  __( 'Connection failed!', 'email-newsletter' ) );
         }
+		
+		die();
     }
 
 
