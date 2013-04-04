@@ -12,6 +12,7 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 * POP3 bounce password now properly encrypted
 * POP3 SSL support, please double check your sending settings
 * Improved look of user interface
+* Improved widget behavior
 * Special folder for user themes
 
 = 1.2.5 =

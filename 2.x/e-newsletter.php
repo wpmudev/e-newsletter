@@ -40,6 +40,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     var $settings;
     var $tb_prefix;
     var $cron_send_name;
+	var $cron_bounce_name;
 	var $plugin_templates = array();
 	var $capabilities = array();
 
@@ -59,8 +60,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
         else
             $this->tb_prefix = $wpdb->base_prefix;
 
-        //set cron name for send emails
-        $this->cron_send_name = "e_newsletter_cron_send_" . $wpdb->blogid;
+        //set cron names
+        $this->cron_send_name = 'e_newsletter_cron_send_' . $wpdb->blogid;
+		$this->cron_bounce_name = 'e_newsletter_cron_check_bounces_' . $wpdb->blogid;
 
         //setup proper directories
 		$this->plugin_dir = plugin_dir_path( __FILE__ );
@@ -97,8 +99,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
 			}
 		}
 		
-        //add new rewrite rules
+        //Activate/deactivate actions
         register_activation_hook( $this->plugin_dir . 'e-newsletter.php', array( &$this, 'do_activation' ) );
+		register_deactivation_hook( $this->plugin_dir . 'e-newsletter.php', array( &$this, 'do_deactivation' ) );
+		
+		//add new rewrite rules
         add_filter( 'rewrite_rules_array', array( &$this, 'insert_rewrite_rules' ) );
         add_filter( 'query_vars', array( &$this, 'insert_query_vars' ) );
 
@@ -156,8 +161,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( $this->cron_send_name, array( &$this, 'send_by_wpcron' ) );
 
         //check bounces email by WP-CRON
-        add_action( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1', array( &$this, 'check_bounces' ) );
-        add_action( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2', array( &$this, 'check_bounces' ) );
+        add_action( $this->cron_bounce_name .'_1', array( &$this, 'check_bounces' ) );
+        add_action( $this->cron_bounce_name .'_2', array( &$this, 'check_bounces' ) );
 
 
         //ajax action for sent preview (test) email
@@ -229,6 +234,32 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		if (!is_dir($custom_theme_dir)) {
 			mkdir($custom_theme_dir);
 		}
+		
+		//sets up cron
+		$settings = $this->get_settings();
+        if ( 1 == $settings['cron_enable'] ) {
+			if ( wp_next_scheduled( $this->cron_send_name ) )
+				wp_clear_scheduled_hook( $this->cron_send_name );
+				
+            wp_schedule_event( time(), '2mins', $this->cron_send_name );
+        }
+		else {
+			if ( wp_next_scheduled( $this->cron_send_name ) )
+				wp_clear_scheduled_hook( $this->cron_send_name );
+		}
+	}
+	
+    /**
+     * Do the stuff on deactivation
+     *
+     */
+    function do_deactivation() {
+		if ( wp_next_scheduled( $this->cron_send_name ) )
+			wp_clear_scheduled_hook( $this->cron_send_name );
+		if ( wp_next_scheduled( $this->cron_bounce_name .'_1' ) )
+			wp_clear_scheduled_hook( $this->cron_bounce_name .'_1' );
+		if ( wp_next_scheduled( $this->cron_bounce_name .'_2' ) )
+			wp_clear_scheduled_hook( $this->cron_bounce_name .'_2' );				
     }
 
     /**
@@ -451,29 +482,34 @@ class Email_Newsletter extends Email_Newsletter_functions {
         load_plugin_textdomain( 'email-newsletter', false, dirname( plugin_basename( __FILE__ ) ) . '/email-newsletter-files/languages/' );
 
         //public actions of the plugin
-        if ( isset( $_REQUEST['newsletter_action'] ) )
+        if ( isset( $_REQUEST['newsletter_action'] ) ) {
+			$redirect_to = $_SERVER['HTTP_REFERER'];
+			
             switch( $_REQUEST['newsletter_action'] ) {
                 //action for save selected groups of subscribe
                 case "save_subscribes":
-                    $redirect_to = $_SERVER['HTTP_REFERER'];
-                    $this->save_subscribes( $_REQUEST['e_newsletter_groups_id'] );
+                    $this->save_subscribes( $_REQUEST['e_newsletter_groups_id'], $redirect_to );
                 break;
 
                 //action for subscribe
                 case "subscribe":
-                    $redirect_to = $_SERVER['HTTP_REFERER'];
-                    $this->subscribe( "" );
+                    $this->subscribe( "", $redirect_to );
                 break;
 
                 //action for Unsubscribe
                 case "unsubscribe":
-                    $redirect_to = $_SERVER['HTTP_REFERER'];
-                    $this->unsubscribe( $_REQUEST['unsubscribe_code'] );
+                    $this->unsubscribe( $_REQUEST['unsubscribe_code'], $redirect_to );
                 break;
 
                 //action for Subscribe of public member (not user of site)
                 case "new_subscribe":
-                    $redirect_to = $_SERVER['HTTP_REFERER'];
+					if(!preg_match("/^[-+\\.0-9=a-z_]+@([-0-9a-z]+\\.)+([0-9a-z]){2,4}$/i", $_REQUEST['e_newsletter_email'])) {
+						$_SESSION['newsletter_widget_status'] = __( 'Please use correct email', 'email-newsletter' );
+						$_SESSION['newsletter_widget_email'] = $_REQUEST['e_newsletter_email'];
+						wp_redirect( $redirect_to );
+						exit;
+					}
+
                     if( isset( $this->settings['double_opt_in'] ) && $this->settings['double_opt_in'] ) {
                         $member_data['double_opt_in'] = 1;
                         $member_data['future_groups_id'] = $_REQUEST['e_newsletter_groups_id'];
@@ -486,6 +522,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 break;
 
             }
+		}
     }
 
     /**
@@ -638,7 +675,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             if ( "" == $redirect_to )
                 $dmsg =  __( 'The new member is added!', 'email-newsletter' );
             else
-                $dmsg =  __( 'You are subscribed successfully!', 'email-newsletter' );
+                $dmsg =  __( 'You have been successfully subscribed!', 'email-newsletter' );
 
 
         }
@@ -799,7 +836,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         foreach( $fields as $key=>$val ) {
             $val = trim( $val );
-            if( $val == '' )continue;
 
             $sql .= ", `".$key."` = '".mysql_real_escape_string( $val )."'";
         }
@@ -1056,15 +1092,18 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $contents = str_replace( "{OPENED_TRACKER}", '<img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_data['member_id']) . '" width="1" height="1" style="display:none;" />', $contents );
         $contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", site_url('/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/'), $contents );
 
-
 		$mail->SetFrom($newsletter_data['from_email'],$newsletter_data['from_name']);
         $mail->Subject = $newsletter_data["subject"];
 
         $mail->MsgHTML( $contents );
 
         $mail->AddAddress( $member_data["member_email"] );
+		
+		$mail->Sender = $newsletter_data['bounce_email'];
 
         $mail->XMailer = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );
+		
+		$mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );
 
         if( ! $mail->Send() ) {
         	$mail_error = $mail->ErrorInfo;
@@ -1235,7 +1274,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                     $mail->XMailer = 'Newsletters-' . $send_member['member_id'] . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_member['send_id'] );
 
-                    if( ! $mail->Send() ) {
+					$mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );            
+					
+					$mail->Sender = $newsletter_data['bounce_email'];
+					
+					if( ! $mail->Send() ) {
                         //return "Mailer Error: " . $mail->ErrorInfo;
                         //return 'error';
 
@@ -1437,6 +1480,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * Test bounces settings
      **/
     function test_bounces_ajax(){
+		if(!function_exists('imap_open'))
+			die();
+			
         @set_time_limit( 0 );
 
         //Send test email on bounces address
@@ -1719,8 +1765,16 @@ class e_newsletter_subscribe extends WP_Widget {
             if ( ! $current_user->data || 0 == $current_user->data->ID ) {
             ?>
                 <div>
+					<?php
+					if( isset($_SESSION['newsletter_widget_email']) ) {
+						$email = $_SESSION['newsletter_widget_email'];
+						unset($_SESSION['newsletter_widget_email']);
+					}
+					else
+						$email = ''
+					?>
                     <label for="e_newsletter_email"><?php _e( 'Your Email:', 'email-newsletter' ) ?></label>
-                    <input type="text" name="e_newsletter_email" id="e_newsletter_email" />
+                    <input type="text" name="e_newsletter_email" id="e_newsletter_email" value="<?php echo esc_attr($email); ?>" />
                 </div>
 
 

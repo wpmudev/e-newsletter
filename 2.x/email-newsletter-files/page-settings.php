@@ -283,7 +283,7 @@
                                 <tr>
                                     <td><?php _e( 'SMTP Port', 'email-newsletter' ) ?>:</td>
                                     <td>
-                                        <input type="text" id="smtp_port" name="settings[smtp_port]" value="<?php echo esc_attr(esc_attr($settings['smtp_port']));?>" />
+                                        <input type="text" id="smtp_port" name="settings[smtp_port]" value="<?php echo esc_attr($settings['smtp_port']);?>" />
                                         <span class="description"><?php _e( 'Defaults to 25.  Gmail uses 465 or 587', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
@@ -331,6 +331,16 @@
 
                     <div id="tabs-3">
                         <h3><?php _e( 'Bounce Settings', 'email-newsletter' ) ?></h3>
+						<?php
+						if(!function_exists('imap_open')) {
+						?>
+						
+	                    <p><?php _e( 'Please enable "IMAP" PHP extension for bounce to work.', 'email-newsletter' ) ?></p>
+						
+						<?php
+						}
+						else {
+						?>
                         <p><?php _e( 'This controls how bounce emails are handled by the system. Please create a new separate POP3 email account to handle bounce emails. Enter these POP3 email details below.', 'email-newsletter' ) ?></p>
                         <table cellpadding="5">
                             <tbody>
@@ -338,7 +348,7 @@
                                     <td><?php _e( 'Email Address:', 'email-newsletter' ) ?></td>
                                     <td>
                                         <input type="text" name="settings[bounce_email]" id="bounce_email" value="<?php echo esc_attr($settings['bounce_email']);?>" />
-                                        <span class="description"><?php _e( 'email address where bounce emails will be sent by default', 'email-newsletter' ) ?></span>
+                                        <span class="description"><?php _e( 'email address where bounce emails will be sent by default(might be overwritten by server)', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr>
@@ -384,6 +394,9 @@
                                 </tr>
                             </tbody>
                         </table>
+						<?php
+						}
+						?>
                     </div>
 					<div id="tabs-4">
 						<?php global $wp_roles; ?>

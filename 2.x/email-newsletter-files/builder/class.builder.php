@@ -455,6 +455,7 @@ class Email_Newsletter_Builder  {
 			'priority'       => 40,
 		) );
 		
+		
 		// Setup Settings
 		$instance->add_setting( 'template', array(
 			'default' => $_REQUEST['theme'],
@@ -495,19 +496,17 @@ class Email_Newsletter_Builder  {
 			'type' => 'newsletter_save'
 		) );
 		
-		if( in_array('CONTACT_INFO',$this->settings) ) {
-			$instance->add_setting( 'contact_info', array(
-				//'subject'        => '',
-				//'capability' => NULL,
-				'default' => $email_newsletter->settings['contact_info'],
-				'type' => 'newsletter_save',
-			) );
-			$instance->add_control( new Builder_TextArea_Control( $instance, 'contact_info', array(
-				'label'   => __('Contact Info','email-newsletter'),
-				'section' => 'builder_email_content',
-				'settings'   => 'contact_info',
-			) ) );
-		}
+		$instance->add_setting( 'contact_info', array(
+			//'subject'        => '',
+			//'capability' => NULL,
+			'default' => '',
+			'type' => 'newsletter_save',
+		) );
+		$instance->add_control( new Builder_TextArea_Control( $instance, 'contact_info', array(
+			'label'   => __('Contact Info','email-newsletter'),
+			'section' => 'builder_email_content',
+			'settings'   => 'contact_info',
+		) ) );
 		
 		
 		// Setup Controls
@@ -552,11 +551,12 @@ class Email_Newsletter_Builder  {
 		if ( $instance->is_preview() && !is_admin() )
 			add_action( 'wp_footer', array( &$this, 'email_builder_customize_preview'), 21);
 
-		$instance->get_setting('email_subject')->transport='postMessage';
-		$instance->get_setting('email_content')->transport='postMessage';
 		$instance->get_setting('from_name')->transport='postMessage';
 		$instance->get_setting('from_email')->transport='postMessage';
+		$instance->get_setting('bounce_email')->transport='postMessage';
+		$instance->get_setting('email_subject')->transport='postMessage';
 		$instance->get_setting('contact_info')->transport='postMessage';
+		$instance->get_setting('email_content')->transport='postMessage';
 		$instance->get_setting('bg_color')->transport='postMessage';
 		$instance->get_setting('bg_image')->transport='postMessage';
 		$instance->get_setting('link_color')->transport='postMessage';
@@ -564,12 +564,13 @@ class Email_Newsletter_Builder  {
 		
 		// Add all the filters we need for all the settings to save and be retreived
 		add_action( 'customize_save_subject', array( &$this, 'save_builder') );
-		add_filter( 'customize_value_subject', array( &$this, 'get_builder_value') );
-		add_filter( 'customize_value_from_name', array( &$this, 'get_builder_value') );
-		add_filter( 'customize_value_from_email', array( &$this, 'get_builder_value') );
+		add_filter( 'customize_value_subject', array( &$this, 'get_builder_subject') );
+		add_filter( 'customize_value_from_name', array( &$this, 'get_builder_from_name') );
+		add_filter( 'customize_value_from_email', array( &$this, 'get_builder_from_email') );
+		add_filter( 'customize_value_bounce_email', array( &$this, 'get_builder_bounce_email') );
 		add_filter( 'customize_value_email_title', array( &$this, 'get_builder_email_title') );
+		add_filter( 'customize_value_contact_info', array( &$this, 'get_builder_contact_info') );
 		add_filter( 'customize_value_email_content', array( &$this, 'get_builder_email_content') );
-		add_filter( 'customize_value_contact_info', array( &$this, 'get_builder_value') );
 		add_filter( 'customize_value_bg_color', array( &$this, 'get_builder_bg_color') );
 		add_filter( 'customize_value_link_color', array( &$this, 'get_builder_link_color') );
 		add_filter( 'customize_value_body_color', array( &$this, 'get_builder_body_color') );
@@ -695,67 +696,57 @@ class Email_Newsletter_Builder  {
 		else
 			return $default;
 	}
-
-	function get_builder_value($default) {
+	
+	
+	
+	function get_builder_contact_info($default) {
 		global $builder_id, $email_newsletter;
+		
 		$data = $email_newsletter->get_newsletter_data($builder_id);
-
-		switch($default) {
-			case __('Email Subject','email-newsletter'):
-				if(!empty($data['subject']))
-					return $data['subject'];
-				else
-					return $default;
-			break;
-			case __('From Name','email-newsletter'):
-				if(!empty($data['from_name']))
-					return $data['from_name'];
-				else
-					return $default;
-			break;
-			case __('From Email','email-newsletter'):
-				if(!empty($data['from_email']))
-					return $data['from_email'];
-				else
-					return $default;
-			break;
-			case __('bounce@email.com','email-newsletter'):
-				if(!empty($data['bounce_email']))
-					return is_email($data['bounce_email']);
-				else
-					return $default;
-			break;
-			case __('Email Title','email-newsletter'):
-				$title = $email_newsletter->get_newsletter_meta($builder_id,'email_title');
-				if(!empty($title))
-					return $title;
-				else
-					return $default;
-			break;
-			case __('Insert Content Here','email-newsletter'):
-				if(!empty($data['content']))
-					return $data['content'];
-				else
-					return $default;
-			break;
-			case __('Contact Info Goes Here','email-newsletter'):
-				if(!empty($data['contact_info']))
-					return $data['contact_info'];
-				else
-					return $default;
-			break;
-			case __('Your Bg','email-newsletter'):
-				$bg_img = $email_newsletter->get_newsletter_meta($builder_id,'bg_image');
-				if(!empty($bg_img))
-					return $bg_img;
-				else
-					return $default;
-			break;
-			default:
-				return apply_filters('email_newsletter_get_value', $default);
-			break;
-		}
+		if(isset($data['contact_info']))
+			return $data['contact_info'];
+		else
+			return $email_newsletter->settings['contact_info'];
 	}
+	function get_builder_subject($default) {
+		global $builder_id, $email_newsletter;
+		
+		$data = $email_newsletter->get_newsletter_data($builder_id);
+		if(isset($data['subject']))
+			return $data['subject'];
+		else
+			return $email_newsletter->settings['subject'];
+	}
+	function get_builder_bounce_email($default) {
+		global $builder_id, $email_newsletter;
+		
+		$data = $email_newsletter->get_newsletter_data($builder_id);
+		if(isset($data['bounce_email']) && is_email($data['bounce_email']))
+			return $data['bounce_email'];
+		else
+			return $email_newsletter->settings['bounce_email'];
+	}
+	function get_builder_from_name($default) {
+		global $builder_id, $email_newsletter;
+		
+		$data = $email_newsletter->get_newsletter_data($builder_id);
+		if(!empty($data['from_name']))
+			return $data['from_name'];
+		else
+			return $email_newsletter->settings['from_name'];
+	}
+	function get_builder_from_email($default) {
+		global $builder_id, $email_newsletter;
+		
+		$data = $email_newsletter->get_newsletter_data($builder_id);
+		if(isset($data['from_email']) && is_email($data['from_email']))
+			return $data['from_email'];
+		else
+			return $email_newsletter->settings['from_email'];
+	}
+
+
+
 	function email_builder_customize_preview() {
 		$admin_url = admin_url('admin-ajax.php');
 		?><script type="text/javascript">

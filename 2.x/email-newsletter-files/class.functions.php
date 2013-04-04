@@ -305,6 +305,9 @@ class Email_Newsletter_functions {
      * Check bounces email
      **/
     function check_bounces() {
+		if(!function_exists('imap_open'))
+			return false;
+			
         global $wpdb;
 
         @set_time_limit( 0 );
@@ -332,7 +335,7 @@ class Email_Newsletter_functions {
             foreach ( $mails as $mail ) {
                 $body = imap_body ( $mbox, $mail->msgno );
 
-                if( preg_match( '/X-Mailer:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ) {
+                if( preg_match( '/X-Mailer:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) || preg_match( '/Message-ID:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ) {
 					//$this->write_log('bounce:'.$member_id);
 
                     $member_id      = ( int ) $matches[1];
@@ -388,16 +391,18 @@ class Email_Newsletter_functions {
 		}
 		
         //change time for CRON
-        if ( 1 == $settings['cron_enable'] ) {
+        if ( isset($settings['cron_enable']) && 1 == $settings['cron_enable'] ) {
 			if ( wp_next_scheduled( $this->cron_send_name ) )
 				wp_clear_scheduled_hook( $this->cron_send_name );
 				
             wp_schedule_event( time(), '2mins', $this->cron_send_name );
         }
-		else
-			wp_clear_scheduled_hook( $this->cron_send_name );
+		else {
+			if ( wp_next_scheduled( $this->cron_send_name ) )
+				wp_clear_scheduled_hook( $this->cron_send_name );
+		}
 
-        if ( $settings['send_limit'] )
+        if ( isset($settings['send_limit']) )
             $settings['send_limit'] = (int) trim( $settings['send_limit'] );
 
         //Encrypt SMTP password
