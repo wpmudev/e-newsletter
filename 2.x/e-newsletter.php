@@ -23,9 +23,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-if( !defined('EMAIL_NEWSLETTER_VERSION') )
-	define('EMAIL_NEWSLETTER_VERSION', '2.0');
-
 include_once( 'email-newsletter-files/class.functions.php' );
 require_once( 'email-newsletter-files/builder/class.builder.php' );
 
@@ -35,6 +32,7 @@ require_once( 'email-newsletter-files/builder/class.builder.php' );
 
 class Email_Newsletter extends Email_Newsletter_functions {
 
+    var $plugin_ver;
     var $plugin_dir;
     var $plugin_url;
     var $settings;
@@ -53,6 +51,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function __construct() {
         global $wpdb;
+
+        $this->plugin_ver = 2;
 
         //checking for MultiSite
         if ( 1 < $wpdb->blogid )
@@ -194,17 +194,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'wp_ajax_send_email_to_member', array( &$this, 'send_email_to_member' ) );
 
         add_action( 'template_redirect', array( &$this, 'template_redirect' ), 12 );
-		
-		
-		//sets up current version for future! ...also upgrades:)
-		$prev = get_option('email_newsletter_version', false);
-
-		if ($prev == false) {
-			update_option('email_newsletter_version', (defined(EMAIL_NEWSLETTER_VERSION) ? EMAIL_NEWSLETTER_VERSION : false));
-			// First time upgrade.  1.3.1 -> 2.0
-			$this->upgrade();
-		}
-
     }
 	
     /**
@@ -247,6 +236,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
 			if ( wp_next_scheduled( $this->cron_send_name ) )
 				wp_clear_scheduled_hook( $this->cron_send_name );
 		}
+
+        //check if upgrade is necessary
+        $prev = get_option('email_newsletter_version', 1.25);
+        if ($this->plugin_ver > $prev) {
+            echo 'kupa';
+            update_option('email_newsletter_version', $this->plugin_ver);
+            // First time upgrade.  1.3.1 -> 2.0
+            $this->upgrade();
+        }
 	}
 	
     /**
@@ -1099,7 +1097,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $mail->AddAddress( $member_data["member_email"] );
 		
-		$mail->Sender = $newsletter_data['bounce_email'];
+		if( $this->settings['bounce_email'] ) {
+			$mail->Sender = $this->settings['bounce_email'];
+		}
 
         $mail->XMailer = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );
 		
