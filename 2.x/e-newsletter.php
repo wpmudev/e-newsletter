@@ -178,8 +178,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'wp_ajax_check_email_opened', array( &$this, 'check_email_opened_ajax' ) );
 
         //ajax action for unsubscribe from email
-        add_action( 'wp_ajax_nopriv_newsletter_unsubscibe', array( &$this, 'unsubscibe_ajax' ) );
-        add_action( 'wp_ajax_newsletter_unsubscibe', array( &$this, 'unsubscibe_ajax' ) );
+        add_action( 'wp_ajax_nopriv_newsletter_unsubscribe', array( &$this, 'unsubscribe_ajax' ) );
+        add_action( 'wp_ajax_newsletter_unsubscribe', array( &$this, 'unsubscribe_ajax' ) );
 
         //ajax action for subscribe
         add_action( 'wp_ajax_nopriv_confirm_subscibe', array( &$this, 'confirm_subscibe_ajax' ) );
@@ -240,7 +240,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         //check if upgrade is necessary
         $prev = get_option('email_newsletter_version', 1.25);
         if ($this->plugin_ver > $prev) {
-            echo 'kupa';
             update_option('email_newsletter_version', $this->plugin_ver);
             // First time upgrade.  1.3.1 -> 2.0
             $this->upgrade();
@@ -266,6 +265,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function insert_rewrite_rules( $rules ) {
         $newrules = array();
         $newrules['e-newsletter/unsubscribe/([\w\d]{15})(\d*)/?$'] = 'index.php?unsubscribe_page=1&unsubscribe_code=$matches[1]&unsubscribe_member_id=$matches[2]';
+        $newrules['e-newsletter/view/([\w\d]{15})(\d*)/?$'] = 'index.php?view_newsletter=1&view_newsletter_code=$matches[1]&view_newsletter_send_id=$matches[2]';
         return $newrules + $rules;
     }
     /**
@@ -275,6 +275,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
         array_push( $vars, 'unsubscribe_page' );
         array_push( $vars, 'unsubscribe_code' );
         array_push( $vars, 'unsubscribe_member_id' );
+
+        array_push( $vars, 'view_newsletter' );
+        array_push( $vars, 'view_newsletter_code' );
+        array_push( $vars, 'view_newsletter_send_id' );
         return $vars;
     }
 	function admin_enqueue_scripts($hook) {
@@ -582,7 +586,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function unsubscribe( $unsubscribe_code, $redirect_to = "" ) {
         global $wpdb;
         if ( "" != $unsubscribe_code ) {
-            $member =  $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE unsubscribe_code = '%s'", $unsubscribe_code ), "ARRAY_A" );
+            $member =  $this->get_member_id_by_code($unsubscribe_code);
             if ( 0 < $member['member_id'] ) {
                 //delete all groups of member
                 $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member['member_id'] ) );
@@ -929,9 +933,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
     }
 
     /**
-     * Unsubscibe from email
+     * unsubscribe from email
      **/
-    function unsubscibe_ajax() {
+    function unsubscribe_ajax() {
         $this->unsubscribe( $_REQUEST['unsubscribe_code'] );
         die('');
     }
@@ -971,6 +975,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         }
 
         $email_body = $this->make_email_body( $newsletter_id );
+
 
         $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send SET newsletter_id = %d, start_time = %d, end_time = '', email_body = '%s'", $newsletter_id, time(), $email_body ) );
         $send_id = $wpdb->insert_id;
@@ -1085,10 +1090,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		
 		
         //Replace some content inside the email body
-        $wp_user = ($member_data['wp_user_id'] == 0 ? false : get_user_by('id', $member_data['wp_user_id']));
-		$contents = str_replace( "{USER_NAME}", (is_a($wp_user,'WP_User') ? $wp_user->user_login : ''), $contents );
-        $contents = str_replace( "{OPENED_TRACKER}", '<img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_data['member_id']) . '" width="1" height="1" style="display:none;" />', $contents );
-        $contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", site_url('/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/'), $contents );
+        $user_name = $this->get_nicename($member_data['wp_user_id'], $member_data['member_nicename']);
+
+        //adds view in browser message
+        $settings = $this->get_settings();
+        if(!empty($settings['view_browser']))
+            $contents = str_replace( "<body>", "<body>".$settings['view_browser'], $contents );
+
+        $contents = $this->personalise_email_body($contents, $member_data['member_id'], $unsubscribe_code, $send_id, array('user_name' => $user_name, 'member_email' => $member_data["member_email"]));
 
 		$mail->SetFrom($newsletter_data['from_email'],$newsletter_data['from_name']);
         $mail->Subject = $newsletter_data["subject"];
@@ -1105,7 +1114,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		
 		$mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );
 
-        if( ! $mail->Send() ) {
+        if( empty($member_data["member_email"]) ) {
+            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced' WHERE send_id = %d AND member_id = %d", $send_id, $send_member['member_id'] ) );
+            if ( $result )
+                die('ok');
+            else
+                die('DB Update Error');
+        }
+        elseif( ! $mail->Send() ) {
         	$mail_error = $mail->ErrorInfo;
             die('Mail Send Error: '.$mail_error);
         } else {
@@ -1401,14 +1417,21 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		
 		if(!$newsletter_data || empty($newsletter_data))
 			return false;
-		
+	
         //open template file
-		$template_path  = $this->plugin_dir . "email-newsletter-files/templates/" . $newsletter_data['template'].'/';
-		$template_url  = $this->plugin_url . "email-newsletter-files/templates/" . $newsletter_data['template'].'/';
+
+        $theme = $this->get_selected_theme($newsletter_data['template']);
+
+		$template_path  = $theme['dir'];
+		$template_url  = $theme['url'];
         $filename   = $template_path . "template.html";
-        $handle     = fopen( $filename, "r" );
-        $contents   = fread( $handle, filesize( $filename ) );
-        fclose( $handle );		
+
+        if(file_exists($filename)) {
+            $handle     = fopen( $filename, "r" );
+            $contents   = fread( $handle, filesize( $filename ) );
+            fclose( $handle );		
+        } else
+            return false;
 
         $newsletter_data['content'] = '{OPENED_TRACKER}' . $newsletter_data['content'];
 		
@@ -1445,7 +1468,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		$contents = $this->do_inline_styles($themedata, $contents);
 		
 		// REPLACE THE image LINKS AT THE START
-		$contents = str_replace( "images/", $this->plugin_url . "email-newsletter-files/templates/" . $newsletter_data['template'] . "/images/", $contents );
+		$contents = str_replace( "images/", $template_url . "/images/", $contents );
 		
 		// BG COLOR
 		$bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color', $this->get_default_builder_var('bg_color'));
@@ -1466,7 +1489,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		$link_color = $this->get_newsletter_meta($newsletter_id,'link_color', $this->get_default_builder_var('link_color'));
 		$link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$newsletter_id);
 		$contents = str_replace( "{LINK_COLOR}", $link_color, $contents);
-		$contents = str_replace( "#linkcolor", $link_color, $contents);
+		$contents = str_replace( "#LINK_COLOR", $link_color, $contents);
 		
 		// BODY COLOR
 		$body_color = $this->get_newsletter_meta($newsletter_id,'body_color', $this->get_default_builder_var('body_color'));
@@ -1517,7 +1540,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		
 		$email_security = isset($_REQUEST['bounce_security']) ? $_REQUEST['bounce_security'] : '/norsh';
 
-        $mbox = imap_open( '{'.$email_host.':'.$email_port.'/pop3/notls'.$email_security.'}INBOX', $email_username, $email_password ) or die( imap_last_error() );
+        $mbox = imap_open( '{'.$email_host.':'.$email_port.'/pop3/notls/novalidate-cert'.$email_security.'}INBOX', $email_username, $email_password ) or die( imap_last_error() );
 
         if( ! $mbox ) {
             die( __( 'Failed to connect while checking bounces.', 'email-newsletter' ) );

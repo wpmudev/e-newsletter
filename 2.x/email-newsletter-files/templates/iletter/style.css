@@ -10,7 +10,7 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
 
 
-a:link, a, a:visited{color:#linkcolor;}
+a:link, a, a:visited{color:#LINK_COLOR;}
 a:hover { text-decoration: none !important; color:#eebb00;}
 h2, h3, h4, h5, h6{padding: 0px 0px 10px 0px;margin:0px;}
 .alignleft { display: inline; float: left; margin-right: 1.625em; }

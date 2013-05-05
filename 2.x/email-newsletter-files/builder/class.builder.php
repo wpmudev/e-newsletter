@@ -16,7 +16,9 @@ class Email_Newsletter_Builder  {
 	}
 	function parse_theme_settings() {
 		global $email_newsletter;
-		$filename = $email_newsletter->plugin_dir . 'email-newsletter-files/templates/' . $this->get_builder_theme() . '/template.html';
+
+		$theme = $email_newsletter->get_selected_theme($this->get_builder_theme());
+		$filename = $theme['dir'] . 'template.html';
 
 		if(file_exists($filename)) {
 			$handle = fopen($filename,'r');
@@ -26,9 +28,14 @@ class Email_Newsletter_Builder  {
 			$pattern = '/\{(?P<name>\w*)\}/';
 			$matches = array();
 			$match_count = preg_match_all($pattern,$contents,$matches);
+
+			//always enable link color
+			$matches['name'][] = 'LINK_COLOR';
+
 			$this->settings = $matches['name'];
 		} else {
-			$this->settings = array();
+			//always enable link color
+			$this->settings = array('link_color');
 		}
 		
 		
@@ -128,6 +135,11 @@ class Email_Newsletter_Builder  {
 			
 
 			ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
+
+			activate_theme = "<?php _e('Activate Theme','email-newsletter'); ?>";
+			jQuery('#customize-info').prepend('<input type="button" value="'+activate_theme+'" id="activate_theme" class="button button-primary save">');
+
+
 			var current_theme = "<?php echo $_GET['theme']; ?>";
 			email_templates = [
 				<?php foreach($themes as $theme): ?>
@@ -145,7 +157,7 @@ class Email_Newsletter_Builder  {
 			
 			jQuery.each(email_templates, function(i,e) {
 				var clone = _info.clone().addClass('hidden');
-				
+
 				if( e.stylesheet != current_theme ) {
 					clone.find('img.theme-screenshot').attr('src',e.screenshot);
 					clone.find('.theme-description').text(e.description);
@@ -154,44 +166,68 @@ class Email_Newsletter_Builder  {
 				} else {
 					// Use this opportunity to change the theme preview area
 					var current_name = jQuery('#customize-info .preview-notice .theme-name');
-					jQuery('#customize-info .preview-notice').html("<?php _e('Manage template (Save to see changes)','email-newsletter'); ?>").prepend(current_name);
+					jQuery('#customize-info .preview-notice').html("<?php _e('Choose template','email-newsletter'); ?>").prepend(current_name);
+					_info.appendTo(jQuery('#customize-info'));
 					_info.data('theme',e);
 				}
 				
 			});
 				
-			jQuery('#customize-info').on('click', function() {
-											
-				jQuery('.arrow').on('click', function() {
+			jQuery('#customize-info').on('click', '.customize-section-title', function() {
+
+				//remove arrows for first and last
+				jQuery("#customize-info .customize-section-content:first").find('a.left').remove();
+				jQuery("#customize-info .customize-section-content:last").find('a.right').remove();
+				
+				var new_theme;
+
+				jQuery('#customize-info .arrow').on('click', function(event) {
 					var _this = jQuery(this);
-					var data = jQuery(this).parent().data('theme');
+					data = jQuery(this).parent().data('theme');
 					
 					var next = _this.parent().next('.customize-section-content');
 					var prev = _this.parent().prev('.customize-section-content');
 					
 					if(_this.hasClass('left')) {
 						if(prev.length > 0) {
-							_this.parent().slideUp("slow");
-							prev.slideDown("slow");
+							_this.parent().addClass('hidden');
+							prev.removeClass('hidden');
 							var data = prev.data('theme');
 						}
 					} else {
 						if(next.length > 0) {
-							_this.parent().slideUp("slow");
-							next.slideDown("slow");
+							_this.parent().addClass('hidden');
+							next.removeClass('hidden');
 							var data = next.data('theme');
 						}
 					}
-					
 					if( typeof data != 'undefined') {
-						// Use string replace to redirect the url
-						jQuery('[data-customize-setting-link="template"]').val(data.stylesheet).trigger('change');
-						
-						//changes name in sidebar
-						jQuery('.theme-name').text(data.name);
+							new_theme = data.stylesheet;
+
+							//changes name in sidebar
+							jQuery('.theme-name').text(data.name);
 					}
-					return false;
 				});
+
+				jQuery('#customize-info #activate_theme').on('click', function(event) {
+					if( typeof new_theme != 'undefined') {
+						event.preventDefault();
+
+						// Use string replace to redirect the url
+						jQuery('[data-customize-setting-link="template"]').val(new_theme);
+
+						jQuery('[data-customize-setting-link="template"]').trigger('change');
+
+						//make sure it is set
+						var set_val = setInterval(function () {
+							if(jQuery('[data-customize-setting-link="template"]').val() == new_theme) {
+					        	jQuery("#save").click();
+					        	clearInterval(set_val);
+					        }
+					    },100);
+					}
+				});
+
 				wp.customize.bind( 'saved', function() {
 					var new_theme = jQuery('[data-customize-setting-link="template"]').val();
 					if(current_theme != new_theme)
@@ -217,6 +253,17 @@ class Email_Newsletter_Builder  {
 			}
 			.customize-section.open .customize-section-content.hidden {
 				display:none;
+			}
+			#activate_theme {
+				display: none;
+			}
+			.open #activate_theme {
+				display: inline-block;
+				position: absolute;
+				top: 300px;
+				width:100px;
+				left:50%;
+				margin-left: -50px;
 			}
 			.arrow {
 				width: 22px;
@@ -244,6 +291,7 @@ class Email_Newsletter_Builder  {
 			}
 		</style>
 		<?php
+		wp_enqueue_script( 'wp-link' );
 		// We need to call this action for the tinyMCE editor to work properly
 		do_action('admin_print_footer_scripts');
 		do_action('admin_footer');
@@ -319,7 +367,8 @@ class Email_Newsletter_Builder  {
 		global $builder_id, $email_newsletter;
 		$email_data = $email_newsletter->get_newsletter_data($builder_id);
 		
-		$template_url  = $email_newsletter->plugin_url . "email-newsletter-files/templates/" . $email_data['template'].'/';
+		$theme = $email_newsletter->get_selected_theme($email_data['template']);
+		$template_url  = $theme['url'];
 		
 		
 		// Load our extra control classes
@@ -332,8 +381,15 @@ class Email_Newsletter_Builder  {
 		if( in_array('BG_IMAGE', $this->settings)) {
 
 			$bg_image = $email_newsletter->get_default_builder_var('bg_image');
-			if(!empty($bg_image))
-				$bg_image = $template_url.$bg_image;
+
+			if(!empty($bg_image)) {
+				$bg_image2 = $this->get_builder_bg_image();
+
+				if($bg_image2 === false)
+					$bg_image = $template_url.$bg_image;
+				else
+					$bg_image = '';
+			}
 			else 
 				$bg_image = '';
 				
@@ -488,11 +544,13 @@ class Email_Newsletter_Builder  {
 		$instance->add_setting( 'email_content', array(
 			//'subject'        => '',
 			//'capability' => NULL,
+			'default' => '',
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'email_preview', array(
 			//'subject'        => '',
 			//'capability' => NULL,
+			'default' => '',
 			'type' => 'newsletter_save'
 		) );
 		
@@ -687,14 +745,14 @@ class Email_Newsletter_Builder  {
 		else
 			return $default;
 	}
-	function get_builder_bg_image($default) {
+	function get_builder_bg_image($default = 0) {
 		global $builder_id, $email_newsletter;
 		
 		$bg_image = $email_newsletter->get_newsletter_meta($builder_id,'bg_image');
-		if(!empty($bg_image))
-			return $bg_image;
-		else
+		if($default !== 0 && empty($bg_image))
 			return $default;
+		else
+			return $bg_image;
 	}
 	
 	
@@ -761,7 +819,6 @@ class Email_Newsletter_Builder  {
 				<?php endif; ?>
 				wp.customize('email_content',function( value ) {
 					value.bind(function(to) {
-						console.log($('#customize-control-link_color').find('.wp-color-result').css("background-color"));
 						var data = {
 							action: 'builder_do_shortcodes',
 							content: to
@@ -823,13 +880,15 @@ class Email_Newsletter_Builder  {
 	<?php 
 	}
 	public function ajax_do_shortcodes() {
-		echo stripslashes($this->prepare_preview($_POST['content'], true));
+		echo $this->prepare_preview($_POST['content'], true);
 		die();
 	}
 	public function prepare_preview($content = '', $ajax = false) {
 		global $email_newsletter;
+
+		$content = stripcslashes($content);
 		
-		// Fix the tracker image from showing up in the preview
+		// Fix the LINK_COLORtracker image from showing up in the preview
 		$content = str_replace('{OPENED_TRACKER}','',$content);
 		$content = str_replace('{UNSUBSCRIBE_URL}','#',$content);
 		
@@ -846,7 +905,7 @@ class Email_Newsletter_Builder  {
 			$link_color = $email_newsletter->get_newsletter_meta($this->ID,'link_color', $email_newsletter->get_default_builder_var('link_color'));
 			$link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$this->ID);
 			$content = str_replace( "{LINK_COLOR}", $link_color, $content);
-			$content = str_replace( "#linkcolor", $link_color, $content);
+			$content = str_replace( "#LINK_COLOR", $link_color, $content);
 		}
 			
 		return $content;
@@ -858,6 +917,38 @@ class Email_Newsletter_Builder  {
 		do_action('wp_footer');
 	}
 	
+	public function enable_customizer() {
+
+		global $wp_customize, $email_newsletter;
+
+		if(empty($wp_customize) || !$wp_customize->is_preview())
+			die();
+		?>
+
+		<html lang="en">
+		    <head>
+		        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		        <title>Newsletter</title>
+		        <?php $this->print_preview_head(); ?>
+		    </head>
+		    <body marginheight="0" topmargin="0" marginwidth="0" leftmargin="0">
+			<?php
+			
+			$email_data = $email_newsletter->get_newsletter_data($this->ID);
+			$content = $email_newsletter->make_email_body($this->ID);
+			
+			$content = $this->prepare_preview($content);
+			echo $content;
+			
+			$this->print_preview_footer(); 
+			
+			?>
+		    </body>
+		</html>
+		<?php
+	}
+
+
 	//builders shortcodes
 	public function recent_posts_shortcode($atts){
 	   extract(shortcode_atts(array(

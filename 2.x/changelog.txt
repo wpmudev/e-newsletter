@@ -14,6 +14,8 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 * Improved look of user interface
 * Improved widget behavior
 * Special folder for user themes
+* Fixed ability to add user data to newsletter
+* Ability to display emails in browser
 
 = 1.2.5 =
 * Fixed possibility of new users not being added to eNewsletter Members

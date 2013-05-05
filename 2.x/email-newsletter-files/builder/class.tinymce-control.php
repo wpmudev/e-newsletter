@@ -9,13 +9,14 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 		<span class="customize-control-title"><?php echo $this->label; ?></span>
 		<textarea id="<?php echo $this->id; ?>" style="display:none" <?php echo $this->link(); ?>><?php echo esc_textarea($this->value()); ?></textarea>
 		<?php
-		$quick_tags = false;
 		$tinymce_options = array(
 			'teeny' => false,
 			'media_buttons' => true,
-			'quicktags' => $quick_tags,
+			'quicktags' => false,
 			'textarea_rows' => 25,
 			'tinymce' => array(
+				'handle_event_callback' => 'builder_tinymce_onchange_callback',
+				'theme_advanced_disable' => 'link, unlink',
 				'onchange_callback' => 'builder_tinymce_onchange_callback',
 				'theme_advanced_buttons1_add' => 'code'
 			),
@@ -33,13 +34,20 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 		</style>
 		
 		<script type="text/javascript">
+			var running = 0;
 			jQuery(document).ready( function() {
 				// Our tinyMCE function to fire on every change
 				window.builder_tinymce_onchange_callback = function(inst) {
-					
-					var content = tinyMCE.activeEditor.getContent({format : 'raw'});
-										
-					jQuery('#<?php echo $this->id; ?>').html(content).trigger('change');
+					if(running == 0) {
+						running = 1;
+						quickembed_select = setInterval(function() {
+								var content = tinyMCE.activeEditor.getContent({format : 'raw'});
+												
+								jQuery('#<?php echo $this->id; ?>').html(content).trigger('change');
+								clearInterval(quickembed_select);
+								running = 0;
+						}, 2500);
+					}
 				}
 				window.builder_check_sidebar = function() {
 					var sectionClicked = jQuery(this).attr('id');
@@ -65,6 +73,7 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 		wp_enqueue_script('editor');
 		wp_enqueue_script('thickbox');
 		wp_enqueue_script('media-upload');
+		wp_enqueue_script('wp-link');
 	}
 }
 ?>

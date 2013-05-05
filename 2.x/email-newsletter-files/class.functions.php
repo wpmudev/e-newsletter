@@ -44,10 +44,12 @@ class Email_Newsletter_functions {
      * Show not menu page
      **/
     function template_redirect() {
-//        global $wp_query;
         if ( $this->is_enewsletter_page( 'unsubscribe_page' ) ) {
-//            $this->load_template( 'page-unsubscribe.php' );
             require_once( $this->plugin_dir . "email-newsletter-files/page-unsubscribe.php" );
+            exit;
+        }
+        elseif ( $this->is_enewsletter_page( 'view_newsletter' ) ) {
+            require_once( $this->plugin_dir . "email-newsletter-files/page-view-newsletter.php" );
             exit;
         }
     }
@@ -82,14 +84,38 @@ class Email_Newsletter_functions {
     /**
      * Checking of duplicate send
      **/
-    function check_duplicate_send( $newsletter_id, $member_id ) {
+    function check_duplicate_send( $newsletter_id, $member_id, $return_results = 0 ) {
         global $wpdb;
-        $result = $wpdb->get_row( $wpdb->prepare( "SELECT b.member_id FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b WHERE a.newsletter_id = %d AND a.send_id = b.send_id AND b.member_id = %d ", $newsletter_id, $member_id ), "ARRAY_A");
+        $result = $wpdb->get_row( $wpdb->prepare( "SELECT b.send_id FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b WHERE a.newsletter_id = %d AND a.send_id = b.send_id AND b.member_id = %d ", $newsletter_id, $member_id ), "ARRAY_A");
         if ( 0 < $result )
-            return true;
+            if ( $return_results == 0 )
+                return true;
+            else
+                return $result;
         else
             return false;
     }
+
+    /**
+     * get email body of already sent email
+     **/
+    function get_sent_email( $send_id, $member_id ) {
+        global $wpdb;
+        $result = $wpdb->get_row( $wpdb->prepare( "SELECT a.email_body FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b WHERE a.send_id = b.send_id AND b.send_id = %d AND b.member_id = %d ", $send_id, $member_id ), "ARRAY_A");
+        if ( 0 < $result )
+            return $result;
+        else
+            return false;
+    }
+
+    /**
+     * get member id by unsubscribe code
+     **/
+    function get_member_id_by_code( $code ) {
+        global $wpdb;
+        return  $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE unsubscribe_code = '%s'", $code ), "ARRAY_A" );
+    }
+           
 
     /**
      * Get count of sent email by newsletter_id or for all newsletters
@@ -183,6 +209,12 @@ class Email_Newsletter_functions {
                 break;
             case 'unsubscribe_page':
                 if ( 1 == get_query_var( 'unsubscribe_page' ) )
+                    return 1;
+                else
+                    return 0;
+                break;
+            case 'view_newsletter':
+                if ( 1 == get_query_var( 'view_newsletter' ) )
                     return 1;
                 else
                     return 0;
@@ -543,7 +575,7 @@ class Email_Newsletter_functions {
      	global $wpdb;
         $result = $wpdb->get_row($wpdb->prepare( "SELECT meta_value FROM {$this->tb_prefix}enewsletter_meta WHERE email_id = %d AND meta_key = %s", $id, $meta_key ), "ARRAY_A");
                 
-        if( is_array($result) && !empty($result) && $result != false )
+        if( is_array($result) && $result != false )
         	return $result['meta_value'];
 		else if($default !== false)
 			return $default;
@@ -1033,6 +1065,9 @@ class Email_Newsletter_functions {
         return NULL;
     }
 
+    /**
+     * Prepare inline styles
+     **/
 	function do_inline_styles($themedata, $contents) {
 		if($themedata) {
 			
@@ -1053,6 +1088,43 @@ class Email_Newsletter_functions {
 			}
 		}	
 	}
+
+    /**
+     * Personalize email
+     **/
+    function personalise_email_body($contents, $member_id, $code, $send_id, $changes = array()) {
+        if(!empty($changes['user_name']))
+            $contents = str_replace( "{USER_NAME}", $changes['user_name'], $contents );
+        else
+            $contents = str_replace( "{USER_NAME}", '', $contents );
+
+        if(!empty($changes["member_email"]))
+            $contents = str_replace( "{TO_EMAIL}", $changes["member_email"], $contents );
+        else
+            $contents = str_replace( "{TO_EMAIL}", '', $contents );
+
+        $contents = str_replace( "{OPENED_TRACKER}", '<img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id) . '" width="1" height="1" style="display:none;" />', $contents );
+        $contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", site_url('/e-newsletter/unsubscribe/' . $code . $member_id . '/'), $contents );
+        $view_browser_url = site_url('/e-newsletter/view/' . $code . $send_id . '/');
+        $contents = str_replace( "{VIEW_LINK}", $view_browser_url, $contents );
+        $contents = str_replace( "%7BVIEW_LINK%7D", $view_browser_url, $contents );
+        
+        return $contents;
+    }
+
+    /**
+     * Choose nicename
+     **/
+    function get_nicename($wp_user_id, $user_nicename) {
+        if($wp_user_id == 0 ) {
+            $user_name = $user_nicename;
+        }
+        else {
+            $wp_user = ($wp_user_id == 0 ? false : get_user_by('id', $wp_user_id));
+            $user_name = is_a($wp_user,'WP_User') ? $wp_user->display_name : '';
+        }
+        return $user_name;
+    }
 
     /**
      * Install of plugin - creating tables in DB
@@ -1346,6 +1418,26 @@ class Email_Newsletter_functions {
 		}
 		
 		return false;
+    }
+
+    /**
+     * Get path to custom theme directory
+     **/
+    function get_selected_theme($theme_name) {
+        $themes = wp_get_themes();
+        $theme_root_dir = $themes[$theme_name]->theme_root.'/';
+
+        if (strpos($theme_root_dir, 'enewsletter-custom-themes') !== FALSE) {
+            $upload_dir = wp_upload_dir();
+            $theme_root_url = $upload_dir['baseurl'].'/enewsletter-custom-themes/';
+        }
+        else
+            $theme_root_url = $this->plugin_url . "email-newsletter-files/templates/";
+
+        $template_dir  = $theme_root_dir.$theme_name.'/';
+        $template_url  = $theme_root_url.$theme_name.'/';
+
+        return array('url' => $template_url, 'dir' => $template_dir);
     }
 	
     /**

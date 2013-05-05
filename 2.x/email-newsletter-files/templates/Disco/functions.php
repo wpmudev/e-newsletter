@@ -8,5 +8,3 @@ define('BUILDER_DEFAULT_BG_IMAGE','images/disco.gif');
 define('BUILDER_DEFAULT_LINK_COLOR','#fcef00');
 
 define('BUILDER_DEFAULT_BODY_COLOR', '#fff');
-
-?>
