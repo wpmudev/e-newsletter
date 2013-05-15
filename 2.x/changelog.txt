@@ -6,16 +6,17 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 == Changelog ==
 
 = 2.0 =
-* New E-Mail template builder
+* New E-Mail template builder (Please keep in mind that new version requires modifications to your custom email templates)
 * SMTP settings page has been improved
 * SMTP SSL/TLS and Port option now separated, please double check your sending settings
 * POP3 bounce password now properly encrypted
-* POP3 SSL support, please double check your sending settings
+* POP3 SSL support, please double check your Bounce settings
 * Improved look of user interface
 * Improved widget behavior
-* Special folder for user themes
+* Special folder for user themplates
 * Fixed ability to add user data to newsletter
 * Ability to display emails in browser
+* Shortcode for subscribe panel
 
 = 1.2.5 =
 * Fixed possibility of new users not being added to eNewsletter Members

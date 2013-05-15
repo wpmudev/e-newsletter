@@ -35,6 +35,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
     var $plugin_ver;
     var $plugin_dir;
     var $plugin_url;
+    var $template_directory;
+    var $template_custom_directory;
     var $settings;
     var $tb_prefix;
     var $cron_send_name;
@@ -69,6 +71,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		$this->plugin_url = plugins_url( '/', __FILE__ );
 		if(!isset($this->plugin_dir) || !isset($this->plugin_url))
             wp_die( __('There was an issue determining plugin path or url', 'email-newsletter' ) );
+
+        //templates directories
+        $this->template_directory = $this->plugin_dir . 'email-newsletter-files/templates';
+        $this->template_custom_directory = $this->get_custom_theme_dir();
 		
 		include_once($this->plugin_dir . '/email-newsletter-files/class.wpmudev_dash_notification.php');
 		
@@ -135,6 +141,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
         // filter schedules
         add_filter( 'cron_schedules', array( &$this, 'add_new_cron_time' ) );
 
+        // filter does shortcodes
+        add_filter('email_newsletter_make_email_content', 'do_shortcode', 11);
+
         add_action( 'init', array( &$this, 'init' ) );	
 
         //some actions for MultiSite
@@ -163,6 +172,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
         //check bounces email by WP-CRON
         add_action( $this->cron_bounce_name .'_1', array( &$this, 'check_bounces' ) );
         add_action( $this->cron_bounce_name .'_2', array( &$this, 'check_bounces' ) );
+
+        add_shortcode( 'enewsletter_subscribe', array( &$this, 'subscribe_shortcode' ) );
+        add_action( 'wp_enqueue_scripts', array( &$this, 'email_newsletter_widgets_scripts' ) );
 
 
         //ajax action for sent preview (test) email
@@ -194,6 +206,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'wp_ajax_send_email_to_member', array( &$this, 'send_email_to_member' ) );
 
         add_action( 'template_redirect', array( &$this, 'template_redirect' ), 12 );
+
+        add_action( 'wp_ajax_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax' ));
+        add_action( 'wp_ajax_nopriv_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax'));
     }
 	
     /**
@@ -480,11 +495,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * init for all users
      **/
     function init() {
-
         load_plugin_textdomain( 'email-newsletter', false, dirname( plugin_basename( __FILE__ ) ) . '/email-newsletter-files/languages/' );
 
         //public actions of the plugin
-        if ( isset( $_REQUEST['newsletter_action'] ) ) {
+        if ( isset( $_REQUEST['newsletter_action'] ) && !defined('DOING_AJAX') ) {
 			$redirect_to = $_SERVER['HTTP_REFERER'];
 			
             switch( $_REQUEST['newsletter_action'] ) {
@@ -520,20 +534,63 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $member_data['fname']       =  ( isset( $_REQUEST['e_newsletter_name'] ) ) ? $_REQUEST['e_newsletter_name'] : '';
                     $member_data['lname']       =  '';
                     $member_data['groups_id']   =  ( isset( $_REQUEST['e_newsletter_groups_id'] ) ) ? $_REQUEST['e_newsletter_groups_id'] : '';
-                    $this->add_member( $member_data, $redirect_to );
+                    $this->add_member( $member_data, "false", 1 );
                 break;
-
             }
 		}
+    }
+
+    function manage_subscriptions_ajax() {
+        if ( isset( $_REQUEST['newsletter_action'] ) ) {
+            switch( $_REQUEST['newsletter_action'] ) {
+                //action for save selected groups of subscribe
+                case "save_subscribes":
+                    $this->save_subscribes( $_REQUEST['e_newsletter_groups_id'], "false", 1 );
+                break;
+
+                //action for subscribe
+                case "subscribe":
+                    $this->subscribe( "", "false", 1 );
+                break;
+
+                //action for Unsubscribe
+                case "unsubscribe":
+                    $this->unsubscribe( $_REQUEST['unsubscribe_code'], "false", 1 );
+                break;
+
+                //action for Subscribe of public member (not user of site)
+                case "new_subscribe":
+                    if(!preg_match("/^[-+\\.0-9=a-z_]+@([-0-9a-z]+\\.)+([0-9a-z]){2,4}$/i", $_REQUEST['e_newsletter_email'])) {
+                        $data['message'] = __( 'Please use correct email', 'email-newsletter' );
+                        echo json_encode($data);
+                        die();
+                    }
+
+                    if( isset( $this->settings['double_opt_in'] ) && $this->settings['double_opt_in'] ) {
+                        $member_data['double_opt_in'] = 1;
+                        $member_data['future_groups_id'] = $_REQUEST['e_newsletter_groups_id'];
+                    }
+                    $member_data['email']       =  ( isset( $_REQUEST['e_newsletter_email'] ) ) ? $_REQUEST['e_newsletter_email'] : '';
+                    $member_data['fname']       =  ( isset( $_REQUEST['e_newsletter_name'] ) ) ? $_REQUEST['e_newsletter_name'] : '';
+                    $member_data['lname']       =  '';
+                    $member_data['groups_id']   =  ( isset( $_REQUEST['e_newsletter_groups_id'] ) ) ? $_REQUEST['e_newsletter_groups_id'] : '';
+                    $this->add_member( $member_data, "false", 1 );
+                break;
+            }
+        }
+
+        die();
     }
 
     /**
      * Save Subscribes
      **/
-    function save_subscribes( $groups_id, $redirect_to = ""  ) {
+    function save_subscribes( $groups_id, $redirect_to = "", $ajax = 0  ) {
         global $wpdb, $current_user;
 
         $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
+
+        do_action( 'enewsletter_user_save_subscribe', $member_id, $groups_id );
 		
 		if(!empty($member_id)) {
 			//deleting old list of groups for user
@@ -545,21 +602,31 @@ class Email_Newsletter extends Email_Newsletter_functions {
 					$result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
 		}	
 	
-		if ( "" == $redirect_to ) {
-			wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'dmsg' => urlencode( __( 'Subscriptions are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
-			exit;
-		} else {
-			$_SESSION['newsletter_widget_status'] = __( 'Subscribes were saved!', 'email-newsletter' );
-			wp_redirect( $redirect_to );
-			exit;
-		}
+        if ( "false" != $redirect_to )
+    		if ( "" == $redirect_to ) {
+    			wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'dmsg' => urlencode( __( 'Subscriptions are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
+    			exit;
+    		} else {
+    			$_SESSION['newsletter_widget_status'] = __( 'Subscribes were saved!', 'email-newsletter' );
+    			wp_redirect( $redirect_to );
+    			exit;
+    		}
+
+        if ( 1 == $ajax ) {
+            $data['message'] = __( 'Subscribes were saved!', 'email-newsletter' );
+            $data['view'] = 'manage_subscriptions';
+            $data['hide'] = '';
+            echo json_encode($data);
+        }
     }
 
     /**
      *  Subscribe on Newsletters
      **/
-    function subscribe( $member_id = "", $redirect_to = "" ) {
+    function subscribe( $member_id = "", $redirect_to = "", $ajax = 0 ) {
         global $wpdb, $current_user;
+
+        do_action( 'enewsletter_user_subscribe', $member_id );
 
         if ( "" == $member_id )
             $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
@@ -578,12 +645,20 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 wp_redirect( $redirect_to );
                 exit;
             }
+
+        if ( 1 == $ajax ) {
+            $data['message'] = __( 'You are subscribed successfully!', 'email-newsletter' );
+            $data['view'] = 'manage_subscriptions';
+            $data['hide'] = 'subscribe';
+            $data['unsubscribe_code'] = $unsubscribe_code;
+            echo json_encode($data);
+        }
     }
 
     /**
      * Unsubscribe on Newsletters
      **/
-    function unsubscribe( $unsubscribe_code, $redirect_to = "" ) {
+    function unsubscribe( $unsubscribe_code, $redirect_to = "", $ajax = 0 ) {
         global $wpdb;
         if ( "" != $unsubscribe_code ) {
             $member =  $this->get_member_id_by_code($unsubscribe_code);
@@ -594,15 +669,22 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 //delete unsubscribe_code of member
                 $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '' WHERE unsubscribe_code = '%s'", $unsubscribe_code ) );
 
-                if ( "false" == $redirect_to ) {
-                    return true;
-                } elseif ( "" == $redirect_to ) {
-                    wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'dmsg' => urlencode( __( 'You are unsubscribed!', 'email-newsletter' ) ) ), 'admin.php' ) );
-                    exit;
-                } else {
-                    $_SESSION['newsletter_widget_status'] = __( 'You are unsubscribed!', 'email-newsletter' );
-                    wp_redirect( $redirect_to );
-                    exit;
+                if ( "false" != $redirect_to ) {
+                    if ( "" == $redirect_to ) {
+                        wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'dmsg' => urlencode( __( 'You are unsubscribed!', 'email-newsletter' ) ) ), 'admin.php' ) );
+                        exit;
+                    } else {
+                        $_SESSION['newsletter_widget_status'] = __( 'You are unsubscribed!', 'email-newsletter' );
+                        wp_redirect( $redirect_to );
+                        exit;
+                    }
+                }
+
+                if ( 1 == $ajax ) {
+                    $data['message'] = __( 'You are unsubscribed!', 'email-newsletter' );
+                    $data['view'] = 'subscribe';
+                    $data['hide'] = 'manage_subscriptions';
+                    echo json_encode($data);
                 }
             }
             return false;
@@ -612,8 +694,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
     /**
      * Add new member
      **/
-    function add_member( $member_data, $redirect_to = "" ) {
+    function add_member( $member_data, $redirect_to = "", $ajax = 0 ) {
         global $wpdb;
+
+        do_action( 'enewsletter_before_user_add', $member_data );
 
         $dmsg = "";
 
@@ -682,14 +766,25 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         }
 
-        if ( "" == $redirect_to ) {
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( $dmsg ) ), 'admin.php' ) );
-            exit;
-        } else {
-            $_SESSION['newsletter_widget_status'] = $dmsg;
-            wp_redirect( $redirect_to );
-            exit;
+        if ( "false" != $redirect_to ) {
+            if ( "" == $redirect_to ) {
+                wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( $dmsg ) ), 'admin.php' ) );
+                exit;
+            } else {
+                $_SESSION['newsletter_widget_status'] = $dmsg;
+                wp_redirect( $redirect_to );
+                exit;
+            }
         }
+
+        if ( 1 == $ajax ) {
+            $data['message'] = $dmsg;
+            //$data['view'] = 'subscribe';
+            //$data['hide'] = 'manage_subscriptions';
+            echo json_encode($data);
+        }
+
+        do_action( 'enewsletter_after_user_add', $member_id );
     }
 
     /**
@@ -697,6 +792,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function delete_members( $members_id ) {
         global $wpdb;
+
+        do_action( 'enewsletter_user_delete', $members_id );
+
         if ( $members_id ) {
             foreach( ( array ) $members_id as $member_id ) {
                 $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
@@ -713,6 +811,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function user_create( $userID ) {
         global $wpdb;
+
         $unsubscribe_code = $this->gen_unsubscribe_code();
 
         $data = get_userdata( $userID );
@@ -776,6 +875,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function delete_newsletter( $newsletter_id, $page_redirect ) {
         global $wpdb;
+
+        do_action( 'enewsletter_delete_newsletter', $newsletter_id );
+
         if ( ! $page_redirect )
             $page_redirect = "newsletters-dashboard";
 
@@ -796,6 +898,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function save_newsletter( $newsletter_id = NULL, $page_redirect, $data = NULL ) {
         global $wpdb, $email_builder;
+
+        do_action( 'enewsletter_delete_newsletter', $newsletter_id );
 		
 		if(empty($data))
 			$data = $_REQUEST;
@@ -946,6 +1050,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function send_newsletter( $newsletter_id ) {
         global $wpdb;
 
+        do_action( 'enewsletter_before_send', $newsletter_id );
+
         $members_id = array();
         if ( isset( $_REQUEST["all_members"] ) && "1" == $_REQUEST["all_members"] ) {
             $args = array (
@@ -1002,6 +1108,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             else
                 wp_redirect( add_query_arg( array( 'page' => $_REQUEST['page'], 'newsletter_action' => 'send_newsletter', 'newsletter_id' => $newsletter_id, 'send_id' => $send_id, 'check_key' => $_SESSION['check_key'] ), 'admin.php' ) );
 
+        do_action( 'enewsletter_before_send', $newsletter_id );
         exit;
     }
 
@@ -1030,6 +1137,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
             die('Key Security Error');
 
         $send_id = $_REQUEST['send_id'];
+
+        do_action( 'enewsletter_before_send_newsletter', $send_id );
+
         //get data of newsletter
         $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_id ), "ARRAY_A");
 
@@ -1132,6 +1242,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
             else
                 die('DB Update Error');
         }
+
+        do_action( 'enewsletter_after_send_newsletter', $send_id );
     }
 
     /**
@@ -1226,6 +1338,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 foreach ( $send_members as $send_member ) {
 
+                    do_action( 'enewsletter_before_cron_send_newsletter', $send_member );
+
                     update_option( 'enewsletter_cron_send_run', time() );
 
                     $member_data = $this->get_member( $send_member['member_id'] );
@@ -1315,6 +1429,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
                             die(2);
                         }
                     }
+
+                    do_action( 'enewsletter_after_cron_send_newsletter', $send_member );
                 }
 
                 if ( ! wp_next_scheduled( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' ) )
@@ -1458,8 +1574,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		$date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
 		$contents = str_replace( "{DATE}", date($date_format), $contents );
 		
-		//wp magic
-		$contents = apply_filters('the_content',$contents);
+		$contents = apply_filters('email_newsletter_make_email_content', $contents);
 		
 		//do the inline styling
 		global $email_builder;
@@ -1712,6 +1827,158 @@ class Email_Newsletter extends Email_Newsletter_functions {
         require_once( $this->plugin_dir . "email-newsletter-files/page-subscribe.php" );
     }
 
+    function subscribe_widget($show_name = false, $show_groups = true) {
+        global $email_newsletter, $current_user;
+
+        $groups = $this->get_groups();
+
+        if ( $current_user->data && 0 < $current_user->data->ID ) {
+            $member_id      = $this->get_members_by_wp_user_id( $current_user->data->ID );
+            $member_data    = $this->get_member( $member_id );
+
+            if ( "" != $member_data['unsubscribe_code'] ) {
+                $member_groups = $this->get_memeber_groups( $member_id );
+                if ( ! is_array( $member_groups ) )
+                    $member_groups = array();
+            }
+
+            $show_groups = true;
+        }
+
+        if ( ! $current_user->data || 0 == $current_user->data->ID ) {
+            $view = "add_member";
+        } else if ( isset( $member_data['unsubscribe_code'] ) && "" != $member_data['unsubscribe_code'] && 0 < $current_user->data->ID ) {
+            $view = "manage_subscriptions";
+        } else if ( $current_user->data && 0 < $current_user->data->ID ) {
+            $view = "subscribe";
+        } else {
+            $view = "";
+        }
+
+        $return = '
+        <div class="e-newsletter-widget">
+            <div id="message" style="display:none; background-color: #FFFFE0;border-color: #E6DB55;margin: 5px 0 15px;-moz-border-radius: 3px 3px 3px 3px;border-style: solid;border-width: 1px;padding: 5px;"></div>
+
+            <form action="" method="post" name="subscribes_form" id="subscribes_form">
+                <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />';
+        if($view != 'add_member')
+            $return .= '
+                <div id="add_member" style="display:none;">';
+        else
+            $return .= 
+                '<div id="add_member">';
+        $return .= '
+                    <p>
+                        <label for="e_newsletter_email">'.__( 'Your Email:', 'email-newsletter' ).'</label>
+                        <input type="text" name="e_newsletter_email" id="e_newsletter_email" value="" />';
+        if( isset($show_name) && $show_name )
+            $return .= '
+                        <br/>
+
+                        <label for="e_newsletter_name">'.__( 'Your Name:', 'email-newsletter' ).'</label>
+                        <input type="text" name="e_newsletter_name" id="e_newsletter_name" />';
+        $return .= '
+                    </p>';
+        if( $show_groups && $groups ) {
+            $return .='
+                        <h3>'.__( 'Subscribe to:', 'email-newsletter' ).'</h3>
+                        <p>
+                            <ul class="subscribe_groups" style="list-style: none outside none;">';
+            foreach( ( array ) $groups as $group ) {
+                if( ! $group['public'] ) continue;
+                    $return .= '
+                                    <li>
+
+                                        <input type="checkbox" name="e_newsletter_groups_id[]" value="'.$group['group_id'].'" id="e_newsletter_groups_id_'.$group['group_id'].'" />
+                                        <label for="e_newsletter_groups_id_'.$group['group_id'].'">'.$group['group_name'].'</label>
+
+                                    </li>';
+            }
+            $return .= '
+                            </ul>
+                        </p>';
+
+        }
+        $return .='
+                    <p>
+                        <input type="button" id="new_subscribe" class="enewletter_widget_submit" value="'.__( 'Subscribe', 'email-newsletter' ).'" />
+                    </p>
+
+                </div>';
+        if($view != 'manage_subscriptions')
+            $return .= '
+                <div id="manage_subscriptions" style="display:none;">';
+        else
+            $return .='
+                <div id="manage_subscriptions">';
+        $unsubscribe_code = isset( $member_data['unsubscribe_code'] ) ? $member_data['unsubscribe_code'] : '';
+        $return .='
+                    <input type="hidden" name="unsubscribe_code" id="unsubscribe_code" value="'.$unsubscribe_code.'" />';
+        if( $groups ) {
+            $return .= '
+                        <h3>'.__( 'Subscribe to:', 'email-newsletter' ).'</h3>
+                        <p>
+                            <ul class="subscribe_groups" style="list-style: none outside none;">';
+            foreach( (array) $groups as $group ){
+                if ( isset($member_groups) && in_array($group['group_id'], $member_groups) )
+                    $checked = 'checked="checked"';
+                else
+                    $checked = '';
+            $return .= '
+                                    <li>
+                                        <input type="checkbox" name="e_newsletter_groups_id[]" value="'.$group['group_id'].'" '.$checked.' id="e_newsletter_groups_id_'.$group['group_id'].'" />
+                                        <label for="e_newsletter_groups_id_'.$group['group_id'].'">'.$group['group_name'].'</label>
+                                    </li>';
+            }
+            $return .= '
+                            </ul>
+                        </p>';
+        }
+        $return .= '
+                    <p>
+                        <input type="button" id="save_subscribes" class="enewletter_widget_submit" value="'.__( 'Save Subscriptions', 'email-newsletter' ).'" />
+                    </p>
+
+                    <p>
+                        <a href="#" id="unsubscribe" class="enewletter_widget_submit" >'.__( 'Unsubscribe', 'email-newsletter' ).'</a>
+                    </p>
+                </div>';
+        if($view != 'subscribe')
+            $return .= '
+                <div id="subscribe" style="display:none;">';
+        else
+            $return .= '
+                <div id="subscribe">';
+        $return .= '
+                    <input type="submit" id="subscribe" class="enewletter_widget_submit" value="'.__( 'Subscribe to Newsletters', 'email-newsletter' ).'" />
+                </div>
+            </form>
+        </div><!--//e-newsletter-widget  -->';
+
+        return $return;
+    }
+
+    function subscribe_shortcode( $atts ) {
+        extract( shortcode_atts( array(
+            'show_name' => false,
+            'show_groups' => true,
+        ), $atts ) );
+
+        $subscribe = $this->subscribe_widget($show_name, $show_groups);
+
+        return $subscribe;
+    }
+
+    function email_newsletter_widgets_scripts() {
+        wp_register_script( 'email-newsletter-widget-scripts', plugins_url( '/email-newsletter-files/js/widget_script.js', __FILE__ ), array( 'jquery', 'jquery-form' ) );
+        wp_enqueue_script( 'email-newsletter-widget-scripts' );
+
+        $protocol = isset( $_SERVER["HTTPS"] ) ? 'https://' : 'http://'; //This is used to set correct adress if secure protocol is used so ajax calls are working
+        $params = array(
+            'ajax_url' => admin_url( 'admin-ajax.php', $protocol )
+        );
+        wp_localize_script( 'email-newsletter-widget-scripts', 'email_newsletter_widget_scripts', $params );
+    }
 }
 global $email_newsletter, $email_builder;
 $email_newsletter =& new Email_Newsletter();
@@ -1734,164 +2001,20 @@ class e_newsletter_subscribe extends WP_Widget {
     function widget( $args, $instance ) {
         global $email_newsletter, $current_user;
 
-        $groups = $email_newsletter->get_groups();
-
         extract( $args );
 
-        if ( $current_user->data && 0 < $current_user->data->ID ) {
-            $member_id      = $email_newsletter->get_members_by_wp_user_id( $current_user->data->ID );
-            $member_data    = $email_newsletter->get_member( $member_id );
-
-            if ( "" != $member_data['unsubscribe_code'] ) {
-                $member_groups = $email_newsletter->get_memeber_groups( $member_id );
-                if ( ! is_array( $member_groups ) )
-                    $member_groups = array();
-
-            }
-
-            $show_groups = true;
-        } else {
-
-            $show_name      = apply_filters( 'widget_title', $instance['name'] );
-            $show_groups    = apply_filters( 'widget_title', $instance['groups'] );
-        }
-
+        $show_name      = apply_filters( 'widget_title', $instance['name'] );
+        $show_groups    = apply_filters( 'widget_title', $instance['groups'] );
         $title = apply_filters( 'widget_title', $instance['title'] );
 
-        ?>
-        <?php
         echo $before_widget;
+
         if ( $title )
             echo $before_title . $title . $after_title;
-        ?>
+        
+        echo $email_newsletter->subscribe_widget($show_name, $show_groups);
 
-    <div class="e-newsletter-widget">
-        <?php
-        if ( isset ( $_SESSION['newsletter_widget_status'] ) ) {
-        ?>
-            <div id="message" style="background-color: #FFFFE0;border-color: #E6DB55;margin: 5px 0 15px;-moz-border-radius: 3px 3px 3px 3px;border-style: solid;border-width: 1px;padding: 5px;">
-            <?php
-            echo $_SESSION['newsletter_widget_status'];
-            unset($_SESSION['newsletter_widget_status']);
-            ?>
-
-            </div>
-    	<?php 
-		} else { ?>
-            <div id="message" style="display:none; background-color: #FFFFE0;border-color: #E6DB55;margin: 5px 0 15px;-moz-border-radius: 3px 3px 3px 3px;border-style: solid;border-width: 1px;padding: 5px;"></div>
-    	<?php
-		} ?>
-
-        <form action="" method="post" name="subscribes_form" id="subscribes_form">
-            <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
-            <?php
-            if ( ! $current_user->data || 0 == $current_user->data->ID ) {
-            ?>
-                <div>
-					<?php
-					if( isset($_SESSION['newsletter_widget_email']) ) {
-						$email = $_SESSION['newsletter_widget_email'];
-						unset($_SESSION['newsletter_widget_email']);
-					}
-					else
-						$email = ''
-					?>
-                    <label for="e_newsletter_email"><?php _e( 'Your Email:', 'email-newsletter' ) ?></label>
-                    <input type="text" name="e_newsletter_email" id="e_newsletter_email" value="<?php echo esc_attr($email); ?>" />
-                </div>
-
-
-                <?php
-                if( $show_name ) {
-                ?>
-                <div>
-                    <label for="e_newsletter_name"><?php _e( 'Your Name:', 'email-newsletter' ) ?></label>
-                    <input type="text" name="e_newsletter_name" id="e_newsletter_name" />
-                </div>
-                <?php
-                }
-
-                if( $show_groups && $groups ) {
-                ?>
-                <div>
-                    <h3><?php _e( 'Subscribe to:', 'email-newsletter' ) ?></h3>
-                    <ul style="list-style: none outside none;">
-                        <?php
-                        foreach( ( array ) $groups as $group ) {
-                            if( ! $group['public'] ) continue;
-                        ?>
-                            <li>
-
-                                <input type="checkbox" name="e_newsletter_groups_id[]" value="<?php echo $group['group_id'];?>" id="e_newsletter_groups_id_<?php echo $group['group_id'];?>" />
-                                <label for="e_newsletter_groups_id_<?php echo $group['group_id'];?>"><?php echo $group['group_name'];?></label>
-
-                            </li>
-                        <?php
-                        }
-                        ?>
-                    </ul>
-                </div>
-                <?php
-                }
-                ?>
-                <div>
-                    <input type="button" id="new_subscribe" value="<?php _e( 'Subscribe', 'email-newsletter' ) ?>" />
-                </div>
-
-            <?php
-            } else if ( isset( $member_data['unsubscribe_code'] ) && "" != $member_data['unsubscribe_code'] && 0 < $current_user->data->ID ) {
-            ?>
-                <input type="hidden" name="unsubscribe_code" value="<?php echo $member_data['unsubscribe_code']; ?>" />
-                <?php
-                if( $groups ) {
-                ?>
-                    <div>
-                        <h3><?php _e( 'Subscribe to:', 'email-newsletter' ) ?></h3>
-                        <ul style="list-style: none outside none;">
-                            <?php
-                            foreach( (array) $groups as $group ){
-                                if ( false === array_search ( $group['group_id'], ( array ) $member_groups ) )
-                                    $checked = '';
-                                else
-                                    $checked = 'checked="checked"';
-                            ?>
-                                <li>
-
-                                    <input type="checkbox" name="e_newsletter_groups_id[]" value="<?php echo $group['group_id'];?>" <?php echo $checked;?> id="e_newsletter_groups_id_<?php echo $group['group_id'];?>" />
-                                    <label for="e_newsletter_groups_id_<?php echo $group['group_id'];?>"><?php echo $group['group_name'];?></label>
-                                </li>
-                            <?php
-                            }
-                            ?>
-                        </ul>
-                    </div>
-                <?php
-                }
-                ?>
-                <div>
-                    <input type="button" id="save_subscribes" value="<?php _e( 'Save Subscriptions', 'email-newsletter' ) ?>" />
-                </div>
-                <div>
-                <a href="javascript:;" id="unsubscribe" ><?php _e( 'Unsubscribe', 'email-newsletter' ) ?></a>
-                </div>
-
-            <?php
-            } else if ( $current_user->data && 0 < $current_user->data->ID ) {
-            ?>
-                <input type="hidden" name="newsletter_action" value="subscribe" />
-                <div>
-                    <input type="submit" id="subscribe"  value="<?php _e( 'Subscribe to Newsletters', 'email-newsletter' ) ?>" />
-                </div>
-            <?php
-            }
-            ?>
-        </form>
-    </div><!--//e-newsletter-widget  -->
-
-        <?php echo $after_widget; ?>
-
-    <?php
-
+        echo $after_widget;
     }
 
     /** @see WP_Widget::update */
@@ -1938,12 +2061,10 @@ class e_newsletter_subscribe extends WP_Widget {
             </p>
         <?php
     }
-
 } // class e_newsletter_subscribe
 
 
 add_action( 'widgets_init', create_function( '', 'return register_widget("e_newsletter_subscribe");' ) );
-add_action( 'init', 'email_newsletter_widgets_scripts' );
 
 function register_enewsletter_plugin_template( $template_id, $plugin_name, $email_type) {
 	global $email_newsletter;
@@ -1953,17 +2074,4 @@ function register_enewsletter_plugin_template( $template_id, $plugin_name, $emai
 	);
 	$email_newsletter->plugin_templates[$template_id] = $return;
 }
-function is_active_enewsletter_plugin_template( $template_id ) {
-	// To-Do Make additional is_active check
-	if(isset($email_newsletter->plugin_templates[$template_id]) && is_array($email_newsletter->plugin_templates[$template_id]))
-		return true;
-	else
-		return false;
-}
-
-function email_newsletter_widgets_scripts() {
-    wp_register_script( 'email-newsletter-widget-scripts', plugins_url( '/email-newsletter-files/js/widget_script.js', __FILE__ ), array( 'jquery', 'jquery-form' ) );
-    wp_enqueue_script( 'email-newsletter-widget-scripts' );
-}
-
 ?>

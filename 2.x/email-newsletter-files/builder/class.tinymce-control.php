@@ -16,7 +16,7 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 			'textarea_rows' => 25,
 			'tinymce' => array(
 				'handle_event_callback' => 'builder_tinymce_onchange_callback',
-				'theme_advanced_disable' => 'link, unlink',
+				'theme_advanced_disable' => '',
 				'onchange_callback' => 'builder_tinymce_onchange_callback',
 				'theme_advanced_buttons1_add' => 'code'
 			),
@@ -46,7 +46,7 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 								jQuery('#<?php echo $this->id; ?>').html(content).trigger('change');
 								clearInterval(quickembed_select);
 								running = 0;
-						}, 2500);
+						}, 1500);
 					}
 				}
 				window.builder_check_sidebar = function() {
@@ -73,7 +73,9 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 		wp_enqueue_script('editor');
 		wp_enqueue_script('thickbox');
 		wp_enqueue_script('media-upload');
-		wp_enqueue_script('wp-link');
+		wp_enqueue_script('wplink');
+		wp_enqueue_script('wpdialogs-popup');
+		wp_enqueue_style('wp-jquery-ui-dialog');
 	}
 }
 ?>

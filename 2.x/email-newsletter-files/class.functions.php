@@ -1424,6 +1424,12 @@ class Email_Newsletter_functions {
      * Get path to custom theme directory
      **/
     function get_selected_theme($theme_name) {
+        register_theme_directory($this->template_custom_directory);
+        register_theme_directory($this->template_directory);
+        
+        //cheating message fix
+        wp_clean_themes_cache();
+
         $themes = wp_get_themes();
         $theme_root_dir = $themes[$theme_name]->theme_root.'/';
 

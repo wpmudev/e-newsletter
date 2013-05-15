@@ -56,14 +56,6 @@ class Email_Newsletter_Builder  {
 	function plugins_loaded() {
 		global $current_user, $pagenow, $builder_id, $email_newsletter;
 		
-		$this->template_directory = $email_newsletter->plugin_dir . 'email-newsletter-files/templates';
-		$this->template_custom_directory = $email_newsletter->get_custom_theme_dir();
-		register_theme_directory($this->template_custom_directory);
-		register_theme_directory($this->template_directory);
-		
-		//cheating message fix
-		wp_clean_themes_cache();
-		
 		// Start the id at false for checking
 		$builder_id = false;
 		
@@ -90,12 +82,14 @@ class Email_Newsletter_Builder  {
 		$this->ID = $this->get_builder_email_id();
 		
 		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $_REQUEST['theme'] === $this->get_builder_theme()  ) {
+			$this->parse_theme_settings();
+
 			add_filter( 'template', array( &$this, 'inject_builder_template'), 999 );
 			add_filter( 'stylesheet', array( &$this, 'inject_builder_stylesheet' ), 999 );
 			add_action( 'customize_register', array( &$this, 'init_newsletter_builder'),9999 );
 			add_action( 'setup_theme' , array( &$this, 'setup_builder_header_footer' ), 999 );
 		}
-		$this->parse_theme_settings();
+		
 	}
 	function setup_builder_header_footer() {
 		global $wp_customize;
@@ -103,7 +97,9 @@ class Email_Newsletter_Builder  {
 		add_action( 'builder_head', array( $wp_customize, 'customize_preview_base' ) );
 		add_action( 'builder_head', array( $wp_customize, 'customize_preview_html5' ) );
 		add_action( 'builder_head', array( &$this, 'construct_builder_head' ) );
+		add_action( 'builder_footer', array( &$this, 'construct_builder_footer' ) );
 		add_action( 'builder_footer', array( $wp_customize, 'customize_preview_settings' ), 20 );
+		add_action( 'builder_footer', array( &$this, 'email_builder_customize_preview'), 21);
 		add_action( 'customize_controls_print_scripts', array( $this, 'customize_controls_print_scripts') );
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'customize_controls_print_footer_scripts'), 20 );
 	}
@@ -113,8 +109,6 @@ class Email_Newsletter_Builder  {
 	function construct_builder_footer() {
 		do_action('admin_footer');
 		do_action('admin_print_footer_scripts');
-		do_action('wp_print_footer_scripts');
-		do_action('wp_footer');		
 	}
 	function customize_controls_print_scripts() {
 		do_action('admin_enqueue_scripts');
@@ -127,7 +121,7 @@ class Email_Newsletter_Builder  {
 		$themes = wp_get_themes();
 		
 		foreach($themes as $key => $theme) {
-			if($theme->theme_root != $this->template_directory && $theme->theme_root != $this->template_custom_directory )
+			if($theme->theme_root != $email_newsletter->template_directory && $theme->theme_root != $email_newsletter->template_custom_directory )
 				unset($themes[$key]);
 		}
 		?><script type="text/javascript">
@@ -291,7 +285,6 @@ class Email_Newsletter_Builder  {
 			}
 		</style>
 		<?php
-		wp_enqueue_script( 'wp-link' );
 		// We need to call this action for the tinyMCE editor to work properly
 		do_action('admin_print_footer_scripts');
 		do_action('admin_footer');
@@ -603,11 +596,6 @@ class Email_Newsletter_Builder  {
 			'section' => 'builder_preview',
 		) ) );
 		
-		
-		
-		
-		if ( $instance->is_preview() && !is_admin() )
-			add_action( 'wp_footer', array( &$this, 'email_builder_customize_preview'), 21);
 
 		$instance->get_setting('from_name')->transport='postMessage';
 		$instance->get_setting('from_email')->transport='postMessage';
@@ -619,6 +607,7 @@ class Email_Newsletter_Builder  {
 		$instance->get_setting('bg_image')->transport='postMessage';
 		$instance->get_setting('link_color')->transport='postMessage';
 		$instance->get_setting('body_color')->transport='postMessage';
+		$instance->get_setting('email_preview')->transport='postMessage';
 		
 		// Add all the filters we need for all the settings to save and be retreived
 		add_action( 'customize_save_subject', array( &$this, 'save_builder') );
@@ -808,7 +797,6 @@ class Email_Newsletter_Builder  {
 	function email_builder_customize_preview() {
 		$admin_url = admin_url('admin-ajax.php');
 		?><script type="text/javascript">
-			
 			( function( $ ){
 				<?php if( in_array('EMAIL_TITLE',$this->settings)) : ?>
 					wp.customize('email_title',function( value ) {
@@ -886,6 +874,9 @@ class Email_Newsletter_Builder  {
 	public function prepare_preview($content = '', $ajax = false) {
 		global $email_newsletter;
 
+        register_theme_directory($email_newsletter->template_custom_directory);
+        register_theme_directory($email_newsletter->template_directory);
+
 		$content = stripcslashes($content);
 		
 		// Fix the LINK_COLORtracker image from showing up in the preview
@@ -896,7 +887,7 @@ class Email_Newsletter_Builder  {
 		$content = str_replace( "{DATE}", date($date_format), $content );
 		
 		if($ajax == true) {
-			$content = apply_filters('the_content',$content);
+			$content = apply_filters('email_newsletter_make_email_content', $content);
 			
 			$themedata = $this->find_builder_theme();
 			$content = $email_newsletter->do_inline_styles($themedata, $content);
@@ -909,12 +900,6 @@ class Email_Newsletter_Builder  {
 		}
 			
 		return $content;
-	}
-	public function print_preview_head() {
-		do_action('builder_head');
-	}
-	function print_preview_footer() {
-		do_action('wp_footer');
 	}
 	
 	public function enable_customizer() {
@@ -929,7 +914,7 @@ class Email_Newsletter_Builder  {
 		    <head>
 		        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		        <title>Newsletter</title>
-		        <?php $this->print_preview_head(); ?>
+		        <?php do_action('builder_head'); ?>
 		    </head>
 		    <body marginheight="0" topmargin="0" marginwidth="0" leftmargin="0">
 			<?php
@@ -940,7 +925,7 @@ class Email_Newsletter_Builder  {
 			$content = $this->prepare_preview($content);
 			echo $content;
 			
-			$this->print_preview_footer(); 
+			do_action('builder_footer');
 			
 			?>
 		    </body>

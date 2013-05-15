@@ -129,11 +129,11 @@
                      <?php echo $one_sent['count_opened']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
                 <td style="width: 280px;">
-                    <a href="<?php $email_builder->generate_builder_link($one_sent['newsletter_id']); ?>">
-                        <input class="button button-secondary" type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
-                    </a>
                     <a href="?page=newsletters-dashboard&newsletter_action=delete_newsletter&newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
                         <input class="button button-secondary" type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" />
+                    </a>
+                    <a href="<?php echo $email_builder->generate_builder_link($one_sent['newsletter_id']); ?>">
+                        <input class="button button-secondary" type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
                     </a>
                     <a href="?page=newsletters-dashboard&newsletter_action=send_newsletter&newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
                         <input class="button button-primary" type="button" value="<?php _e( 'Send', 'email-newsletter' ) ?>" />
