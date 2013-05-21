@@ -100,8 +100,8 @@ class Email_Newsletter_Builder  {
 		add_action( 'builder_footer', array( &$this, 'construct_builder_footer' ) );
 		add_action( 'builder_footer', array( $wp_customize, 'customize_preview_settings' ), 20 );
 		add_action( 'builder_footer', array( &$this, 'email_builder_customize_preview'), 21);
-		add_action( 'customize_controls_print_scripts', array( $this, 'customize_controls_print_scripts') );
-		add_action( 'customize_controls_print_footer_scripts', array( $this, 'customize_controls_print_footer_scripts'), 20 );
+		add_action( 'customize_controls_print_scripts', array( &$this, 'customize_controls_print_scripts') );
+		add_action( 'customize_controls_print_footer_scripts', array( &$this, 'customize_controls_print_footer_scripts'), 20 );
 	}
 	function construct_builder_head() {
 		do_action('admin_head');
@@ -367,7 +367,6 @@ class Email_Newsletter_Builder  {
 		// Load our extra control classes
 		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.tinymce-control.php');
 		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.textarea-control.php');
-		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.multiadd-control.php');
 		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.hidden-control.php');
 		require_once($email_newsletter->plugin_dir . 'email-newsletter-files/builder/class.preview-control.php');
 		
@@ -601,6 +600,7 @@ class Email_Newsletter_Builder  {
 		$instance->get_setting('from_email')->transport='postMessage';
 		$instance->get_setting('bounce_email')->transport='postMessage';
 		$instance->get_setting('email_subject')->transport='postMessage';
+		$instance->get_setting('email_title')->transport='postMessage';
 		$instance->get_setting('contact_info')->transport='postMessage';
 		$instance->get_setting('email_content')->transport='postMessage';
 		$instance->get_setting('bg_color')->transport='postMessage';
@@ -611,6 +611,7 @@ class Email_Newsletter_Builder  {
 		
 		// Add all the filters we need for all the settings to save and be retreived
 		add_action( 'customize_save_subject', array( &$this, 'save_builder') );
+
 		add_filter( 'customize_value_subject', array( &$this, 'get_builder_subject') );
 		add_filter( 'customize_value_from_name', array( &$this, 'get_builder_from_name') );
 		add_filter( 'customize_value_from_email', array( &$this, 'get_builder_from_email') );
@@ -622,7 +623,6 @@ class Email_Newsletter_Builder  {
 		add_filter( 'customize_value_link_color', array( &$this, 'get_builder_link_color') );
 		add_filter( 'customize_value_body_color', array( &$this, 'get_builder_body_color') );
 		add_filter( 'customize_value_bg_image', array( &$this, 'get_builder_bg_image') );
-		
 	}
 
 	function save_builder($new_values = false) {
@@ -719,7 +719,7 @@ class Email_Newsletter_Builder  {
 		global $builder_id, $email_newsletter;
 		
 		$email_title = $email_newsletter->get_newsletter_meta($builder_id,'email_title');
-		if(!empty($email_title))
+		if(isset($email_title) && $email_title !== false )
 			return $email_title;
 		else
 			return $default;
@@ -743,9 +743,6 @@ class Email_Newsletter_Builder  {
 		else
 			return $bg_image;
 	}
-	
-	
-	
 	function get_builder_contact_info($default) {
 		global $builder_id, $email_newsletter;
 		
@@ -801,7 +798,7 @@ class Email_Newsletter_Builder  {
 				<?php if( in_array('EMAIL_TITLE',$this->settings)) : ?>
 					wp.customize('email_title',function( value ) {
 						value.bind(function(to) {
-							$('[data-builder="email_title"]').text( to ? to : '' );
+							$('[data-builder="email_title"]').html( to ? to : '' );
 						});
 					});
 				<?php endif; ?>
@@ -821,17 +818,17 @@ class Email_Newsletter_Builder  {
 				});
 				wp.customize('from_name',function( value ) {
 					value.bind(function(to) {
-						$('[data-builder="from_name"]').text( to ? to : '' );
+						$('[data-builder="from_name"]').html( to ? to : '' );
 					});
 				});
 				wp.customize('from_email',function( value ) {
 					value.bind(function(to) {
-						$('[data-builder="from_email"]').text( to ? to : '' );
+						$('[data-builder="from_email"]').html( to ? to : '' );
 					});
 				});
 				wp.customize('contact_info',function( value ) {
 					value.bind(function(to) {
-						$('[data-builder="contact_info"]').text( to ? to : '' );
+						$('[data-builder="contact_info"]').html( to ? to : '' );
 					});
 				});
 				<?php if( in_array('BG_COLOR',$this->settings)) : ?>
@@ -921,7 +918,6 @@ class Email_Newsletter_Builder  {
 			
 			$email_data = $email_newsletter->get_newsletter_data($this->ID);
 			$content = $email_newsletter->make_email_body($this->ID);
-			
 			$content = $this->prepare_preview($content);
 			echo $content;
 			

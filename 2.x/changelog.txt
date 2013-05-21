@@ -5,8 +5,15 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.0.1 =
+* Fixed support for HTML elements in various builder fields
+* Fixed Email title not being saved correctly
+* Fixed Multisite migration from 1.25 to 2.0 causing newsletter meta data to not save
+* Fixed uninstall not deleting meta table
+* Added proper plugin description
+
 = 2.0 =
-* New E-Mail template builder - ! Please keep in mind that new version requires modifications to your custom email templates)
+* New E-Mail template builder - ! Please keep in mind that new version requires modifications to your custom email templates
 * SMTP settings page has been improved
 * SMTP SSL/TLS and Port option now separated - ! Please double check your sending settings
 * POP3 bounce password now properly encrypted

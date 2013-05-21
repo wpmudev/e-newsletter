@@ -52,7 +52,7 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 				window.builder_check_sidebar = function() {
 					var sectionClicked = jQuery(this).attr('id');
 					if( sectionClicked == 'customize-section-builder_email_content' && jQuery(this).hasClass('open')) {
-						jQuery('.wp-full-overlay.expanded').addClass('wider')
+						jQuery('.wp-full-overlay.expanded').addClass('wider');
 					} else {
 						jQuery('.wp-full-overlay.expanded').removeClass('wider');
 					}

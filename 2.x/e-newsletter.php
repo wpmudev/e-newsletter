@@ -2,8 +2,8 @@
 /*
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
-Description: E-Newsletter
-Version: 2.0
+Description: The ultimate WordPress email newsletter plugin for WordPress
+Version: 2.0.1
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -54,7 +54,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2;
+        $this->plugin_ver = 2.01;
 
         //checking for MultiSite
         if ( 1 < $wpdb->blogid )
@@ -253,10 +253,17 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		}
 
         //check if upgrade is necessary
-        $prev = get_option('email_newsletter_version', 1.25);
+        if(function_exists('is_multisite' ) && is_multisite() && isset($_GET['networkwide']) && $_GET['networkwide'] == 1)
+            $prev = get_site_option('email_newsletter_version', 2);
+        else
+            $prev = get_option('email_newsletter_version', 1.25);
+
         if ($this->plugin_ver > $prev) {
-            update_option('email_newsletter_version', $this->plugin_ver);
-            // First time upgrade.  1.3.1 -> 2.0
+            if(function_exists('is_multisite' ) && is_multisite() && isset($_GET['networkwide']) && $_GET['networkwide'] == 1)
+                update_site_option('email_newsletter_version', $this->plugin_ver);
+            else
+                update_option('email_newsletter_version', $this->plugin_ver);
+
             $this->upgrade();
         }
 	}
@@ -1610,7 +1617,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		$body_color = $this->get_newsletter_meta($newsletter_id,'body_color', $this->get_default_builder_var('body_color'));
 		$body_color = apply_filters('email_newsletter_make_email_body_color',$body_color,$newsletter_id);
 		$contents = str_replace( "{BODY_COLOR}", $body_color, $contents);
-		
+        
 		return apply_filters('email_newsletter_make_email_body', $contents, $newsletter_id);
     }
 

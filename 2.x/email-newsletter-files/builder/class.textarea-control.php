@@ -10,7 +10,6 @@ class Builder_TextArea_Control extends WP_Customize_Control {
 		?>
 		<label><span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span></label>
 		<textarea rows="5" style="width:100%;" <?php $this->link(); ?>><?php echo esc_textarea( $this->value() ); ?></textarea>
-		
 		<?php
 	}
 }

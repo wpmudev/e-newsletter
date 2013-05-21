@@ -16,7 +16,7 @@ class Email_Newsletter_functions {
 				$return = (defined('BUILDER_DEFAULT_LINK_COLOR') ? BUILDER_DEFAULT_LINK_COLOR : '' );
 				break;
 			case 'email_title':
-				$return = (defined('BUILDER_DEFAULT_EMAIL_TITLE') ? BUILDER_DEFAULT_EMAIL_TITLE : __('Default Email Title','email-newsletter'));
+				$return = (defined('BUILDER_DEFAULT_EMAIL_TITLE') ? BUILDER_DEFAULT_EMAIL_TITLE : '' );
 				break;
 			case 'header_image':
 				$return = (defined('BUILDER_DEFAULT_HEADER_IMAGE') ? BUILDER_DEFAULT_HEADER_IMAGE : '' );
@@ -1381,6 +1381,12 @@ class Email_Newsletter_functions {
 
             if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_settings'" ) == "{$tb_prefix}enewsletter_settings" )
                 $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_settings" );
+
+            //added in 2.0
+            if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_meta'" ) == "{$tb_prefix}enewsletter_meta" )
+                $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_meta" );
+
+            delete_option('email_newsletter_version');
 
         }
 		
