@@ -1333,7 +1333,7 @@ class Email_Newsletter_functions {
     function uninstall( $blog_id = '' ) {
         global $wpdb;
 
-        if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id  && $_GET['networkwide'] == 1 ) {
+        if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id  && isset($_GET['networkwide']) && $_GET['networkwide'] == 1 ) {
                 $blogids = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
         } else {
             if ( 0 !== $blog_id )
