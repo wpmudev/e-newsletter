@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.0.1
+Version: 2.0.2
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -54,7 +54,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.01;
+        $this->plugin_ver = 2.02;
 
         //checking for MultiSite
         if ( 1 < $wpdb->blogid )
@@ -134,6 +134,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		
 		add_action('plugins_loaded',array(&$this,'import_wpmu_plugins'));
 		add_action('plugins_loaded',array(&$this,'set_current_user'));
+        add_action('plugins_loaded',array(&$this,'upgrade_check'));
 
         add_action( 'admin_init', array( &$this, 'admin_init' ) );
 		add_action( 'admin_enqueue_scripts', array(&$this,'admin_enqueue_scripts'));
@@ -251,21 +252,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
 			if ( wp_next_scheduled( $this->cron_send_name ) )
 				wp_clear_scheduled_hook( $this->cron_send_name );
 		}
-
-        //check if upgrade is necessary
-        if(function_exists('is_multisite' ) && is_multisite() && isset($_GET['networkwide']) && $_GET['networkwide'] == 1)
-            $prev = get_site_option('email_newsletter_version', 2);
-        else
-            $prev = get_option('email_newsletter_version', 1.25);
-
-        if ($this->plugin_ver > $prev) {
-            if(function_exists('is_multisite' ) && is_multisite() && isset($_GET['networkwide']) && $_GET['networkwide'] == 1)
-                update_site_option('email_newsletter_version', $this->plugin_ver);
-            else
-                update_option('email_newsletter_version', $this->plugin_ver);
-
-            $this->upgrade();
-        }
 	}
 	
     /**
@@ -279,6 +265,28 @@ class Email_Newsletter extends Email_Newsletter_functions {
 			wp_clear_scheduled_hook( $this->cron_bounce_name .'_1' );
 		if ( wp_next_scheduled( $this->cron_bounce_name .'_2' ) )
 			wp_clear_scheduled_hook( $this->cron_bounce_name .'_2' );				
+    }
+
+    /**
+     * Do the stuff on upgrade
+     *
+     */
+    function upgrade_check() {
+        //check if upgrade is necessary
+        if(function_exists('is_multisite' ) && is_multisite())
+            $prev = get_site_option('email_newsletter_version', 2);
+        else
+            $prev = get_option('email_newsletter_version', 1.25);
+
+        if ($this->plugin_ver > $prev) {
+            if(function_exists('is_multisite' ) && is_multisite())
+                update_site_option('email_newsletter_version', $this->plugin_ver);
+            else
+                update_option('email_newsletter_version', $this->plugin_ver);
+
+            if($prev < 2.01)
+                $this->upgrade();
+        }               
     }
 
     /**

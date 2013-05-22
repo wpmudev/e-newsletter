@@ -5,6 +5,9 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.0.2 =
+* Improved upgrade behavior
+
 = 2.0.1 =
 * Fixed support for HTML elements in various builder fields
 * Fixed Email title not being saved correctly
