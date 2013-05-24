@@ -246,7 +246,7 @@
             <thead>
                 <tr>
                     <th>
-                        <?php _e( 'Start Date', 'email-newsletter' ) ?>
+                        <?php _e( 'Start Date (UTC)', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Waiting send (manualy)', 'email-newsletter' ) ?>

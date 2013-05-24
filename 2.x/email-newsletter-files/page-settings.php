@@ -84,12 +84,12 @@
 
             //Test connection to bounces email
             $( "#test_bounce_conn" ).click( function() {
-                var bounce_email    = $( "#bounce_email" ).val();
-                var bounce_host     = $( "#bounce_host" ).val();
-                var bounce_port     = $( "#bounce_port" ).val();
-                var bounce_username = $( "#bounce_username" ).val();
-                var bounce_password = $( "#bounce_password" ).val();
-				var bounce_security = $( "#bounce_security" ).val();
+                var bounce_email    = encodeURIComponent($( "#bounce_email" ).val());
+                var bounce_host     = encodeURIComponent($( "#bounce_host" ).val());
+                var bounce_port     = encodeURIComponent($( "#bounce_port" ).val());
+                var bounce_username = encodeURIComponent($( "#bounce_username" ).val());
+                var bounce_password = encodeURIComponent($( "#bounce_password" ).val());
+				var bounce_security = encodeURIComponent($( "#bounce_security" ).val());
 
                 $( "#test_bounce_loading" ).show();
                 $( "#test_bounce_conn" ).attr( 'disabled', true );

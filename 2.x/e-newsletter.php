@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.0.2
+Version: 2.0.3
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -44,6 +44,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 	var $plugin_templates = array();
 	var $capabilities = array();
 
+    var $debug;
+
     function Email_Newsletter() {
         __construct();
     }
@@ -54,7 +56,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.02;
+        $this->plugin_ver = 2.03;
+
+        //enable or disable debugging
+        $this->debug = 0;
 
         //checking for MultiSite
         if ( 1 < $wpdb->blogid )
@@ -77,6 +82,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $this->template_custom_directory = $this->get_custom_theme_dir();
 		
 		include_once($this->plugin_dir . '/email-newsletter-files/class.wpmudev_dash_notification.php');
+
+        //get all setting of plugin
+        $this->settings = $this->get_settings();
 		
 		// Setup all plugin capabilities
 		$this->capabilities['create_newsletter'] = __('Create Newsletters','email-newsletter');
@@ -98,13 +106,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		$this->capabilities['install_newsletter'] = __('First Time Install','email-newsletter');
 		$this->capabilities['uninstall_newsletter'] = __('Un-Install Blog Data','email-newsletter');
 		
-		$admin_role = get_role('administrator');
-		foreach($this->capabilities as $key => $cap) {
-			if(!isset($admin_role->capabilities[$key]) || $admin_role->capabilities[$key] == false ) {
-				$admin_role->add_cap($key,true);
-			}
-		}
-		
         //Activate/deactivate actions
         register_activation_hook( $this->plugin_dir . 'e-newsletter.php', array( &$this, 'do_activation' ) );
 		register_deactivation_hook( $this->plugin_dir . 'e-newsletter.php', array( &$this, 'do_deactivation' ) );
@@ -112,25 +113,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		//add new rewrite rules
         add_filter( 'rewrite_rules_array', array( &$this, 'insert_rewrite_rules' ) );
         add_filter( 'query_vars', array( &$this, 'insert_query_vars' ) );
-
-        //get all setting of plugin
-        $this->settings = $this->get_settings();
-
-        //Set value for CRON (transition from old version)
-        if ( ! isset( $this->settings['cron_enable'] ) && isset( $this->settings['cron_time'] ) ) {
-            if ( 1 < $this->settings['cron_time'] ) {
-                $result = $wpdb->query( "INSERT INTO {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_enable', `value` = '1'" );
-                if ( 7 >  $this->settings['cron_time'] )
-                    $result = $wpdb->query( "UPDATE {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_time', `value` = '1' WHERE `key` = 'cron_time'" );
-                else
-                    $result = $wpdb->query( "UPDATE {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_time', `value` = '2' WHERE `key` = 'cron_time'" );
-            } else {
-                $result = $wpdb->query( "INSERT INTO {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_enable', `value` = '2'" );
-                if ( wp_next_scheduled( $this->cron_send_name ) )
-                    wp_clear_scheduled_hook( $this->cron_send_name );
-            }
-            $this->settings = $this->get_settings();
-        }
 		
 		add_action('plugins_loaded',array(&$this,'import_wpmu_plugins'));
 		add_action('plugins_loaded',array(&$this,'set_current_user'));
@@ -273,19 +255,44 @@ class Email_Newsletter extends Email_Newsletter_functions {
      */
     function upgrade_check() {
         //check if upgrade is necessary
-        if(function_exists('is_multisite' ) && is_multisite())
+        $this->write_log('network? '.$this->is_plugin_active_for_network(plugin_basename(__FILE__)));
+        if($this->is_plugin_active_for_network(plugin_basename(__FILE__)))
             $prev = get_site_option('email_newsletter_version', 2);
         else
             $prev = get_option('email_newsletter_version', 1.25);
 
         if ($this->plugin_ver > $prev) {
-            if(function_exists('is_multisite' ) && is_multisite())
+            if($this->is_plugin_active_for_network(plugin_basename(__FILE__)))
                 update_site_option('email_newsletter_version', $this->plugin_ver);
             else
                 update_option('email_newsletter_version', $this->plugin_ver);
 
             if($prev < 2.01)
                 $this->upgrade();
+
+            //Set value for CRON (transition from old version)
+            if ( ! isset( $this->settings['cron_enable'] ) && isset( $this->settings['cron_time'] ) ) {
+                if ( 1 < $this->settings['cron_time'] ) {
+                    $result = $wpdb->query( "INSERT INTO {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_enable', `value` = '1'" );
+                    if ( 7 >  $this->settings['cron_time'] )
+                        $result = $wpdb->query( "UPDATE {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_time', `value` = '1' WHERE `key` = 'cron_time'" );
+                    else
+                        $result = $wpdb->query( "UPDATE {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_time', `value` = '2' WHERE `key` = 'cron_time'" );
+                } else {
+                    $result = $wpdb->query( "INSERT INTO {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_enable', `value` = '2'" );
+                    if ( wp_next_scheduled( $this->cron_send_name ) )
+                        wp_clear_scheduled_hook( $this->cron_send_name );
+                }
+                $this->settings = $this->get_settings();
+            }
+
+            //adds cap for admin
+            $admin_role = get_role('administrator');
+            foreach($this->capabilities as $key => $cap) {
+                if(!isset($admin_role->capabilities[$key]) || $admin_role->capabilities[$key] == false ) {
+                    $admin_role->add_cap($key,true);
+                }
+            }
         }               
     }
 
@@ -335,7 +342,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 		
 		// Including CSS file
         if ( isset( $_REQUEST['page'] ) && 1 == $this->is_enewsletter_page( $_REQUEST['page'] ) ) {
-            wp_register_style( 'emailNewsletterStyle', $this->plugin_url . 'email-newsletter-files/email-newsletter.css' );
+            wp_register_style( 'emailNewsletterStyle', $this->plugin_url . 'email-newsletter-files/email-newsletter.css', array(), 2 );
             wp_enqueue_style( 'emailNewsletterStyle' );
         }
 	}
@@ -1033,19 +1040,20 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $groups = $this->get_groups();
          if ( 0 < count( $groups ) ) {
-            $content = __( 'Select groups for this user:', 'email-newsletter' ) . "<br />";
+            $content = '<p>'.__( 'Select groups for this user:', 'email-newsletter' ) . "</p>";
 
+            $content .= "<p>";
             foreach( $groups as $group ){
                 if ( false === array_search ( $group['group_id'], $users_group ) )
                     $checked = '';
                 else
                     $checked = 'checked="checked"';
-                $content .= '<label><input type="checkbox" name="groups_id[]" value="' . $group['group_id'] . '" ' . $checked . ' />' . $group['group_name'] . '</label><br />';
+                $content .= '<label><input type="checkbox" name="groups_id[]" value="' . $group['group_id'] . '" ' . $checked . ' /> ' . $group['group_name'] . '</label><br />';
             }
-            $content .= "<br />";
+            $content .= "</p>";
 
         } else {
-            $content = __( 'Please create some groups.', 'email-newsletter' ) . "<br />";
+            $content = '<p>'.__( 'Please create some groups.', 'email-newsletter' ) . "</p>";
         }
 
         die($content);
@@ -1272,14 +1280,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ( 1 > $wpdb->get_var( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron'") )
             return ;
 
-        //$process_id = time();
+        $process_id = time();
         //writing some information in the plugin log file
-        //$this->write_log( $process_id . " 01 - start" );
+        $this->write_log( $process_id . " 01 - start" );
 
         if ( ! get_option( 'enewsletter_cron_send_run' ) ) {
 
             //writing some information in the plugin log file
-            //$this->write_log( $process_id . " 02 - before enewsletter_cron_send_run 1" );
+            $this->write_log( $process_id . " 02 - before enewsletter_cron_send_run 1" );
 
             //add new column for check limit
             if ( 1 != $wpdb->query( "DESCRIBE {$this->tb_prefix}enewsletter_send_members sent_time" ) ) {
@@ -1289,7 +1297,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             update_option( 'enewsletter_cron_send_run', time() );
 
             //writing some information in the plugin log file
-            //$this->write_log( $process_id . " 03 - set enewsletter_cron_send_run 1" );
+            $this->write_log( $process_id . " 03 - set enewsletter_cron_send_run 1" );
 
 
             if ( 0 < $this->settings['send_limit'] ) {
@@ -1315,20 +1323,19 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     break;
                 }
 
-                //for test (every 2 min )
-             $limit_time_start   = mktime( $hour , $min - 2, 0, $month, $day, $year ) ;
-              $limit_time_end     = mktime( $hour, $min + 1, -1, $month, $day, $year );
+            //for test (every 2 min )
+            $limit_time_start   = mktime( $hour , $min - 2, 0, $month, $day, $year ) ;
+            $limit_time_end     = mktime( $hour, $min + 1, -1, $month, $day, $year );
 
 
                 //writing some information in the plugin log file
-                //$this->write_log( $process_id . " 04 - cron_time: " . $this->settings['cron_time'] . "  limit_time_start:" . $limit_time_start . "  limit_time_end:" . $limit_time_end );
+                $this->write_log( $process_id . " 04 - cron_time: " . $this->settings['cron_time'] . "  limit_time_start:" . $limit_time_start . "  limit_time_end:" . $limit_time_end );
 
                 $current_count_sent = $wpdb->get_var( $wpdb->prepare( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE sent_time  BETWEEN %d AND %d", $limit_time_start, $limit_time_end ) );
+                
+                //writing some information in the plugin log file
+                $this->write_log( $process_id . " 05 - current_count_sent: " . $current_count_sent  . "  send_limit:" . $this->settings['send_limit'] );            
             }
-
-
-            //writing some information in the plugin log file
-            //$this->write_log( $process_id . " 05 - current_count_sent: " . $current_count_sent  . "  send_limit:" . $this->settings['send_limit'] );
 
 
             if ( ! isset( $current_count_sent ) || $current_count_sent < $this->settings['send_limit'] ) {
@@ -1336,12 +1343,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $send_limit = 'LIMIT 0, 500';
 
                 //writing some information in the plugin log file
-                //$this->write_log( $process_id . " 06 - NOT LIMIT YET" );
+                $this->write_log( $process_id . " 06 - NOT LIMIT YET" );
 
                 $send_members = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron' " . $send_limit , "ARRAY_A");
 
                 //writing some information in the plugin log file
-                //$this->write_log( $process_id . " 07 - send_members:" . $send_members );
+                $this->write_log( $process_id . " 07 - send_members:" . count($send_members) );
 
                 if ( ! $send_members ) {
                     delete_option( 'enewsletter_cron_send_run' );
@@ -1405,7 +1412,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 					//Replace some content inside the email body
 					$wp_user = ($member_data['wp_user_id'] == 0 ? false : get_user_by('id', $member_data['wp_user_id']));
 					$contents = str_replace( "{USER_NAME}", (is_a($wp_user,'WP_User') ? $wp_user->user_login : ''), $contents );
-					$contents = str_replace( "{OPENED_TRACKER}", '<img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_data['member_id']) . '" width="1" height="1" style="display:none;" />', $contents );
+					$contents = str_replace( "{OPENED_TRACKER}", '<img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_member['send_id'] . '&member_id=' . $member_data['member_id']) . '" width="1" height="1" style="display:none;" />', $contents );
 					$contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", site_url('/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/'), $contents );
 
 
@@ -1419,27 +1426,32 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                     $mail->XMailer = 'Newsletters-' . $send_member['member_id'] . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_member['send_id'] );
 
-					$mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );            
+					$mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_member['send_id'] );            
 					
 					$mail->Sender = $newsletter_data['bounce_email'];
-					
-					if( ! $mail->Send() ) {
+
+                    if( empty($member_data["member_email"]) ) {
+                        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced' WHERE send_id = %d AND member_id = %d", $send_member['send_id'], $send_member['member_id'] ) );
+                        
+                        $this->write_log( $process_id . " 08 - send_errors:" . " no_email" );
+                    }					
+					elseif( ! $mail->Send() ) {
                         //return "Mailer Error: " . $mail->ErrorInfo;
                         //return 'error';
 
                         //writing some information in the plugin log file
-                        //$this->write_log( $process_id . " 08 - send_errors:" . $mail->ErrorInfo );
-
+                        $this->write_log( $process_id . " 08 - send_errors:" . $mail->ErrorInfo );
                     } else {
                         //write info of Sent in DB
                         $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent', sent_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_member['send_id'], $send_member['member_id'] ) );
 
                         //writing some information in the plugin log file
-                        //$this->write_log( $process_id . " 09 - send OK" );
+                        $this->write_log( $process_id . " 09 - send OK" );
 
                         if ( ++$current_count_sent == $this->settings['send_limit'] ) {
                             //writing some information in the plugin log file
-                            //$this->write_log( $process_id . " 10 - STOP - LIMIT" );
+                            $this->write_log( $process_id . " 10 - STOP - LIMIT" );
+
                             delete_option( 'enewsletter_cron_send_run' );
                             die(2);
                         }
@@ -1460,13 +1472,13 @@ class Email_Newsletter extends Email_Newsletter_functions {
             }
         } elseif ( get_option( 'enewsletter_cron_send_run' ) < time() - 3*60 ) {
             //writing some information in the plugin log file
-            //$this->write_log( $process_id . " 11 - CRON works more 3 min - restart CRON" );
+            $this->write_log( $process_id . " 11 - CRON works more 3 min - restart CRON" );
 
             delete_option( 'enewsletter_cron_send_run' );
             die(3);
         }
         //writing some information in the plugin log file
-        //$this->write_log( $process_id . " 12 - END" );
+        $this->write_log( $process_id . " 12 - END" );
 
         die(4);
     }

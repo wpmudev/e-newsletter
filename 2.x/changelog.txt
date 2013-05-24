@@ -5,6 +5,12 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.0.3 =
+* More improvements for upgrade behavior
+* Easier debugging for cron and bounce
+* Live bounce settings testing improved
+* Other small improvements
+
 = 2.0.2 =
 * Improved upgrade behavior
 

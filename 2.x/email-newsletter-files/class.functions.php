@@ -359,16 +359,20 @@ class Email_Newsletter_functions {
         $mbox = imap_open ( '{'.$email_host.':'.$email_port.'/pop3/notls'.$email_security.'}INBOX', $email_username, $email_password ) or die( imap_last_error() );
 
         if( ! $mbox ) {
+            $this->write_log('bounce: error cant connect');
             return 'Error: Failed to connect when checking bounces!';
         } else {
+            $this->write_log('bounce: connected to check bounce');
+
             $MC     = imap_check( $mbox );
             $mails  = imap_fetch_overview( $mbox, "1:{$MC->Nmsgs}", 0 );
 
             foreach ( $mails as $mail ) {
                 $body = imap_body ( $mbox, $mail->msgno );
 
+                $this->write_log('bounce: checked email');
+
                 if( preg_match( '/X-Mailer:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) || preg_match( '/Message-ID:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ) {
-					//$this->write_log('bounce:'.$member_id);
 
                     $member_id      = ( int ) $matches[1];
                     $send_id        = ( int ) $matches[2];
@@ -382,6 +386,8 @@ class Email_Newsletter_functions {
                     } else {
                         echo 'Error: hash';
                     }
+
+                    $this->write_log('bounce: found bounce:'.$member_id);
                 }
             }
             imap_expunge( $mbox );
@@ -1288,7 +1294,7 @@ class Email_Newsletter_functions {
 	function upgrade( $blog_id = '' ) {
 		global $wpdb;
 		
-		if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id  && isset($_GET['networkwide']) && $_GET['networkwide'] == 1 ) {
+		if ( $this->is_plugin_active_for_network(plugin_basename(__FILE__)) ) {
                 $blogids = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
         } else {
             if ( 0 !== $blog_id )
@@ -1402,7 +1408,10 @@ class Email_Newsletter_functions {
      * Write log for CRON
      **/
     function write_log( $message ) {
-        $file = $this->plugin_dir . "email-newsletter-files/cron_log.log";
+        if(!$this->debug)
+            break;
+
+        $file = $this->plugin_dir . "email-newsletter-files/debug.log";
 
         $handle = fopen( $file, 'ab' );
         $data = date( "[Y-m-d H:i:s]" ) . $message . "\r\n";
@@ -1469,6 +1478,20 @@ class Email_Newsletter_functions {
 		} 
 		rmdir($src);
 		closedir($dir); 
+    }
+
+    /**
+     * Check if network active
+     **/
+    function is_plugin_active_for_network( $plugin ) {
+        if ( !is_multisite() )
+            return false;
+
+        $plugins = get_site_option( 'active_sitewide_plugins');
+        if ( isset($plugins[$plugin]) )
+            return true;
+
+        return false;
     }
 
     /**
