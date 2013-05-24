@@ -1409,7 +1409,7 @@ class Email_Newsletter_functions {
      **/
     function write_log( $message ) {
         if(!$this->debug)
-            break;
+            return false;
 
         $file = $this->plugin_dir . "email-newsletter-files/debug.log";
 
