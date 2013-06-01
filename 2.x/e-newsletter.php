@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.0.3
+Version: 2.0.4
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -40,9 +40,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
     var $settings;
     var $tb_prefix;
     var $cron_send_name;
-	var $cron_bounce_name;
-	var $plugin_templates = array();
-	var $capabilities = array();
+    var $cron_bounce_name;
+    var $plugin_templates = array();
+    var $capabilities = array();
 
     var $debug;
 
@@ -56,7 +56,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.03;
+        $this->plugin_ver = 2.04;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -69,57 +69,57 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         //set cron names
         $this->cron_send_name = 'e_newsletter_cron_send_' . $wpdb->blogid;
-		$this->cron_bounce_name = 'e_newsletter_cron_check_bounces_' . $wpdb->blogid;
+        $this->cron_bounce_name = 'e_newsletter_cron_check_bounces_' . $wpdb->blogid;
 
         //setup proper directories
-		$this->plugin_dir = plugin_dir_path( __FILE__ );
-		$this->plugin_url = plugins_url( '/', __FILE__ );
-		if(!isset($this->plugin_dir) || !isset($this->plugin_url))
+        $this->plugin_dir = plugin_dir_path( __FILE__ );
+        $this->plugin_url = plugins_url( '/', __FILE__ );
+        if(!isset($this->plugin_dir) || !isset($this->plugin_url))
             wp_die( __('There was an issue determining plugin path or url', 'email-newsletter' ) );
 
         //templates directories
         $this->template_directory = $this->plugin_dir . 'email-newsletter-files/templates';
         $this->template_custom_directory = $this->get_custom_theme_dir();
-		
-		include_once($this->plugin_dir . '/email-newsletter-files/class.wpmudev_dash_notification.php');
+        
+        include_once($this->plugin_dir . '/email-newsletter-files/class.wpmudev_dash_notification.php');
 
         //get all setting of plugin
         $this->settings = $this->get_settings();
-		
-		// Setup all plugin capabilities
-		$this->capabilities['create_newsletter'] = __('Create Newsletters','email-newsletter');
-		$this->capabilities['save_newsletter'] = __('Edit Newsletters','email-newsletter');
-		$this->capabilities['send_newsletter'] = __('Send Newsletters','email-newsletter');
-		$this->capabilities['delete_newsletter'] = __('Delete Newsletters','email-newsletter');
-		$this->capabilities['create_newsletter_group'] = __('Create Newsletter Groups','email-newsletter');
-		$this->capabilities['edit_newsletter_group'] = __('Edit Newsletter Groups','email-newsletter');
-		$this->capabilities['delete_newsletter_group'] = __('Delete Newsletter Groups','email-newsletter');
-		$this->capabilities['change_newsletter_group'] = __('Change Newsletter Groups','email-newsletter');
-		$this->capabilities['view_newsletter_members'] = __('View Newsletter Members','email-newsletter');
-		$this->capabilities['add_newsletter_member'] = __('Add Newsletter Members','email-newsletter');
-		$this->capabilities['delete_newsletter_member'] = __('Delete Newsletter Members','email-newsletter');
-		$this->capabilities['add_members_group'] = __('Add Members To Group','email-newsletter');
-		$this->capabilities['delete_members_group'] = __('Delete Members From Group','email-newsletter');
-		$this->capabilities['save_newsletter_settings'] = __('Save Blog Settings','email-newsletter');
-		$this->capabilities['view_newsletter_dashboard'] = __('View Dashboard Page','email-newsletter');
-		$this->capabilities['import_newsletter_members'] = __('Import Members','email-newsletter');
-		$this->capabilities['install_newsletter'] = __('First Time Install','email-newsletter');
-		$this->capabilities['uninstall_newsletter'] = __('Un-Install Blog Data','email-newsletter');
-		
+        
+        // Setup all plugin capabilities
+        $this->capabilities['create_newsletter'] = __('Create Newsletters','email-newsletter');
+        $this->capabilities['save_newsletter'] = __('Edit Newsletters','email-newsletter');
+        $this->capabilities['send_newsletter'] = __('Send Newsletters','email-newsletter');
+        $this->capabilities['delete_newsletter'] = __('Delete Newsletters','email-newsletter');
+        $this->capabilities['create_newsletter_group'] = __('Create Newsletter Groups','email-newsletter');
+        $this->capabilities['edit_newsletter_group'] = __('Edit Newsletter Groups','email-newsletter');
+        $this->capabilities['delete_newsletter_group'] = __('Delete Newsletter Groups','email-newsletter');
+        $this->capabilities['change_newsletter_group'] = __('Change Newsletter Groups','email-newsletter');
+        $this->capabilities['view_newsletter_members'] = __('View Newsletter Members','email-newsletter');
+        $this->capabilities['add_newsletter_member'] = __('Add Newsletter Members','email-newsletter');
+        $this->capabilities['delete_newsletter_member'] = __('Delete Newsletter Members','email-newsletter');
+        $this->capabilities['add_members_group'] = __('Add Members To Group','email-newsletter');
+        $this->capabilities['delete_members_group'] = __('Delete Members From Group','email-newsletter');
+        $this->capabilities['save_newsletter_settings'] = __('Save Newsletter Settings','email-newsletter');
+        $this->capabilities['view_newsletter_dashboard'] = __('View Dashboard Page','email-newsletter');
+        $this->capabilities['import_newsletter_members'] = __('Import Members','email-newsletter');
+        $this->capabilities['install_newsletter'] = __('First Time Install','email-newsletter');
+        $this->capabilities['uninstall_newsletter'] = __('Un-Install Newsletter Data','email-newsletter');
+        
         //Activate/deactivate actions
         register_activation_hook( $this->plugin_dir . 'e-newsletter.php', array( &$this, 'do_activation' ) );
-		register_deactivation_hook( $this->plugin_dir . 'e-newsletter.php', array( &$this, 'do_deactivation' ) );
-		
-		//add new rewrite rules
+        register_deactivation_hook( $this->plugin_dir . 'e-newsletter.php', array( &$this, 'do_deactivation' ) );
+        
+        //add new rewrite rules
         add_filter( 'rewrite_rules_array', array( &$this, 'insert_rewrite_rules' ) );
         add_filter( 'query_vars', array( &$this, 'insert_query_vars' ) );
-		
-		add_action('plugins_loaded',array(&$this,'import_wpmu_plugins'));
-		add_action('plugins_loaded',array(&$this,'set_current_user'));
+        
+        add_action('plugins_loaded',array(&$this,'import_wpmu_plugins'));
+        add_action('admin_init',array(&$this,'set_current_user'));
         add_action('plugins_loaded',array(&$this,'upgrade_check'));
 
         add_action( 'admin_init', array( &$this, 'admin_init' ) );
-		add_action( 'admin_enqueue_scripts', array(&$this,'admin_enqueue_scripts'));
+        add_action( 'admin_enqueue_scripts', array(&$this,'admin_enqueue_scripts'));
 
         // filter schedules
         add_filter( 'cron_schedules', array( &$this, 'add_new_cron_time' ) );
@@ -127,24 +127,22 @@ class Email_Newsletter extends Email_Newsletter_functions {
         // filter does shortcodes
         add_filter('email_newsletter_make_email_content', 'do_shortcode', 11);
 
-        add_action( 'init', array( &$this, 'init' ) );	
+        add_action( 'init', array( &$this, 'init' ) );  
 
         //some actions for MultiSite
         if ( function_exists( 'is_multisite' ) && is_multisite() ) {
-			add_action( 'wpmu_activate_user', array( &$this, 'user_create' ) );
+            add_action( 'wpmu_activate_user', array( &$this, 'user_create' ) );
             add_action( 'added_existing_user', array( &$this, 'user_create' ) );
             add_action( 'remove_user_from_blog', array( &$this, 'user_remove_from_site' ) );
             add_action( 'wpmu_delete_user', array( &$this, 'user_delete' ) );
             add_action( 'delete_blog', array( &$this, 'uninstall' ) );
-			//Coming Soon
-			add_action( 'network_admin_menu', array( &$this, 'admin_page' ) );
-			add_action( 'network_admin_menu', array( &$this, 'network_admin_menu' ) );
+            add_action( 'network_admin_menu', array( &$this, 'admin_page' ) );
         }
-		else {
-			//changing list of members when we create or delete user of the standard site
-			add_action( 'user_register', array( &$this, 'user_create' ) );
-			add_action( 'delete_user', array( &$this, 'user_delete' ) );			
-		}
+        else {
+            //changing list of members when we create or delete user of the standard site
+            add_action( 'user_register', array( &$this, 'user_create' ) );
+            add_action( 'delete_user', array( &$this, 'user_delete' ) );            
+        }
 
         //creating menu of the plugin
         add_action( 'admin_menu', array( &$this, 'admin_page' ) );
@@ -193,16 +191,16 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'wp_ajax_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax' ));
         add_action( 'wp_ajax_nopriv_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax'));
     }
-	
+    
     /**
      * Sets current user
      *
      * @return void
      */
     function set_current_user() {
-		global $current_user;
-		
-		get_currentuserinfo();
+        global $current_user;
+        
+        get_currentuserinfo();
     }
 
     /**
@@ -210,43 +208,43 @@ class Email_Newsletter extends Email_Newsletter_functions {
      *
      */
     function do_activation() {
-		global $email_builder;
-		
-		//Update rewrite_rules
+        global $email_builder;
+        
+        //Update rewrite_rules
         flush_rewrite_rules( false );
-		
-		//create folder for custom themes
-		$custom_theme_dir = $this->get_custom_theme_dir();
-		
-		if (!is_dir($custom_theme_dir)) {
-			mkdir($custom_theme_dir);
-		}
-		
-		//sets up cron
-		$settings = $this->get_settings();
+        
+        //create folder for custom themes
+        $custom_theme_dir = $this->get_custom_theme_dir();
+        
+        if (!is_dir($custom_theme_dir)) {
+            mkdir($custom_theme_dir);
+        }
+        
+        //sets up cron
+        $settings = $this->get_settings();
         if ( 1 == $settings['cron_enable'] ) {
-			if ( wp_next_scheduled( $this->cron_send_name ) )
-				wp_clear_scheduled_hook( $this->cron_send_name );
-				
+            if ( wp_next_scheduled( $this->cron_send_name ) )
+                wp_clear_scheduled_hook( $this->cron_send_name );
+                
             wp_schedule_event( time(), '2mins', $this->cron_send_name );
         }
-		else {
-			if ( wp_next_scheduled( $this->cron_send_name ) )
-				wp_clear_scheduled_hook( $this->cron_send_name );
-		}
-	}
-	
+        else {
+            if ( wp_next_scheduled( $this->cron_send_name ) )
+                wp_clear_scheduled_hook( $this->cron_send_name );
+        }
+    }
+    
     /**
      * Do the stuff on deactivation
      *
      */
     function do_deactivation() {
-		if ( wp_next_scheduled( $this->cron_send_name ) )
-			wp_clear_scheduled_hook( $this->cron_send_name );
-		if ( wp_next_scheduled( $this->cron_bounce_name .'_1' ) )
-			wp_clear_scheduled_hook( $this->cron_bounce_name .'_1' );
-		if ( wp_next_scheduled( $this->cron_bounce_name .'_2' ) )
-			wp_clear_scheduled_hook( $this->cron_bounce_name .'_2' );				
+        if ( wp_next_scheduled( $this->cron_send_name ) )
+            wp_clear_scheduled_hook( $this->cron_send_name );
+        if ( wp_next_scheduled( $this->cron_bounce_name .'_1' ) )
+            wp_clear_scheduled_hook( $this->cron_bounce_name .'_1' );
+        if ( wp_next_scheduled( $this->cron_bounce_name .'_2' ) )
+            wp_clear_scheduled_hook( $this->cron_bounce_name .'_2' );               
     }
 
     /**
@@ -255,7 +253,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
      */
     function upgrade_check() {
         //check if upgrade is necessary
-        $this->write_log('network? '.$this->is_plugin_active_for_network(plugin_basename(__FILE__)));
         if($this->is_plugin_active_for_network(plugin_basename(__FILE__)))
             $prev = get_site_option('email_newsletter_version', 2);
         else
@@ -318,8 +315,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         array_push( $vars, 'view_newsletter_send_id' );
         return $vars;
     }
-	function admin_enqueue_scripts($hook) {
-		 //including JS scripts for Newsletter pages
+    function admin_enqueue_scripts($hook) {
+         //including JS scripts for Newsletter pages
         if ( isset( $_REQUEST['page'] ) && 1 == $this->is_enewsletter_page( $_REQUEST['page'] ) ) {
             wp_enqueue_script( 'jquery' );
 
@@ -339,49 +336,49 @@ class Email_Newsletter extends Email_Newsletter_functions {
             wp_register_script( 'jquery_progressbar', $this->plugin_url . 'email-newsletter-files/js/jquery.ui.progressbar.js' );
             wp_enqueue_script( 'jquery_progressbar' );
         }
-		
-		// Including CSS file
+        
+        // Including CSS file
         if ( isset( $_REQUEST['page'] ) && 1 == $this->is_enewsletter_page( $_REQUEST['page'] ) ) {
             wp_register_style( 'emailNewsletterStyle', $this->plugin_url . 'email-newsletter-files/email-newsletter.css', array(), 2 );
             wp_enqueue_style( 'emailNewsletterStyle' );
         }
-	}
+    }
 
     /**
      * init for admin
      **/
     function admin_init() {
         
-		$mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
-		
+        $mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
+        
         //private actions of the plugin
         if ( isset( $_REQUEST['newsletter_action'] ) ) {
             switch( $_REQUEST[ 'newsletter_action' ] ) {
 
                 //action for save Newsletter
                 case "save_newsletter":
-					if(! (current_user_can('save_newsletter') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-						
+                    if(! (current_user_can('save_newsletter') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                        
                     $this->save_newsletter( $_REQUEST['newsletter_id'], $_REQUEST['page'] );
                 break;
 
                 //action for delete Newsletter
                 case "delete_newsletter":
-					
-					if(! (current_user_can('delete_newsletter') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('delete_newsletter') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $this->delete_newsletter( $_REQUEST['newsletter_id'], $_REQUEST['page'] );
 
                 break;
 
                 //action for create new group
                 case "create_group":
-					
-					if(! (current_user_can('create_newsletter_group') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('create_newsletter_group') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $edit_public = ( isset( $_REQUEST['public'] ) ) ? '1' : '0';
                     $this->create_group( $_REQUEST['group_name'], $edit_public );
 
@@ -389,75 +386,75 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 //action for edit group
                 case "edit_group":
-					
-					if(! (current_user_can('edit_newsletter_group') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('edit_newsletter_group') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $edit_public = ( isset( $_REQUEST['edit_public'] ) ) ? '1' : '0';
                     $this->create_group( $_REQUEST['edit_group_name'], $edit_public, $_REQUEST['group_id'] );
                 break;
 
                 //action for delete group
                 case "delete_group":
-					
-					if(! (current_user_can('delete_newsletter_group') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('delete_newsletter_group') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $this->delete_group( $_REQUEST['group_id'] );
                 break;
 
                 //action for change group
                 case "change_group":
-					
-					if(! (current_user_can('change_newsletter_group') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('change_newsletter_group') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $groups_id = ( isset( $_REQUEST['groups_id'] ) ) ? $_REQUEST['groups_id'] : NULL;
                     $this->change_group( $_REQUEST['member_id'], $groups_id );
                 break;
 
                 //action add new member
                 case "add_member":
-					
-					if(! (current_user_can('add_newsletter_member') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('add_newsletter_member') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $this->add_member( $_REQUEST['member'] );
                 break;
 
                 //Bulk action delete members
                 case "delete_members":
-					
-					if(! (current_user_can('delete_newsletter_member') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('delete_newsletter_member') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $this->delete_members( $_REQUEST['members_id'] );
                 break;
 
                 //Bulk action add members to group
                 case "add_members_group":
-					
-					if(! (current_user_can('add_members_group') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('add_members_group') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $this->add_members_group( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
                 break;
 
                 //Bulk action add members to group
                 case "delete_members_group":
-					
-					if(! (current_user_can('delete_members_group') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('delete_members_group') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $this->delete_members_group( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
                 break;
 
                 //action save settings
                 case "save_settings":
-					
-					if(! (current_user_can('save_newsletter_settings') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('save_newsletter_settings') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     if( ! isset( $_REQUEST['settings']['double_opt_in'] ) ) {
                         $_REQUEST['settings']['double_opt_in'] = 0;
                     }
@@ -466,10 +463,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 //action send newsletter
                 case "send_newsletter":
-					
-					if(! (current_user_can('send_newsletter') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('send_newsletter') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     if ( isset( $_REQUEST['cron'] ) && 'add_to_cron' == $_REQUEST['cron'] )
                         $this->add_to_cron( $_REQUEST['newsletter_id'], $_REQUEST['send_id'] );
                     else if ( isset( $_REQUEST['action'] ) && 'send' == $_REQUEST["action"] )
@@ -478,19 +475,19 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 //action import members
                 case "import_members":
-					
-					if(! (current_user_can('import_newsletter_members') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('import_newsletter_members') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $this->import_members();
                 break;
 
                 //action install data in DB
                 case "install":
-					
-					if(! (current_user_can('install_newsletter') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('install_newsletter') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $this->install();
                     if( ! isset( $_REQUEST['settings']['double_opt_in'] ) ) {
                         $_REQUEST['settings']['double_opt_in'] = 0;
@@ -500,10 +497,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 //action uninstall data from DB
                 case "uninstall":
-					
-					if(! (current_user_can('uninstall_newsletter') || current_user_can($mu_cap)) )
-						wp_die('You do not have permission to do that');
-					
+                    
+                    if(! (current_user_can('uninstall_newsletter') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
                     $this->uninstall();
                     wp_redirect( add_query_arg( array( 'page' => 'newsletters-settings', 'updated' => 'true', 'dmsg' => urlencode( __( "eNewsletter data are deleted.", 'email-newsletter' ) ) ), 'admin.php' ) );
                     exit;
@@ -512,7 +509,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             }
         }
     }
-	
+    
     /**
      * init for all users
      **/
@@ -521,8 +518,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         //public actions of the plugin
         if ( isset( $_REQUEST['newsletter_action'] ) && !defined('DOING_AJAX') ) {
-			$redirect_to = $_SERVER['HTTP_REFERER'];
-			
+            $redirect_to = $_SERVER['HTTP_REFERER'];
+            
             switch( $_REQUEST['newsletter_action'] ) {
                 //action for save selected groups of subscribe
                 case "save_subscribes":
@@ -541,12 +538,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 //action for Subscribe of public member (not user of site)
                 case "new_subscribe":
-					if(!preg_match("/^[-+\\.0-9=a-z_]+@([-0-9a-z]+\\.)+([0-9a-z]){2,4}$/i", $_REQUEST['e_newsletter_email'])) {
-						$_SESSION['newsletter_widget_status'] = __( 'Please use correct email', 'email-newsletter' );
-						$_SESSION['newsletter_widget_email'] = $_REQUEST['e_newsletter_email'];
-						wp_redirect( $redirect_to );
-						exit;
-					}
+                    if(!preg_match("/^[-+\\.0-9=a-z_]+@([-0-9a-z]+\\.)+([0-9a-z]){2,4}$/i", $_REQUEST['e_newsletter_email'])) {
+                        $_SESSION['newsletter_widget_status'] = __( 'Please use correct email', 'email-newsletter' );
+                        $_SESSION['newsletter_widget_email'] = $_REQUEST['e_newsletter_email'];
+                        wp_redirect( $redirect_to );
+                        exit;
+                    }
 
                     if( isset( $this->settings['double_opt_in'] ) && $this->settings['double_opt_in'] ) {
                         $member_data['double_opt_in'] = 1;
@@ -559,7 +556,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $this->add_member( $member_data, "false", 1 );
                 break;
             }
-		}
+        }
     }
 
     function manage_subscriptions_ajax() {
@@ -613,26 +610,26 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
 
         do_action( 'enewsletter_user_save_subscribe', $member_id, $groups_id );
-		
-		if(!empty($member_id)) {
-			//deleting old list of groups for user
-			$wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
-	
-			//creating new list of groups for user
-			if ( $groups_id )
-				foreach( $groups_id as $group_id )
-					$result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
-		}	
-	
+        
+        if(!empty($member_id)) {
+            //deleting old list of groups for user
+            $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
+    
+            //creating new list of groups for user
+            if ( $groups_id )
+                foreach( $groups_id as $group_id )
+                    $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
+        }   
+    
         if ( "false" != $redirect_to )
-    		if ( "" == $redirect_to ) {
-    			wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'dmsg' => urlencode( __( 'Subscriptions are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
-    			exit;
-    		} else {
-    			$_SESSION['newsletter_widget_status'] = __( 'Subscribes were saved!', 'email-newsletter' );
-    			wp_redirect( $redirect_to );
-    			exit;
-    		}
+            if ( "" == $redirect_to ) {
+                wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'dmsg' => urlencode( __( 'Subscriptions are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
+                exit;
+            } else {
+                $_SESSION['newsletter_widget_status'] = __( 'Subscribes were saved!', 'email-newsletter' );
+                wp_redirect( $redirect_to );
+                exit;
+            }
 
         if ( 1 == $ajax ) {
             $data['message'] = __( 'Subscribes were saved!', 'email-newsletter' );
@@ -654,9 +651,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
             $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
 
         $unsubscribe_code = $this->gen_unsubscribe_code();
-		
-		if(isset($member_id) && isset($unsubscribe_code))
-			$result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '%s' WHERE member_id = %d", $unsubscribe_code, $member_id ) );
+        
+        if(isset($member_id) && isset($unsubscribe_code))
+            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '%s' WHERE member_id = %d", $unsubscribe_code, $member_id ) );
 
         if ( "false" != $redirect_to )
             if ( "" == $redirect_to ) {
@@ -708,6 +705,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $data['hide'] = 'manage_subscriptions';
                     echo json_encode($data);
                 }
+
+                return true;
             }
             return false;
         }
@@ -908,8 +907,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_newsletters WHERE newsletter_id = %d", $newsletter_id ) );
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_send WHERE newsletter_id = %d", $newsletter_id ) );
-		
-		$this->delete_newsletter_meta($newsletter_id);
+        
+        $this->delete_newsletter_meta($newsletter_id);
 
         wp_redirect( add_query_arg( array( 'page' => $page_redirect, 'updated' => 'true', 'dmsg' => urlencode( __( 'The Newsletter is deleted!', 'email-newsletter' ) ) ), 'admin.php' ) );
         exit;
@@ -922,15 +921,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
         global $wpdb, $email_builder;
 
         do_action( 'enewsletter_delete_newsletter', $newsletter_id );
-		
-		if(empty($data))
-			$data = $_REQUEST;
-		
-		if(isset($data['newsletter_id']) && empty($newsletter_id)) {
-			$newsletter_id = $data['newsletter_id'];
-		}
-		
-		$current_theme = $email_builder->get_builder_theme($newsletter_id);
+        
+        if(empty($data))
+            $data = $_REQUEST;
+        
+        if(isset($data['newsletter_id']) && empty($newsletter_id)) {
+            $newsletter_id = $data['newsletter_id'];
+        }
+        
+        $current_theme = $email_builder->get_builder_theme($newsletter_id);
 
         $content        = base64_decode( str_replace( "-", "+", (isset($data['content_encoded']) ? $data['content_encoded'] : '' ) ) );
         $contact_info   = base64_decode( str_replace( "-", "+", (isset($data['contact_info']) ? $data['contact_info'] : '' ) ) );
@@ -944,15 +943,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
             "content"       => $content,
             "contact_info"  => $contact_info,
         );
-		
-		$meta = $data['meta'];
-		
-		if($data['newsletter_template'] != $current_theme)
-			$this->delete_newsletter_meta($newsletter_id, 'email_title', 1 );
-		else		
-			foreach($meta as $meta_key => $meta_value) {
-				$this->update_newsletter_meta($newsletter_id, $meta_key, $meta_value);
-			}
+        
+        $meta = $data['meta'];
+        
+        if($data['newsletter_template'] != $current_theme)
+            $this->delete_newsletter_meta($newsletter_id, 'email_title', 1 );
+        else        
+            foreach($meta as $meta_key => $meta_value) {
+                $this->update_newsletter_meta($newsletter_id, $meta_key, $meta_value);
+            }
 
         if( ! $newsletter_id ) {
             $sql    = "INSERT INTO {$this->tb_prefix}enewsletter_newsletters SET create_date = " . time() . " ";
@@ -973,19 +972,19 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         if( ! $newsletter_id )
             $newsletter_id = $wpdb->insert_id;
-			
-		if($page_redirect != false) {
-			//Save nad redirect on Send page
-			if ( "send" == $_REQUEST['send'] ) {
-				wp_redirect( add_query_arg( array( 'page' => 'newsletters-dashboard', 'newsletter_action' => 'send_newsletter', 'newsletter_id' => $newsletter_id, 'updated' => 'true', 'dmsg' => urlencode( __( 'The Newsletter is saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
-				exit;
-			}
-	
-			wp_redirect( add_query_arg( array( 'page' => 'newsletters-create', 'newsletter_id' => $newsletter_id, 'updated' => 'true', 'dmsg' => urlencode( __( 'The Newsletter is saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
-			exit;
-		} else {
-			return $newsletter_id;
-		}
+            
+        if($page_redirect != false) {
+            //Save nad redirect on Send page
+            if ( "send" == $_REQUEST['send'] ) {
+                wp_redirect( add_query_arg( array( 'page' => 'newsletters-dashboard', 'newsletter_action' => 'send_newsletter', 'newsletter_id' => $newsletter_id, 'updated' => 'true', 'dmsg' => urlencode( __( 'The Newsletter is saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
+                exit;
+            }
+    
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-create', 'newsletter_id' => $newsletter_id, 'updated' => 'true', 'dmsg' => urlencode( __( 'The Newsletter is saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            exit;
+        } else {
+            return $newsletter_id;
+        }
     }
 
     /**
@@ -1171,99 +1170,52 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ( ! $send_member ) {
             if ( ! wp_next_scheduled( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' ) )
                 wp_schedule_single_event( time() + 60*2, 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
-			else {
-				wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
-				wp_schedule_single_event( time() + 60*2, 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
-			}
+            else {
+                wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
+                wp_schedule_single_event( time() + 60*2, 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
+            }
 
             die('end');
         }
 
         $member_data = $this->get_member( $send_member['member_id'] );
 
-        if ( !class_exists( 'PHPMailer' ) )
-            require_once( $this->plugin_dir . 'email-newsletter-files/phpmailer/class.phpmailer.php' );
+        if( !empty($member_data["member_email"]) && is_email($member_data["member_email"]) ) {
 
-        $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
+            $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
 
-        $unsubscribe_code = $member_data['unsubscribe_code'];
+            $contents = $send_data['email_body'];
 
-		$mail =  new PHPMailer();
-		
-        $mail->CharSet = 'UTF-8';
+            //Replace some content inside the email body
+            $user_name = $this->get_nicename($member_data['wp_user_id'], $member_data['member_nicename']);
+            $contents = $this->personalise_email_body($contents, $member_data['member_id'], $member_data['unsubscribe_code'], $send_id, array('user_name' => $user_name, 'member_email' => $member_data["member_email"]));
+            
+            if( $this->settings['bounce_email'] ) {
+                $options['bounce_email'] = $this->settings['bounce_email'];
+            }
 
-        //Set Sending Method
-        switch( $this->settings['outbound_type'] ) {
-            case 'smtp':
-                $mail->IsSMTP();
-                $mail->Host = $this->settings['smtp_host'];
-                
-                if($this->settings['smtp_secure_method'] == 'tls' || $this->settings['smtp_secure_method'] == 'ssl')
-					$mail->SMTPSecure = $this->settings['smtp_secure_method'];
-				if(!empty($this->settings['smtp_port']))
-					$mail->Port = $this->settings['smtp_port'];
-                
-                $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
-                
-                if( $mail->SMTPAuth ){
-                    $mail->Username = esc_attr($this->settings['smtp_user']);
-                    $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
-                }
-                break;
-            case 'mail':
-                $mail->IsMail();
-                break;
+            $options['message_id'] = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );
 
-            case 'sendmail':
-                $mail->IsSendmail();
-                break;
+            $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
+
+            if( $sent_status === false ) {
+                $mail_error = $mail->ErrorInfo;
+                die('Mail Send Error: '.$mail_error);
+            } else {
+                //write info of Sent in DB
+                $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent' WHERE send_id = %d AND member_id = %d", $send_id, $send_member['member_id'] ) );
+                if ( $result )
+                    die('ok');
+                else
+                    die('DB Update Error');
+            }
         }
-
-        $contents = $send_data['email_body'];
-		
-		
-        //Replace some content inside the email body
-        $user_name = $this->get_nicename($member_data['wp_user_id'], $member_data['member_nicename']);
-
-        //adds view in browser message
-        $settings = $this->get_settings();
-        if(!empty($settings['view_browser']))
-            $contents = str_replace( "<body>", "<body>".$settings['view_browser'], $contents );
-
-        $contents = $this->personalise_email_body($contents, $member_data['member_id'], $unsubscribe_code, $send_id, array('user_name' => $user_name, 'member_email' => $member_data["member_email"]));
-
-		$mail->SetFrom($newsletter_data['from_email'],$newsletter_data['from_name']);
-        $mail->Subject = $newsletter_data["subject"];
-
-        $mail->MsgHTML( $contents );
-
-        $mail->AddAddress( $member_data["member_email"] );
-		
-		if( $this->settings['bounce_email'] ) {
-			$mail->Sender = $this->settings['bounce_email'];
-		}
-
-        $mail->XMailer = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );
-		
-		$mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );
-
-        if( empty($member_data["member_email"]) ) {
+        else {
             $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced' WHERE send_id = %d AND member_id = %d", $send_id, $send_member['member_id'] ) );
             if ( $result )
                 die('ok');
             else
-                die('DB Update Error');
-        }
-        elseif( ! $mail->Send() ) {
-        	$mail_error = $mail->ErrorInfo;
-            die('Mail Send Error: '.$mail_error);
-        } else {
-            //write info of Sent in DB
-            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent' WHERE send_id = %d AND member_id = %d", $send_id, $send_member['member_id'] ) );
-            if ( $result )
-                die('ok');
-            else
-                die('DB Update Error');
+                die('DB Update Error');         
         }
 
         do_action( 'enewsletter_after_send_newsletter', $send_id );
@@ -1278,7 +1230,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         @set_time_limit( 0 );
 
         if ( 1 > $wpdb->get_var( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron'") )
-            return ;
+            return false;
 
         $process_id = time();
         //writing some information in the plugin log file
@@ -1355,106 +1307,62 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     die(1);
                 }
 
-                if ( !class_exists( 'PHPMailer' ) )
-                    require_once( $this->plugin_dir . 'email-newsletter-files/phpmailer/class.phpmailer.php' );
-
                 foreach ( $send_members as $send_member ) {
-
                     do_action( 'enewsletter_before_cron_send_newsletter', $send_member );
 
                     update_option( 'enewsletter_cron_send_run', time() );
 
                     $member_data = $this->get_member( $send_member['member_id'] );
+                    if( !empty($member_data["member_email"]) && is_email($member_data["member_email"]) ) {
+                        $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_member['send_id'] ), "ARRAY_A");
+                        $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
 
-                    $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_member['send_id'] ), "ARRAY_A");
+                        if( !empty($newsletter_data) ) {
 
-                    $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
+                            $this->write_log( $process_id . " 07-2 - send_member_id:" . $send_member['member_id'] );
+                            $this->write_log( $process_id . " 07-3 - send_data_newsletter_id:" . $send_data['newsletter_id'] );
+                            $this->write_log( $process_id . " 07-4 - newsletter_from_name:" . $newsletter_data['from_name'] );
 
-                    $unsubscribe_code = $member_data['unsubscribe_code'];
+                            $contents = $send_data['email_body'];
+        
+                            //Replace some content inside the email body
+                            $user_name = $this->get_nicename($member_data['wp_user_id'], $member_data['member_nicename']);
+                            $contents = $this->personalise_email_body($contents, $member_data['member_id'], $member_data['unsubscribe_code'], $send_member['send_id'], array('user_name' => $user_name, 'member_email' => $member_data["member_email"]));
 
-                    $siteurl = get_option( 'siteurl' );
+                            $options['message_id'] = 'Newsletters-' . $send_member['member_id'] . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_member['send_id'] );
+                            $options['bounce_email'] = $newsletter_data['bounce_email'];
 
-                    $mail = new PHPMailer();
+                            $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
 
-                    $mail->CharSet = 'UTF-8';
+                            if( !$sent_status ) {
+                                //writing some information in the plugin log file
+                                $this->write_log( $process_id . " 08 - send_errors:" . $mail->ErrorInfo );
+                            } else {
+                                //write info of Sent in DB
+                                $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent', sent_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_member['send_id'], $send_member['member_id'] ) );
 
-                    //Set Sending Method
-                    switch( $this->settings['outbound_type'] ) {
-                        case 'smtp':
-			                $mail->IsSMTP();
-			                $mail->Host = $this->settings['smtp_host'];
-			                
-			                if($this->settings['smtp_secure_method'] == 'tls' || $this->settings['smtp_secure_method'] == 'ssl')
-								$mail->SMTPSecure = $this->settings['smtp_secure_method'];
-							if(!empty($this->settings['smtp_port']))
-								$mail->Port = $this->settings['smtp_port'];
-			                
-			                $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
-			                
-			                if( $mail->SMTPAuth ){
-			                    $mail->Username = esc_attr($this->settings['smtp_user']);
-			                    $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
-			                }
-			                break;
+                                //writing some information in the plugin log file
+                                $this->write_log( $process_id . " 09 - send OK" );
 
-                        case 'mail':
-                            $mail->IsMail();
-                            break;
+                                if ( ++$current_count_sent == $this->settings['send_limit'] ) {
+                                    //writing some information in the plugin log file
+                                    $this->write_log( $process_id . " 10 - STOP - LIMIT" );
 
-                        case 'sendmail':
-                            $mail->IsSendmail();
-                            break;
+                                    delete_option( 'enewsletter_cron_send_run' );
+                                    die(2);
+                                }
+                            }
+                        }
+                        else {
+                            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced' WHERE send_id = %d AND member_id = %d", $send_member['send_id'], $send_member['member_id'] ) );
+                            
+                            $this->write_log( $process_id . " 08 - send_errors:" . " newsletter data empty" );
+                        }
                     }
-
-                    $contents = $send_data['email_body'];
-					
-					
-					//Replace some content inside the email body
-					$wp_user = ($member_data['wp_user_id'] == 0 ? false : get_user_by('id', $member_data['wp_user_id']));
-					$contents = str_replace( "{USER_NAME}", (is_a($wp_user,'WP_User') ? $wp_user->user_login : ''), $contents );
-					$contents = str_replace( "{OPENED_TRACKER}", '<img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_member['send_id'] . '&member_id=' . $member_data['member_id']) . '" width="1" height="1" style="display:none;" />', $contents );
-					$contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", site_url('/e-newsletter/unsubscribe/' . $unsubscribe_code . $member_data['member_id'] . '/'), $contents );
-
-
-                    $mail->From         = $newsletter_data['from_email'];
-                    $mail->FromName     = $newsletter_data['from_name'];
-                    $mail->Subject      = $newsletter_data["subject"];
-
-                    $mail->MsgHTML( $contents );
-
-                    $mail->AddAddress( $member_data["member_email"] );
-
-                    $mail->XMailer = 'Newsletters-' . $send_member['member_id'] . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_member['send_id'] );
-
-					$mail->MessageID = 'Newsletters-' . $send_member['member_id'] . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_member['send_id'] );            
-					
-					$mail->Sender = $newsletter_data['bounce_email'];
-
-                    if( empty($member_data["member_email"]) ) {
+                    else {
                         $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced' WHERE send_id = %d AND member_id = %d", $send_member['send_id'], $send_member['member_id'] ) );
                         
                         $this->write_log( $process_id . " 08 - send_errors:" . " no_email" );
-                    }					
-					elseif( ! $mail->Send() ) {
-                        //return "Mailer Error: " . $mail->ErrorInfo;
-                        //return 'error';
-
-                        //writing some information in the plugin log file
-                        $this->write_log( $process_id . " 08 - send_errors:" . $mail->ErrorInfo );
-                    } else {
-                        //write info of Sent in DB
-                        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent', sent_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_member['send_id'], $send_member['member_id'] ) );
-
-                        //writing some information in the plugin log file
-                        $this->write_log( $process_id . " 09 - send OK" );
-
-                        if ( ++$current_count_sent == $this->settings['send_limit'] ) {
-                            //writing some information in the plugin log file
-                            $this->write_log( $process_id . " 10 - STOP - LIMIT" );
-
-                            delete_option( 'enewsletter_cron_send_run' );
-                            die(2);
-                        }
                     }
 
                     do_action( 'enewsletter_after_cron_send_newsletter', $send_member );
@@ -1462,10 +1370,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 if ( ! wp_next_scheduled( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' ) )
                     wp_schedule_single_event( time() + 60*5, 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' );
-				else {
-					wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' );
-					wp_schedule_single_event( time() + 60*5, 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' );
-				}
+                else {
+                    wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' );
+                    wp_schedule_single_event( time() + 60*5, 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' );
+                }
 
             } else {
                 delete_option( 'enewsletter_cron_send_run' );
@@ -1487,67 +1395,29 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * Send Preview (Test) newsletter email
      **/
     function send_preview_ajax() {
-		
-		$newsletter_id = (isset($_REQUEST['newsletter_id']) ? $_REQUEST['newsletter_id'] : false);
-		
-		if(!$newsletter_id)
-			die('No valid newsletter ID supplied');
-		
-        if ( !class_exists( 'PHPMailer' ) )
-            require_once( $this->plugin_dir . 'email-newsletter-files/phpmailer/class.phpmailer.php' );
-		
-        $mail = new PHPMailer();
-
-        $mail->CharSet = 'UTF-8';
-
-        //Set Sending Method
-        switch( $this->settings['outbound_type'] ) {
-            case 'smtp':
-                $mail->IsSMTP();
-                $mail->Host = $this->settings['smtp_host'];
-                
-                if($this->settings['smtp_secure_method'] == 'tls' || $this->settings['smtp_secure_method'] == 'ssl')
-					$mail->SMTPSecure = $this->settings['smtp_secure_method'];
-				if(!empty($this->settings['smtp_port']))
-					$mail->Port = $this->settings['smtp_port'];
-                
-                $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
-                
-                if( $mail->SMTPAuth ){
-                    $mail->Username = esc_attr($this->settings['smtp_user']);
-                    $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
-                }
-                break;
-            case 'mail':
-                $mail->IsMail();
-                break;
-
-            case 'sendmail':
-                $mail->IsSendmail();
-                break;
-        }
-        				
+        $newsletter_id = (isset($_REQUEST['newsletter_id']) ? $_REQUEST['newsletter_id'] : false);
+        
+        if(!$newsletter_id)
+            die('No valid newsletter ID supplied');
+                        
         $newsletter_data = $this->get_newsletter_data( $newsletter_id );
-		$content = $this->make_email_body($newsletter_id);
-		$content = str_replace( "{UNSUBSCRIBE_URL}", '#', $content );
-		$content = str_replace( "{OPENED_TRACKER}", '', $content );
+        $content = $this->make_email_body($newsletter_id);
+        $content = str_replace( "{UNSUBSCRIBE_URL}", '#', $content );
+        $content = str_replace( "{OPENED_TRACKER}", '', $content );
         if($newsletter_data && $content) {
-	        $mail->SetFrom($newsletter_data['from_email'],$newsletter_data['from_name']);
-	        $mail->Subject = '(PREVIEW) '.$newsletter_data['subject'];
-	        $mail->MsgHTML( $content );
-	        $mail->AddAddress( $_REQUEST['preview_email'] );
-	
-	        if( $this->settings['bounce_email'] ) {
-	            $mail->Sender = $this->settings['bounce_email'];
-	        }
-	
-	        if( ! $mail->Send() )
-	            die( "Mailer Error: " . $mail->ErrorInfo );
-	        else
-	            die( "Your test email has been sent." );
-		} else {
-			die( "Failed to generate email body." );
-		}
+            $subject = '(PREVIEW) '.$newsletter_data['subject'];
+            if( $this->settings['bounce_email'] ) {
+                $options = array('bounce_email' => $this->settings['bounce_email']);
+            }
+    
+            $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $_REQUEST['preview_email'], $subject, $content, $options );
+            if( !$sent_status  )
+                die( "Failed to send test email!" );
+            else
+                die( "Your test email has been sent." );
+        } else {
+            die( "Failed to generate email body." );
+        }
     }
 
 
@@ -1555,99 +1425,104 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * Make email body
      **/
     function make_email_body( $newsletter_id ) {
+        global $email_builder;
+
         //get data of newsletter
         $newsletter_data = $this->get_newsletter_data( $newsletter_id );
-		
-		if(!$newsletter_data || empty($newsletter_data))
-			return false;
-	
+        
+        if(!$newsletter_data || empty($newsletter_data))
+            return false;
+    
         //open template file
 
         $theme = $this->get_selected_theme($newsletter_data['template']);
 
-		$template_path  = $theme['dir'];
-		$template_url  = $theme['url'];
+        $template_path  = $theme['dir'];
+        $template_url  = $theme['url'];
         $filename   = $template_path . "template.html";
 
         if(file_exists($filename)) {
             $handle     = fopen( $filename, "r" );
             $contents   = fread( $handle, filesize( $filename ) );
-            fclose( $handle );		
+            fclose( $handle );      
         } else
             return false;
 
         $newsletter_data['content'] = '{OPENED_TRACKER}' . $newsletter_data['content'];
-		
-		// Extra Meta Replacements
-		// Use the "email_newsletter_make_email_body" filter below to filter your own custom data
-		
-		// We check for meta-data then look for a defined default coming from
-		// the newsletter template then we pick something anyways using the
-		// get_default_builder_var() located in class.functions.php
-		
-		
-		//Take care of all text, replace body, title, subject... stuff like this:)
-		$contents = str_replace( "{EMAIL_BODY}", $newsletter_data['content'], $contents );
+        
+        // Extra Meta Replacements
+        // Use the "email_newsletter_make_email_body" filter below to filter your own custom data
+        
+        // We check for meta-data then look for a defined default coming from
+        // the newsletter template then we pick something anyways using the
+        // get_default_builder_var() located in class.functions.php
 
-		$email_title = $this->get_newsletter_meta($newsletter_id,'email_title', $this->get_default_builder_var('email_title') );
-		$email_title = apply_filters('email_newsletter_make_email_title',$email_title,$newsletter_id);
-		$contents = str_replace( "{EMAIL_TITLE}", $email_title, $contents);
-		
+        //Translate template default elements
+        $contents = str_replace( "From", __( 'From', 'email-newsletter' ), $contents );
+        $contents = str_replace( "Not interested anymore?", __( 'Not interested anymore?', 'email-newsletter' ), $contents );
+        $contents = str_replace( "Unsubscribe Instantly.", __( 'Unsubscribe Instantly.', 'email-newsletter' ), $contents );
+        
+        //Take care of all text, replace body, title, subject... stuff like this:)
+        $contents = str_replace( "{EMAIL_BODY}", $newsletter_data['content'], $contents );
+        $contents = apply_filters('email_newsletter_make_email_content', $contents);
+
+        //Email Title
+        $email_title = $this->get_newsletter_meta($newsletter_id,'email_title', $this->get_default_builder_var('email_title') );
+        $email_title = apply_filters('email_newsletter_make_email_title',$email_title,$newsletter_id);
+        $contents = str_replace( "{EMAIL_TITLE}", $email_title, $contents);
+        
         $contents = str_replace( "{EMAIL_SUBJECT}", $newsletter_data['subject'], $contents );
         $contents = str_replace( "{FROM_NAME}", (isset($newsletter_data['from_name']) ? $newsletter_data['from_name'] : $this->settings['from_name']), $contents );
         $contents = str_replace( "{FROM_EMAIL}", (isset($newsletter_data['from_email']) ? $newsletter_data['from_email'] : $this->settings['from_email']), $contents );
         $contents = str_replace( "{CONTACT_INFO}", (isset($newsletter_data['contact_info']) ? $newsletter_data['contact_info'] : $this->settings['contact_info']), $contents );
-		
-		$date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
-		$contents = str_replace( "{DATE}", date($date_format), $contents );
-		
-		$contents = apply_filters('email_newsletter_make_email_content', $contents);
-		
-		//do the inline styling
-		global $email_builder;
-		$themedata = $email_builder->find_builder_theme();
-		
-		$contents = $this->do_inline_styles($themedata, $contents);
-		
-		// REPLACE THE image LINKS AT THE START
-		$contents = str_replace( "images/", $template_url . "/images/", $contents );
-		
-		// BG COLOR
-		$bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color', $this->get_default_builder_var('bg_color'));
-		$bg_color = apply_filters('email_newsletter_make_email_bgcolor',$bg_color,$newsletter_id);
-		$contents = str_replace( "{BG_COLOR}", $bg_color, $contents);
-		
-		// BG IMAGE			
-		$default_bg = $this->get_default_builder_var('bg_image');
-		if(!empty($default_bg))
-			$default_bg = $template_url.$default_bg;
-		else 
-			$default_bg = '';
-		$bg_image = $this->get_newsletter_meta($newsletter_id,'bg_image', $default_bg);
-		$bg_image = apply_filters('email_newsletter_make_email_bg_image',$bg_image,$newsletter_id);
-		$contents = str_replace( "{BG_IMAGE}", $bg_image, $contents);
-		
-		// LINK COLOR
-		$link_color = $this->get_newsletter_meta($newsletter_id,'link_color', $this->get_default_builder_var('link_color'));
-		$link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$newsletter_id);
-		$contents = str_replace( "{LINK_COLOR}", $link_color, $contents);
-		$contents = str_replace( "#LINK_COLOR", $link_color, $contents);
-		
-		// BODY COLOR
-		$body_color = $this->get_newsletter_meta($newsletter_id,'body_color', $this->get_default_builder_var('body_color'));
-		$body_color = apply_filters('email_newsletter_make_email_body_color',$body_color,$newsletter_id);
-		$contents = str_replace( "{BODY_COLOR}", $body_color, $contents);
         
-		return apply_filters('email_newsletter_make_email_body', $contents, $newsletter_id);
+        //Date
+        $date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
+        $contents = str_replace( "{DATE}", date($date_format), $contents );
+
+        //do the inline styling
+        $themedata = $email_builder->find_builder_theme();
+        $contents = $this->do_inline_styles($themedata, $contents);
+        
+        // REPLACE THE image LINKS AT THE START
+        $contents = str_replace( "images/", $template_url . "/images/", $contents );
+        
+        // BG COLOR
+        $bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color', $this->get_default_builder_var('bg_color'));
+        $bg_color = apply_filters('email_newsletter_make_email_bgcolor',$bg_color,$newsletter_id);
+        $contents = str_replace( "{BG_COLOR}", $bg_color, $contents);
+        
+        // BG IMAGE         
+        $default_bg = $this->get_default_builder_var('bg_image');
+        if(!empty($default_bg))
+            $default_bg = $template_url.$default_bg;
+        else 
+            $default_bg = '';
+        $bg_image = $this->get_newsletter_meta($newsletter_id,'bg_image', $default_bg);
+        $bg_image = apply_filters('email_newsletter_make_email_bg_image',$bg_image,$newsletter_id);
+        $contents = str_replace( "{BG_IMAGE}", $bg_image, $contents);
+        
+        // LINK COLOR
+        $link_color = $this->get_newsletter_meta($newsletter_id,'link_color', $this->get_default_builder_var('link_color'));
+        $link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$newsletter_id);
+        $contents = str_replace( "{LINK_COLOR}", $link_color, $contents);
+        $contents = str_replace( "#LINK_COLOR", $link_color, $contents);
+        
+        // BODY COLOR
+        $body_color = $this->get_newsletter_meta($newsletter_id,'body_color', $this->get_default_builder_var('body_color'));
+        $body_color = apply_filters('email_newsletter_make_email_body_color',$body_color,$newsletter_id);
+        $contents = str_replace( "{BODY_COLOR}", $body_color, $contents);
+        
+        return apply_filters('email_newsletter_make_email_body', $contents, $newsletter_id);
     }
 
     /**
      * Test bounces settings
      **/
     function test_bounces_ajax(){
-		if(!function_exists('imap_open'))
-			die();
-			
+        if(!function_exists('imap_open'))
+            die("PHP Imap not supported");
+            
         @set_time_limit( 0 );
 
         //Send test email on bounces address
@@ -1669,18 +1544,18 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $email_password = $_REQUEST['bounce_password'];
         $email_host     = trim( $_REQUEST['bounce_host'] );
         $email_port     = ( $_REQUEST['bounce_port'] ) ? $_REQUEST['bounce_port'] : 110;
-		
-		if($email_password == '********') {
-			$settings = $this->get_settings();
-			$email_password = $this->_decrypt($settings['bounce_password']);
-		}
-		
+        
+        if($email_password == '********') {
+            $settings = $this->get_settings();
+            $email_password = $this->_decrypt($settings['bounce_password']);
+        }
+        
         if( ! $email_host )
             return true;
 
         sleep( 3 );
-		
-		$email_security = isset($_REQUEST['bounce_security']) ? $_REQUEST['bounce_security'] : '/norsh';
+        
+        $email_security = isset($_REQUEST['bounce_security']) ? $_REQUEST['bounce_security'] : '/norsh';
 
         $mbox = imap_open( '{'.$email_host.':'.$email_port.'/pop3/notls/novalidate-cert'.$email_security.'}INBOX', $email_username, $email_password ) or die( imap_last_error() );
 
@@ -1695,18 +1570,18 @@ class Email_Newsletter extends Email_Newsletter_functions {
             foreach ( $mails as $mail ) {
                 //Search test email on server
                 if( $mail->subject == 'Test-Connection-Bounce-'. $email_id ) {
-					imap_delete( $mbox, $mail->uid, FT_UID );
-					imap_expunge( $mbox );
-					imap_close( $mbox );
-					die(  __( 'Successfully connected!', 'email-newsletter' ) );
-				}
+                    imap_delete( $mbox, $mail->uid, FT_UID );
+                    imap_expunge( $mbox );
+                    imap_close( $mbox );
+                    die(  __( 'Successfully connected!', 'email-newsletter' ) );
+                }
             }
             imap_expunge( $mbox );
             imap_close( $mbox );
             die(  __( 'Connection failed!', 'email-newsletter' ) );
         }
-		
-		die();
+        
+        die();
     }
 
 
@@ -1724,15 +1599,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
             $email_to           = $member_data['member_email'];
             $email_from         = $this->settings['from_email'];
             $email_from_name    = $this->settings['from_name'];
-            $email_subject      = ( isset( $this->settings['double_opt_in_subject'] ) ) ? $this->settings['double_opt_in_subject'] : __('Confirm newsletter subscription','email-newsletter');
-			
-			// Determine our locale to check for a specific template
-			$locale = get_locale();
-			if( file_exists($this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html') ) {
-				$email_contents     = file_get_contents( $this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html' );
-			} else {
-	            $email_contents     = file_get_contents( $this->plugin_dir . "email-newsletter-files/emails/double_optin.html" );
-			}
+            $email_subject      = ( isset($this->settings['double_opt_in_subject']) && !empty($this->settings['double_opt_in_subject']) ) ? $this->settings['double_opt_in_subject'] : __('Confirm newsletter subscription','email-newsletter');
+            
+            // Determine our locale to check for a specific template
+            $locale = get_locale();
+            if( file_exists($this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html') ) {
+                $email_contents     = file_get_contents( $this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html' );
+            } else {
+                $email_contents     = file_get_contents( $this->plugin_dir . "email-newsletter-files/emails/double_optin.html" );
+            }
 
             $replace = array(
                 "from_name"=>$email_from_name,
@@ -1747,46 +1622,42 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $email_contents = preg_replace( '/\{'.strtoupper( preg_quote( $key,'/' ) ).'\}/', $val, $email_contents );
             }
             if( !$this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents ) ) {
-                $message .= "Failed to send opt-in email, please contact us to inform us of this error. ";
+                $message .= "Failed to send opt-in email, please contact us to inform us of this error.";
             }else{
             }
         }
 
     }
-	
-	function network_admin_menu() {
-		add_submenu_page( 'settings.php', __('Email Newsletter Network Settings','email-newsletter'), __('eNewsletter','email-newsletter'), 'manage_options', 'network-settings', null,  $this->plugin_url . 'email-newsletter-files/images/icon.png' );
-	}
-	
+    
     /**
      * Creating admin menu
      **/
     function admin_page() {
-			
-		$mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
-		
+            
+        $mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
+        
         if ( $this->settings ) {
-        	global $email_builder, $submenu;
-                add_menu_page( __( 'eNewsletter', 'email-newsletter' ), __( 'eNewsletter', 'email-newsletter' ), 'read', 'newsletters-dashboard', null, $this->plugin_url . 'email-newsletter-files/images/icon.png');
+            global $email_builder, $submenu;
+                add_menu_page( __( 'eNewsletter', 'email-newsletter' ), __( 'eNewsletter', 'email-newsletter' ), 'view_newsletter_dashboard', 'newsletters-dashboard', null, $this->plugin_url . 'email-newsletter-files/images/icon.png');
                 add_submenu_page( 'newsletters-dashboard', __( 'Reports', 'email-newsletter' ), __( 'Reports', 'email-newsletter' ), 'view_newsletter_dashboard', 'newsletters-dashboard', array( &$this, 'newsletters_dashboard_page' ) );
                 add_submenu_page( 'newsletters-dashboard', __( 'Newsletters', 'email-newsletter' ), __( 'Newsletters', 'email-newsletter' ), 'save_newsletter', 'newsletters', array( &$this, 'newsletters_page' ) );
                 add_submenu_page( 'newsletters-dashboard', __( 'Create Newsletter', 'email-newsletter' ), __( 'Create Newsletter', 'email-newsletter' ), 'create_newsletter', 'newsletters-create', array( &$this, 'create_newsletter_page' ) );
-				add_submenu_page( 'newsletters-dashboard', __( 'Member Groups', 'email-newsletter' ), __( 'Member Groups', 'email-newsletter' ), 'edit_newsletter_group', 'newsletters-groups', array( &$this, 'member_groups_page' ) );
+                add_submenu_page( 'newsletters-dashboard', __( 'Member Groups', 'email-newsletter' ), __( 'Member Groups', 'email-newsletter' ), 'edit_newsletter_group', 'newsletters-groups', array( &$this, 'member_groups_page' ) );
                 add_submenu_page( 'newsletters-dashboard', __( 'Members', 'email-newsletter' ), __( 'Members', 'email-newsletter' ), 'view_newsletter_members', 'newsletters-members',  array( &$this, 'members_page' ) );
                 add_submenu_page( 'newsletters-dashboard', __( 'Settings', 'email-newsletter' ), __( 'Settings', 'email-newsletter' ), 'save_newsletter_settings', 'newsletters-settings', array( &$this, 'settings_page' ) );
 
                 //menu for lowest level users
                 add_submenu_page( 'newsletters-dashboard', __( 'My Subscriptions', 'email-newsletter' ), __( 'My Subscriptions', 'email-newsletter' ), 'read', 'newsletters-subscribes', array( &$this, 'newsletters_subscribe_page' ) );
 
-				if(isset($submenu['newsletters-dashboard'])) {
-					foreach($submenu['newsletters-dashboard'] as $k => $v) {
-						if(isset($v[2]) && $v[2] == 'newsletters-create') {
-							$submenu['newsletters-dashboard'][$k][2] = $email_builder->generate_builder_link('new');
-						}
-					}
-				}
-				
-				
+                if(isset($submenu['newsletters-dashboard'])) {
+                    foreach($submenu['newsletters-dashboard'] as $k => $v) {
+                        if(isset($v[2]) && $v[2] == 'newsletters-create') {
+                            $submenu['newsletters-dashboard'][$k][2] = $email_builder->generate_builder_link('new');
+                        }
+                    }
+                }
+                
+                
         } else {
             //first start of plugin
             add_menu_page( __( 'eNewsletter', 'email-newsletter' ), __( 'eNewsletter', 'email-newsletter' ), $mu_cap, 'newsletters-settings' );
@@ -2017,8 +1888,8 @@ class e_newsletter_subscribe extends WP_Widget {
     function e_newsletter_subscribe() {
         if( isset( $_REQUEST['wp3_newsletter_subscribe'] ) ) {
         }
-		if (session_id() == "" || !isset($_SESSION))
-      		session_start();
+        if (session_id() == "" || !isset($_SESSION))
+            session_start();
 
         $widget_ops = array( 'description' => __( 'Allow people to subscribe to your newsletter database.') );
         parent::WP_Widget( false, __( 'eNewsletter: Subscribe' ), $widget_ops );
@@ -2094,11 +1965,11 @@ class e_newsletter_subscribe extends WP_Widget {
 add_action( 'widgets_init', create_function( '', 'return register_widget("e_newsletter_subscribe");' ) );
 
 function register_enewsletter_plugin_template( $template_id, $plugin_name, $email_type) {
-	global $email_newsletter;
-	$return = array(
-		'name' => $plugin_name,
-		'type' => $email_type,
-	);
-	$email_newsletter->plugin_templates[$template_id] = $return;
+    global $email_newsletter;
+    $return = array(
+        'name' => $plugin_name,
+        'type' => $email_type,
+    );
+    $email_newsletter->plugin_templates[$template_id] = $return;
 }
 ?>

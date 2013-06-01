@@ -11,8 +11,11 @@ class Email_Newsletter_Builder  {
 		add_action( 'wp_ajax_builder_do_shortcodes', array( &$this, 'ajax_do_shortcodes' ) );
 		
 		//shorcodes
-		add_shortcode('recent-posts', array( &$this, 'recent_posts_shortcode'));
-		add_shortcode( 'n-gallery' , array( &$this,'n_gallery_shortcode') );
+		add_shortcode('en-recent-posts', array( &$this, 'recent_posts_shortcode'));
+		add_shortcode( 'en-gallery' , array( &$this,'n_gallery_shortcode') );
+
+		//Capability fix
+		add_action( 'admin_head', array( &$this, 'builder_capability_fix') );
 	}
 	function parse_theme_settings() {
 		global $email_newsletter;
@@ -36,9 +39,7 @@ class Email_Newsletter_Builder  {
 		} else {
 			//always enable link color
 			$this->settings = array('link_color');
-		}
-		
-		
+		}	
 	}
 	function generate_builder_link($id=false, $return_url=NULL, $url=false) {
 		if(!$id)
@@ -53,12 +54,38 @@ class Email_Newsletter_Builder  {
 			$final .= '&url='.$url;
 		return admin_url($final);
 	}
+	function builder_capability_fix() {
+		global $current_user, $pagenow;
+		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 0;
+
+		$user = new WP_User( $current_user->ID );
+		$remove = get_user_meta($current_user->ID, '_enewsletter_remove_capability', true);
+
+		if ( $page == 'newsletters' && $pagenow == 'admin.php' ) {
+			if(current_user_can('save_newsletter'))
+				if(!current_user_can( 'edit_theme_options' )) {
+					$user->add_cap( 'edit_theme_options');
+					remove_menu_page('themes.php');
+					update_user_meta($current_user->ID, '_enewsletter_remove_capability', 1);
+				}
+			if($remove)
+				remove_menu_page('themes.php');
+		}
+		else {
+			if($remove) {
+				remove_menu_page('themes.php');
+				$user->remove_cap( 'edit_theme_options');
+				delete_user_meta( $current_user->ID, '_enewsletter_remove_capability' );
+			}
+		}
+	}
 	function plugins_loaded() {
 		global $current_user, $pagenow, $builder_id, $email_newsletter;
 		
 		// Start the id at false for checking
 		$builder_id = false;
-		
+
+		//TODO - Inspect
 		if(isset($_REQUEST['newsletter_id'])) {
 			if(is_numeric($_REQUEST['newsletter_id'])){
 				$builder_id = $_REQUEST['newsletter_id'];
@@ -88,26 +115,21 @@ class Email_Newsletter_Builder  {
 			add_filter( 'stylesheet', array( &$this, 'inject_builder_stylesheet' ), 999 );
 			add_action( 'customize_register', array( &$this, 'init_newsletter_builder'),9999 );
 			add_action( 'setup_theme' , array( &$this, 'setup_builder_header_footer' ), 999 );
+			add_filter( 'wp_default_editor', array( &$this, 'force_default_editor' ) );
 		}
-		
 	}
 	function setup_builder_header_footer() {
 		global $wp_customize;
 		
 		add_action( 'builder_head', array( $wp_customize, 'customize_preview_base' ) );
 		add_action( 'builder_head', array( $wp_customize, 'customize_preview_html5' ) );
-		add_action( 'builder_head', array( &$this, 'construct_builder_head' ) );
 		add_action( 'builder_footer', array( &$this, 'construct_builder_footer' ) );
 		add_action( 'builder_footer', array( $wp_customize, 'customize_preview_settings' ), 20 );
 		add_action( 'builder_footer', array( &$this, 'email_builder_customize_preview'), 21);
 		add_action( 'customize_controls_print_scripts', array( &$this, 'customize_controls_print_scripts') );
 		add_action( 'customize_controls_print_footer_scripts', array( &$this, 'customize_controls_print_footer_scripts'), 20 );
 	}
-	function construct_builder_head() {
-		do_action('admin_head');
-	}
 	function construct_builder_footer() {
-		do_action('admin_footer');
 		do_action('admin_print_footer_scripts');
 	}
 	function customize_controls_print_scripts() {
@@ -126,13 +148,10 @@ class Email_Newsletter_Builder  {
 		}
 		?><script type="text/javascript">
 			_wpCustomizeControlsL10n.save = "<?php _e('Save Newsletter','email-newsletter'); ?>";
-			
-
 			ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
 
 			activate_theme = "<?php _e('Activate Theme','email-newsletter'); ?>";
 			jQuery('#customize-info').prepend('<input type="button" value="'+activate_theme+'" id="activate_theme" class="button button-primary save">');
-
 
 			var current_theme = "<?php echo $_GET['theme']; ?>";
 			email_templates = [
@@ -289,6 +308,10 @@ class Email_Newsletter_Builder  {
 		do_action('admin_print_footer_scripts');
 		do_action('admin_footer');
 	}
+
+	function force_default_editor() {
+    	return 'tinymce';
+	}
 	
 	function get_builder_email_id() {
 		global $current_user;
@@ -306,10 +329,9 @@ class Email_Newsletter_Builder  {
 
 	}
 	function find_builder_theme() {
-		$cap = 'manage_options';
+		$cap = 'save_newsletter';
 		
     	if (!current_user_can($cap)) {
-        	// not admin
         	return false;
         }
 
@@ -789,8 +811,6 @@ class Email_Newsletter_Builder  {
 			return $email_newsletter->settings['from_email'];
 	}
 
-
-
 	function email_builder_customize_preview() {
 		$admin_url = admin_url('admin-ajax.php');
 		?><script type="text/javascript">
@@ -864,10 +884,12 @@ class Email_Newsletter_Builder  {
 		</script>
 	<?php 
 	}
+
 	public function ajax_do_shortcodes() {
 		echo $this->prepare_preview($_POST['content'], true);
 		die();
 	}
+
 	public function prepare_preview($content = '', $ajax = false) {
 		global $email_newsletter;
 
@@ -900,7 +922,6 @@ class Email_Newsletter_Builder  {
 	}
 	
 	public function enable_customizer() {
-
 		global $wp_customize, $email_newsletter;
 
 		if(empty($wp_customize) || !$wp_customize->is_preview())
@@ -913,7 +934,6 @@ class Email_Newsletter_Builder  {
 		        <title>Newsletter</title>
 		        <?php do_action('builder_head'); ?>
 		    </head>
-		    <body marginheight="0" topmargin="0" marginwidth="0" leftmargin="0">
 			<?php
 			
 			$email_data = $email_newsletter->get_newsletter_data($this->ID);
@@ -924,7 +944,6 @@ class Email_Newsletter_Builder  {
 			do_action('builder_footer');
 			
 			?>
-		    </body>
 		</html>
 		<?php
 	}

@@ -241,27 +241,8 @@ class Email_Newsletter_functions {
      * Send email
      **/
     function send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents,  $options=array() ) {
-
-        $options['to']          = $email_to;
-        $options['subject']     = $email_subject;
-        $options['from']        = $email_from;
-        $options['from_name']   = $email_from_name;
-
-        foreach( array( "to", "cc", "bcc", "reply_to" ) as $type ) {
-            if( ! $options[$type] ) {
-                $options[$type]=array();
-            } else if( ! is_array( $options[$type] ) ) {
-                $emails = explode( ",", $options[$type] );
-                $options[$type] = array();
-                foreach( $emails as $e ) {
-                    if ( $e=trim( $e ) ) {
-                        $options[$type][]=$e;
-                    }
-                }
-            }
-        }
-        
-        require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
+        if ( !class_exists( 'PHPMailer' ) )
+            require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
 
         $mail = new PHPMailer();
         $mail->CharSet = 'UTF-8';
@@ -293,42 +274,25 @@ class Email_Newsletter_functions {
                 break;
         }
 
-
-        $mail->From = $options['from'];
-        if( $options['from_name'] ) {
-            $mail->FromName = $options['from_name'];
+        $mail->From = $email_from;
+        if( $email_from_name ) {
+            $mail->FromName = $email_from_name;
         }
-        $mail->Subject = $options['subject'];
-
+        $mail->Subject = $email_subject;
         $mail->isHTML( true );
-
-
         $mail->MsgHTML( $email_contents );
+        $mail->AddAddress( $email_to );
 
-
-        foreach( $options['to'] as $email ) {
-            $mail->AddAddress( $email );
-        }
-        foreach( $options['cc'] as $email ) {
-            $mail->AddCC( $email );
-        }
-        foreach( $options['bcc'] as $email ) {
-            $mail->AddBCC( $email );
-        }
-        foreach( $options['reply_to'] as $email ) {
-            $mail->AddReplyTo( $email );
-        }
-
-        if( $options['bounce_email']  ){
+        if( $options['bounce_email'] ){
             $mail->Sender = $options['bounce_email'];
         }
         if( $options['message_id'] ) {
             $mail->XMailer = $options['message_id'];
+            $mail->MessageID = $options['message_id'];
         }
 
         if( ! $mail->Send() ) {
-            echo $mail->ErrorInfo;
-            return false;
+            return $mail->ErrorInfo;
         }
         return true;
     }
@@ -356,7 +320,7 @@ class Email_Newsletter_functions {
 			
 		$email_security = ( $this->settings['bounce_security'] ) ? $this->settings['bounce_security'] : '/norsh';
 
-        $mbox = imap_open ( '{'.$email_host.':'.$email_port.'/pop3/notls'.$email_security.'}INBOX', $email_username, $email_password ) or die( imap_last_error() );
+        $mbox = imap_open ( '{'.$email_host.':'.$email_port.'/pop3/notls/novalidate-cert'.$email_security.'}INBOX', $email_username, $email_password ) or die( imap_last_error() );
 
         if( ! $mbox ) {
             $this->write_log('bounce: error cant connect');
@@ -399,7 +363,7 @@ class Email_Newsletter_functions {
      * Save Settings
      **/
      function save_settings( $settings, $tb_prefix = '', $redirect = 1 ) {
-        global $wpdb;
+        global $wpdb, $wp_roles;
 		
 		if(empty($tb_prefix))
 			$tb_prefix = $this->tb_prefix;
@@ -407,22 +371,19 @@ class Email_Newsletter_functions {
         if( ! is_array( $settings ) )
             $settings = array();
 		
-		if(isset($settings['email_caps']) && is_array($settings['email_caps'])) {
-			global $wp_roles;
-			$caps = $settings['email_caps'];
 
-			unset($settings['email_caps']);
-			
-			foreach($wp_roles->get_names() as $name => $obj) {
-				if($name == 'administrator') continue;
-				$role_obj = get_role($name);
-				if($role_obj) {
-					foreach($this->capabilities as $cap => $label) {
-						if(isset($caps[$cap][$name])) {
-							$role_obj->add_cap($cap);
-						} else {
-							$role_obj->remove_cap($cap);
-						}
+		$caps = $settings['email_caps'];
+		unset($settings['email_caps']);
+		
+		foreach($wp_roles->get_names() as $name => $obj) {
+			if($name == 'administrator') continue;
+			$role_obj = get_role($name);
+			if($role_obj) {
+				foreach($this->capabilities as $cap => $label) {
+					if(isset($caps[$cap][$name])) {
+						$role_obj->add_cap($cap);
+					} else {
+						$role_obj->remove_cap($cap);
 					}
 				}
 			}
@@ -1099,6 +1060,13 @@ class Email_Newsletter_functions {
      * Personalize email
      **/
     function personalise_email_body($contents, $member_id, $code, $send_id, $changes = array()) {
+        //adds view in browser message
+        if(!$changes['disable_view_link']) {
+            $settings = $this->get_settings();
+            if(!empty($settings['view_browser']))
+                $contents = $settings['view_browser'].$contents;
+        }
+
         if(!empty($changes['user_name']))
             $contents = str_replace( "{USER_NAME}", $changes['user_name'], $contents );
         else
@@ -1495,7 +1463,7 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * Encrypt text (SMTP password)
+     * Encrypt text (SMTP & POP password)
      **/
     protected function _encrypt( $text ) {
         if  ( function_exists( 'mcrypt_encrypt' ) ) {
@@ -1506,7 +1474,7 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * Decrypt password (SMTP password)
+     * Decrypt password (SMTP & POP password)
      **/
     protected function _decrypt( $text ) {
         if ( function_exists( 'mcrypt_decrypt' ) ) {

@@ -1,9 +1,8 @@
 <?php
-
 $member_id = get_query_var( 'unsubscribe_member_id' );
 $unsubscribe_code = get_query_var( 'unsubscribe_code' );
 
-if ( 0 < get_query_var( 'unsubscribe_member_id' ) ) {
+if ( 0 < $member_id ) {
     global $wpdb;
     $member_id = $wpdb->get_var( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE member_id = %d AND unsubscribe_code = '%s'", $member_id, $unsubscribe_code ) );
 
@@ -17,5 +16,4 @@ if ( 0 < get_query_var( 'unsubscribe_member_id' ) ) {
 }
 
 exit;
-
 ?>

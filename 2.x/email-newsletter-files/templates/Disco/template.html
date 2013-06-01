@@ -1,7 +1,9 @@
-<table data-builder="bg" width="100%" border="0" cellspacing="0" cellpadding="0" style="padding: 10px 100px 10px 100px; margin: 0; font-family:Arial, Sans-serif; line-height:22px; color:#cccccc; font-size:12px; background-color: {BG_COLOR}; background-image: url({BG_IMAGE});">
+<body data-builder="bg" marginheight="0" topmargin="0" marginwidth="0" leftmargin="0" background="{BG_IMAGE}" style="margin: 0; background-color: {BG_COLOR};">
+<div data-builder="bg" style="background-color: {BG_COLOR};">
+<table data-builder="bg" width="100%" border="0" cellspacing="0" cellpadding="0" background="{BG_IMAGE}" data-builder="bg" style="font-family:Arial, Sans-serif; line-height:22px; font-size:12px; padding: 10px 100px 10px 100px; color:#cccccc;">
 	<tr>
 		<td>
-			<table width="500" border="0" align="center" cellpadding="0" cellspacing="0" style="margin-top:30px; margin-bottom:0px; padding-bottom:0px;">
+			<table width="500" border="0" align="center" cellpadding="0" cellspacing="0" style="margin-top:30px; margin-bottom:0px; padding-bottom:0px; color:#eebb00 !important;">
 				<tr>
 					<td valign="middle" style="padding: 5px;">
 						<table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -21,7 +23,9 @@
 					   <table width="100%" border="0" cellspacing="0" cellpadding="0">
 						   <tr>
 							   <td style="font-size:12px; line-height:22px; color:#cccccc;">
-								<h2 style="margin:0px; padding-top:10px; color:#eebb00 !important;">From <span data-builder="from_name">{FROM_NAME}</span> (<span data-builder="from_email">{FROM_EMAIL}</span>)</h2>
+							   	<div style="color:#eebb00 !important;">
+									<h2 style="margin:0px; padding-top:10px; color:#eebb00 !important;">From <span data-builder="from_name">{FROM_NAME}</span> (<span data-builder="from_email">{FROM_EMAIL}</span>)</h2>
+								</div>
 								<div data-builder="body_color" style="color: {BODY_COLOR}">
 									<div data-builder="email_content">
 										{EMAIL_BODY}
@@ -45,10 +49,12 @@
 			<table width="500" border="0" align="center" cellpadding="0" cellspacing="0" style="margin-bottom:30px;">
 				<tr>
 					<td style="padding-top:20px; text-align:center; color:#666666; text-shadow:-1px -1px 0px #111111; font-weight:bold; ">
-						Not interested anymore? <a href="{UNSUBSCRIBE_URL}" style="color:{LINK_COLOR};" >Unsubscribe</a> Instantly.
+						Not interested anymore? <a href="{UNSUBSCRIBE_URL}" style="color:{LINK_COLOR};">Unsubscribe Instantly.</a>
 					</td>
 				 </tr>
 			</table>
 	    </td>
     </tr>
 </table>
+</div>
+</body>

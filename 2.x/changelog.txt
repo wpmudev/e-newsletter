@@ -5,6 +5,14 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.0.4 =
+* Improved support for template background in various clients(<body> tag now required in templates)
+* Added support for translating template files
+* Fixed unsubscribe page not displaying message
+* Forced visual editor for email builder
+* Fixed builder problem with permissions
+* Other small improvements
+
 = 2.0.3 =
 * More improvements for upgrade behavior
 * Easier debugging for cron and bounce
