@@ -1,13 +1,19 @@
 <?php
-///////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 /* -------------------- WPMU DEV Dashboard Notice -------------------- */
+/* Note that there are important reasons that we require the Dashboard */
+/* Plugin to be installed. It's vital for security and to prevent free */
+/* /lite plugins/themes on the wordpress.org repo from overwriting and */
+/* erasing your paid for WPMU DEV Premium plugins/themes. Please don't */
+/* remove these notices!  More information: http://wp.mu/dashboard     */
+/////////////////////////////////////////////////////////////////////////
 if ( !class_exists('WPMUDEV_Dashboard_Notice') ) {
 	class WPMUDEV_Dashboard_Notice {
 		
-		var $version = '2.0';
+		var $version = '2.1';
 		
 		function WPMUDEV_Dashboard_Notice() {
-			add_action( 'plugins_loaded', array( &$this, 'init' ) ); 
+			add_action( 'init', array( &$this, 'init' ) ); 
 		}
 		
 		function init() {
@@ -44,17 +50,16 @@ if ( !class_exists('WPMUDEV_Dashboard_Notice') ) {
 		}
 	
 		function auto_install_url() {
-			$function = is_multisite() ? 'network_admin_url' : 'admin_url';
-			return wp_nonce_url($function("update.php?action=install-plugin&plugin=install_wpmudev_dash"), "install-plugin_install_wpmudev_dash");
+			return wp_nonce_url(network_admin_url("update.php?action=install-plugin&plugin=install_wpmudev_dash"), "install-plugin_install_wpmudev_dash");
 		}
 		
 		function activate_url() {
-			$function = is_multisite() ? 'network_admin_url' : 'admin_url';
-			return wp_nonce_url($function('plugins.php?action=activate&plugin=wpmudev-updates%2Fupdate-notifications.php'), 'activate-plugin_wpmudev-updates/update-notifications.php');
+			return wp_nonce_url(network_admin_url('plugins.php?action=activate&plugin=wpmudev-updates%2Fupdate-notifications.php'), 'activate-plugin_wpmudev-updates/update-notifications.php');
 		}
 		
 		function install_notice() {
-			echo '<div class="error fade"><p>' . sprintf(__('Easily get updates, support, and one-click WPMU DEV plugin/theme installations right from in your dashboard - <strong><a href="%s" title="Install Now &raquo;">install the free WPMU DEV Dashboard plugin</a></strong>. &nbsp;&nbsp;&nbsp;<small><a href="http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/">(find out more)</a></small>', 'wpmudev'), $this->auto_install_url()) . '</a></p></div>';
+			if (isset($_GET['plugin']) && $_GET['plugin'] == 'install_wpmudev_dash') return;
+			echo '<div class="error fade"><p>' . sprintf(__('Easily get updates, support, and one-click WPMU DEV plugin/theme installations right from in your dashboard - <strong><a href="%s" title="Install Now &raquo;">install the free WPMU DEV Dashboard plugin</a></strong>. &nbsp;&nbsp;&nbsp;<small><a href="http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/">(find out more)</a></small>', 'wpmudev'), $this->auto_install_url()) . '</p></div>';
 		}
 		
 		function activate_notice() {
