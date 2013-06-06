@@ -232,7 +232,7 @@ class CssToInlineStyles
         $this->processCSS();
 
         // create new DOMDocument
-        $document = new \DOMDocument('1.0', $this->getEncoding());
+        $document = new DOMDocument('1.0', $this->getEncoding());
 
         // set error level
         libxml_use_internal_errors(true);
@@ -241,7 +241,7 @@ class CssToInlineStyles
         $document->loadHTML($this->html);
 
         // create new XPath
-        $xPath = new \DOMXPath($document);
+        $xPath = new DOMXPath($document);
 
         // any rules?
         if (!empty($this->cssRules)) {

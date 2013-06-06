@@ -283,86 +283,65 @@ class Email_Newsletter_functions {
         $mail->MsgHTML( $email_contents );
         $mail->AddAddress( $email_to );
 
-        if( $options['bounce_email'] ){
+        if( isset($options['bounce_email']) ){
             $mail->Sender = $options['bounce_email'];
         }
-        if( $options['message_id'] ) {
+        if( isset($options['message_id']) ) {
             $mail->XMailer = $options['message_id'];
             $mail->MessageID = $options['message_id'];
         }
 
-        if( ! $mail->Send() ) {
-            return $mail->ErrorInfo;
+        $sent_status = $mail->Send();
+        if( !$sent_status ) {
+            $this->write_log( 'Send email eroor: '.$mail->ErrorInfo);
+            return false;
         }
+
         return true;
     }
 
-    /**
-     * Check bounces email
-     **/
-    function check_bounces() {
-		if(!function_exists('imap_open'))
-			return false;
-			
-        global $wpdb;
+    function pop3_connet($email_host, $email_port = 110, $email_security = '', $email_username = '', $email_password = '' ) {
+        $options = $this->settings['bounce_advanced_options'];
+        $this->write_log( "Bounce: saved advanced settings: ".$options );
+        if(!empty($options)) {
+            $connection = imap_open( '{'.$email_host.':'.$email_port.'/pop3'.$options.$email_security.'}INBOX', $email_username, $email_password );
+            $this->write_log( "Bounce: 1 connection: ".$connection );
+        }    
 
-        @set_time_limit( 0 );
-        $email_address  = $this->settings['bounce_email'];
-        $email_username = $this->settings['bounce_username'];
-        $email_password = $this->settings['bounce_password'];
-        $email_host     = trim( $this->settings['bounce_host'] );
-        $email_port     = ( $this->settings['bounce_port'] ) ? $this->settings['bounce_port'] : 110;
-		
-		$email_password = $this->_decrypt($email_password);
-
-        if( ! $email_host )
-            return true;
-			
-		$email_security = ( $this->settings['bounce_security'] ) ? $this->settings['bounce_security'] : '/norsh';
-
-        $mbox = imap_open ( '{'.$email_host.':'.$email_port.'/pop3/notls/novalidate-cert'.$email_security.'}INBOX', $email_username, $email_password ) or die( imap_last_error() );
-
-        if( ! $mbox ) {
-            $this->write_log('bounce: error cant connect');
-            return 'Error: Failed to connect when checking bounces!';
-        } else {
-            $this->write_log('bounce: connected to check bounce');
-
-            $MC     = imap_check( $mbox );
-            $mails  = imap_fetch_overview( $mbox, "1:{$MC->Nmsgs}", 0 );
-
-            foreach ( $mails as $mail ) {
-                $body = imap_body ( $mbox, $mail->msgno );
-
-                $this->write_log('bounce: checked email');
-
-                if( preg_match( '/X-Mailer:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) || preg_match( '/Message-ID:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ) {
-
-                    $member_id      = ( int ) $matches[1];
-                    $send_id        = ( int ) $matches[2];
-                    $email_hash     = trim( $matches[3] );
-                    $hash           = md5( 'Hash of bounce member_id='. $member_id . ', send_id='. $send_id );
-
-                    if( $email_hash == $hash ){
-                        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced' WHERE send_id = %d AND member_id = %d AND status = 'sent'", $send_id, $member_id ) );
-                        imap_delete( $mbox, $mail->msgno );
-                        echo 'ok';
-                    } else {
-                        echo 'Error: hash';
-                    }
-
-                    $this->write_log('bounce: found bounce:'.$member_id);
+        if(!$connection) {
+            $combinations = array(
+                    '/notls',
+                    '/norsh/notls',
+                    '/novalidate-cert/notls',
+                    '/norsh/novalidate-cert/notls',
+                    '/norsh',
+                    '/novalidate-cert',
+                    '/norsh/novalidate-cert',
+                    '/tls',
+                    '/norsh/tls',
+                    '/novalidate-cert/tls',
+                    '/norsh/novalidate-cert/tls'
+                );
+            foreach ($combinations as $combination) {
+                $connection = imap_open( '{'.$email_host.':'.$email_port.'/pop3'.$combination.$email_security.'}INBOX', $email_username, $email_password );
+                if($connection) {
+                    $this->write_log( "Bounce: detected advanced settings: ".$combination );
+                    $this->save_settings_array(array('bounce_advanced_options' => $combination));
+                    return $connection;
                 }
             }
-            imap_expunge( $mbox );
-            imap_close( $mbox );
         }
+        else
+            return $connection;
+
+        $this->write_log( "Bounce: settings incorrect: ".$connection );
+        return 0;
     }
 
     /**
      * Save Settings
      **/
-     function save_settings( $settings, $tb_prefix = '', $redirect = 1 ) {
+    function save_settings( $settings, $tb_prefix = '', $redirect = 1 ) {
         global $wpdb, $wp_roles;
 		
 		if(empty($tb_prefix))
@@ -435,6 +414,24 @@ class Email_Newsletter_functions {
     }
 
     /**
+     * Simply saves array of settings
+     **/
+    function save_settings_array( $settings, $tb_prefix = '' ) {
+       global $wpdb;
+        
+        if(empty($tb_prefix))
+            $tb_prefix = $this->tb_prefix;
+
+        if( ! is_array( $settings ) )
+            $settings = array();
+
+        foreach( $settings as $key => $item )
+             $result = $wpdb->query( $wpdb->prepare( "REPLACE INTO {$tb_prefix}enewsletter_settings SET `key` = '%s', `value` = '%s'", $key, stripslashes( $item ) ) );
+        
+        return $result;
+    }
+
+    /**
      * Get Settings
      **/
     function get_settings($tb_prefix = '') {
@@ -491,6 +488,8 @@ class Email_Newsletter_functions {
         global $wpdb;
         if ( '' === $send_id )
             $count = $wpdb->get_row( $wpdb->prepare( "SELECT Count(member_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE status = '%s'", $status ), "ARRAY_A");
+        elseif ( 'by_cron' == $status )
+            $count = $wpdb->get_row( $wpdb->prepare( "SELECT Count(member_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE send_id = %d AND (status = 'by_cron' OR status >0)", $send_id ), "ARRAY_A");
         else
             $count = $wpdb->get_row( $wpdb->prepare( "SELECT Count(member_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE send_id = %d AND status = '%s'", $send_id, $status ), "ARRAY_A");
 
@@ -1057,11 +1056,106 @@ class Email_Newsletter_functions {
 	}
 
     /**
+     * Make email body
+     **/
+    function make_email_body( $newsletter_id ) {
+        global $email_builder;
+
+        //get data of newsletter
+        $newsletter_data = $this->get_newsletter_data( $newsletter_id );
+        
+        if(!$newsletter_data || empty($newsletter_data))
+            return false;
+    
+        //open template file
+
+        $theme = $this->get_selected_theme($newsletter_data['template']);
+
+        $template_path  = $theme['dir'];
+        $template_url  = $theme['url'];
+        $filename   = $template_path . "template.html";
+
+        if(file_exists($filename)) {
+            $handle     = fopen( $filename, "r" );
+            $contents   = fread( $handle, filesize( $filename ) );
+            fclose( $handle );      
+        } else
+            return false;
+
+        $newsletter_data['content'] = '{OPENED_TRACKER}' . $newsletter_data['content'];
+        
+        // Extra Meta Replacements
+        // Use the "email_newsletter_make_email_body" filter below to filter your own custom data
+        
+        // We check for meta-data then look for a defined default coming from
+        // the newsletter template then we pick something anyways using the
+        // get_default_builder_var() located in class.functions.php
+
+        //Translate template default elements
+        $contents = str_replace( "From", __( 'From', 'email-newsletter' ), $contents );
+        $contents = str_replace( "Not interested anymore?", __( 'Not interested anymore?', 'email-newsletter' ), $contents );
+        $contents = str_replace( "Unsubscribe Instantly.", __( 'Unsubscribe Instantly.', 'email-newsletter' ), $contents );
+        
+        //Take care of all text, replace body, title, subject... stuff like this:)
+        $contents = str_replace( "{EMAIL_BODY}", $newsletter_data['content'], $contents );
+        $contents = apply_filters('email_newsletter_make_email_content', $contents);
+
+        //Email Title
+        $email_title = $this->get_newsletter_meta($newsletter_id,'email_title', $this->get_default_builder_var('email_title') );
+        $email_title = apply_filters('email_newsletter_make_email_title',$email_title,$newsletter_id);
+        $contents = str_replace( "{EMAIL_TITLE}", $email_title, $contents);
+        
+        $contents = str_replace( "{EMAIL_SUBJECT}", $newsletter_data['subject'], $contents );
+        $contents = str_replace( "{FROM_NAME}", (isset($newsletter_data['from_name']) ? $newsletter_data['from_name'] : $this->settings['from_name']), $contents );
+        $contents = str_replace( "{FROM_EMAIL}", (isset($newsletter_data['from_email']) ? $newsletter_data['from_email'] : $this->settings['from_email']), $contents );
+        $contents = str_replace( "{CONTACT_INFO}", (isset($newsletter_data['contact_info']) ? $newsletter_data['contact_info'] : $this->settings['contact_info']), $contents );
+        
+        //Date
+        $date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
+        $contents = str_replace( "{DATE}", date($date_format), $contents );
+
+        //do the inline styling
+        $themedata = $email_builder->find_builder_theme();
+        $contents = $this->do_inline_styles($themedata, $contents);
+        
+        // REPLACE THE image LINKS AT THE START
+        $contents = str_replace( "images/", $template_url . "/images/", $contents );
+        
+        // BG COLOR
+        $bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color', $this->get_default_builder_var('bg_color'));
+        $bg_color = apply_filters('email_newsletter_make_email_bgcolor',$bg_color,$newsletter_id);
+        $contents = str_replace( "{BG_COLOR}", $bg_color, $contents);
+        
+        // BG IMAGE         
+        $default_bg = $this->get_default_builder_var('bg_image');
+        if(!empty($default_bg))
+            $default_bg = $template_url.$default_bg;
+        else 
+            $default_bg = '';
+        $bg_image = $this->get_newsletter_meta($newsletter_id,'bg_image', $default_bg);
+        $bg_image = apply_filters('email_newsletter_make_email_bg_image',$bg_image,$newsletter_id);
+        $contents = str_replace( "{BG_IMAGE}", $bg_image, $contents);
+        
+        // LINK COLOR
+        $link_color = $this->get_newsletter_meta($newsletter_id,'link_color', $this->get_default_builder_var('link_color'));
+        $link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$newsletter_id);
+        $contents = str_replace( "{LINK_COLOR}", $link_color, $contents);
+        $contents = str_replace( "#LINK_COLOR", $link_color, $contents);
+        
+        // BODY COLOR
+        $body_color = $this->get_newsletter_meta($newsletter_id,'body_color', $this->get_default_builder_var('body_color'));
+        $body_color = apply_filters('email_newsletter_make_email_body_color',$body_color,$newsletter_id);
+        $contents = str_replace( "{BODY_COLOR}", $body_color, $contents);
+        
+        return apply_filters('email_newsletter_make_email_body', $contents, $newsletter_id);
+    }
+
+    /**
      * Personalize email
      **/
     function personalise_email_body($contents, $member_id, $code, $send_id, $changes = array()) {
         //adds view in browser message
-        if(!$changes['disable_view_link']) {
+        if(!isset($changes['disable_view_link'])) {
             $settings = $this->get_settings();
             if(!empty($settings['view_browser']))
                 $contents = $settings['view_browser'].$contents;
@@ -1297,7 +1391,6 @@ class Email_Newsletter_functions {
 				$new_settings['bounce_password'] = $this->_encrypt($settings['bounce_password']);
 				$this->save_settings($new_settings, $tb_prefix, 0);
 			}
-			
 		}
 	}
 
@@ -1307,7 +1400,7 @@ class Email_Newsletter_functions {
     function uninstall( $blog_id = '' ) {
         global $wpdb;
 
-        if ( function_exists('is_multisite' ) && is_multisite() && 0 !== $blog_id  && isset($_GET['networkwide']) && $_GET['networkwide'] == 1 ) {
+        if ( $this->is_plugin_active_for_network(plugin_basename(__FILE__)) ) {
                 $blogids = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
         } else {
             if ( 0 !== $blog_id )
@@ -1361,7 +1454,6 @@ class Email_Newsletter_functions {
                 $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_meta" );
 
             delete_option('email_newsletter_version');
-
         }
 		
 		//remove folder for custom themes
@@ -1370,6 +1462,11 @@ class Email_Newsletter_functions {
 			$this->delete_dir($custom_theme_dir);
 		}
 
+        //remove data about site options
+        if($this->is_plugin_active_for_network(plugin_basename(__FILE__)))
+            delete_site_option('email_newsletter_version');
+        else
+            delete_option('email_newsletter_version');
     }
 
     /**

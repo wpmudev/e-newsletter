@@ -72,7 +72,7 @@ class Email_Newsletter_Builder  {
 				remove_menu_page('themes.php');
 		}
 		else {
-			if($remove) {
+			if(!empty($remove)) {
 				remove_menu_page('themes.php');
 				$user->remove_cap( 'edit_theme_options');
 				delete_user_meta( $current_user->ID, '_enewsletter_remove_capability' );
@@ -315,7 +315,11 @@ class Email_Newsletter_Builder  {
 	
 	function get_builder_email_id() {
 		global $current_user;
-		return get_transient('builder_email_id_'.$current_user->ID);
+
+		//if(($result = ) === false)
+			return get_transient('builder_email_id_'.$current_user->ID);
+		//else
+			//return $result;
 	}
 	function get_builder_theme($id=false) {
 		global $builder_id, $email_newsletter;

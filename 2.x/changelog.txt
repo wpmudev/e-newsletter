@@ -5,6 +5,14 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.1 =
+* ! Added ability to send newsletter at certain time
+* Fixed CRON limits not working correctly
+* Improved POP3 under the hood settings detection for better compatibility
+* Added test button for SMTP configuration
+* Improved error reporting 
+* Other small improvements
+
 = 2.0.4 =
 * Improved support for template background in various clients(<body> tag now required in templates)
 * Added support for translating template files

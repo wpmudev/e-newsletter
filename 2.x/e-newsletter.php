@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.0.4
+Version: 2.1.0
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -56,7 +56,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.04;
+        $this->plugin_ver = 2.1;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -115,7 +115,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_filter( 'query_vars', array( &$this, 'insert_query_vars' ) );
         
         add_action('plugins_loaded',array(&$this,'import_wpmu_plugins'));
-        add_action('admin_init',array(&$this,'set_current_user'));
+        add_action('plugins_loaded',array(&$this,'set_current_user'), 1);
         add_action('plugins_loaded',array(&$this,'upgrade_check'));
 
         add_action( 'admin_init', array( &$this, 'admin_init' ) );
@@ -182,6 +182,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'wp_ajax_nopriv_test_bounces', array( &$this, 'test_bounces_ajax' ) );
         add_action( 'wp_ajax_test_bounces', array( &$this, 'test_bounces_ajax' ) );
 
+        //ajax action for test connection to smtp server
+        add_action( 'wp_ajax_nopriv_test_smtp', array( &$this, 'test_smtp_ajax' ) );
+        add_action( 'wp_ajax_test_smtp', array( &$this, 'test_smtp_ajax' ) );
+
         //ajax action for sand email to member
         add_action( 'wp_ajax_nopriv_send_email_to_member', array( &$this, 'send_email_to_member' ) );
         add_action( 'wp_ajax_send_email_to_member', array( &$this, 'send_email_to_member' ) );
@@ -190,6 +194,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         add_action( 'wp_ajax_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax' ));
         add_action( 'wp_ajax_nopriv_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax'));
+
+            //adds cap for admin
+            $admin_role = get_role('administrator');
+            foreach($this->capabilities as $key => $cap) {
+                if(!isset($admin_role->capabilities[$key]) || $admin_role->capabilities[$key] == false ) {
+                    $admin_role->add_cap($key,true);
+                }
+            }
     }
     
     /**
@@ -282,14 +294,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 }
                 $this->settings = $this->get_settings();
             }
-
-            //adds cap for admin
-            $admin_role = get_role('administrator');
-            foreach($this->capabilities as $key => $cap) {
-                if(!isset($admin_role->capabilities[$key]) || $admin_role->capabilities[$key] == false ) {
-                    $admin_role->add_cap($key,true);
-                }
-            }
         }               
     }
 
@@ -350,6 +354,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function admin_init() {
         
         $mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
+
+        //adds cap for admin
+        $admin_role = get_role('administrator');
+        foreach($this->capabilities as $key => $cap) {
+            if(!isset($admin_role->capabilities[$key]) || $admin_role->capabilities[$key] == false ) {
+                $admin_role->add_cap($key,true);
+            }
+        }
         
         //private actions of the plugin
         if ( isset( $_REQUEST['newsletter_action'] ) ) {
@@ -467,8 +479,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     if(! (current_user_can('send_newsletter') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
                     
+                    //Handles sending ajax sent stopped newsletters
                     if ( isset( $_REQUEST['cron'] ) && 'add_to_cron' == $_REQUEST['cron'] )
                         $this->add_to_cron( $_REQUEST['newsletter_id'], $_REQUEST['send_id'] );
+                    //handles main send buttons
                     else if ( isset( $_REQUEST['action'] ) && 'send' == $_REQUEST["action"] )
                         $this->send_newsletter( $_REQUEST['newsletter_id'] );
                 break;
@@ -1108,7 +1122,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send SET newsletter_id = %d, start_time = %d, end_time = '', email_body = '%s'", $newsletter_id, time(), $email_body ) );
         $send_id = $wpdb->insert_id;
 
-        if ( 'cron' == $_REQUEST["cron"] )
+        if ( 'cron_time' == $_REQUEST['cron_time'] ) {
+            $time_str = $_REQUEST['aa'].'-'.$_REQUEST['mm'].'-'.$_REQUEST['jj'].' '.$_REQUEST['hh'].':'.$_REQUEST['mn'].':00 GMT';
+            $status = strtotime($time_str);
+        }
+        elseif ( 'cron' == $_REQUEST["cron"] )
             $status = 'by_cron';
         else
             $status = 'waiting_send';
@@ -1139,6 +1157,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function add_to_cron( $newsletter_id, $send_id ) {
         global $wpdb;
+
 
         $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'by_cron' WHERE send_id = %d AND status = 'waiting_send'", $send_id ) );
 
@@ -1198,24 +1217,23 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
 
-            if( $sent_status === false ) {
-                $mail_error = $mail->ErrorInfo;
-                die('Mail Send Error: '.$mail_error);
-            } else {
+            if( $sent_status == true ) {
                 //write info of Sent in DB
                 $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent' WHERE send_id = %d AND member_id = %d", $send_id, $send_member['member_id'] ) );
                 if ( $result )
                     die('ok');
                 else
-                    die('DB Update Error');
+                    die( __( 'Error when updating DB.', 'email-newsletter' ) );
+            } else {
+                die(__( 'Error sending email. Please check outgoing email settings.', 'email-newsletter' ) );
             }
         }
         else {
-            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced' WHERE send_id = %d AND member_id = %d", $send_id, $send_member['member_id'] ) );
+            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced', bounce_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_id, $send_member['member_id'] ) );
             if ( $result )
                 die('ok');
             else
-                die('DB Update Error');         
+                die( __( 'Error when updating DB.', 'email-newsletter' ) );         
         }
 
         do_action( 'enewsletter_after_send_newsletter', $send_id );
@@ -1229,7 +1247,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         @set_time_limit( 0 );
 
-        if ( 1 > $wpdb->get_var( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron'") )
+        if ( 1 > $wpdb->get_var( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron' OR status < UNIX_TIMESTAMP()") )
             return false;
 
         $process_id = time();
@@ -1275,15 +1293,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     break;
                 }
 
-            //for test (every 2 min )
-            $limit_time_start   = mktime( $hour , $min - 2, 0, $month, $day, $year ) ;
-            $limit_time_end     = mktime( $hour, $min + 1, -1, $month, $day, $year );
-
-
                 //writing some information in the plugin log file
                 $this->write_log( $process_id . " 04 - cron_time: " . $this->settings['cron_time'] . "  limit_time_start:" . $limit_time_start . "  limit_time_end:" . $limit_time_end );
 
-                $current_count_sent = $wpdb->get_var( $wpdb->prepare( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE sent_time  BETWEEN %d AND %d", $limit_time_start, $limit_time_end ) );
+                $current_count_sent = $wpdb->get_var( $wpdb->prepare( "SELECT Count(send_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE sent_time BETWEEN %d AND %d", $limit_time_start, $limit_time_end ) );
                 
                 //writing some information in the plugin log file
                 $this->write_log( $process_id . " 05 - current_count_sent: " . $current_count_sent  . "  send_limit:" . $this->settings['send_limit'] );            
@@ -1297,7 +1310,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 //writing some information in the plugin log file
                 $this->write_log( $process_id . " 06 - NOT LIMIT YET" );
 
-                $send_members = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron' " . $send_limit , "ARRAY_A");
+                //Remember not to use numbers as status other then unixtimestamp (status > 0)
+                $send_members = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_send_members WHERE status = 'by_cron' OR (status > 0 and status < UNIX_TIMESTAMP()) " . $send_limit , "ARRAY_A");
 
                 //writing some information in the plugin log file
                 $this->write_log( $process_id . " 07 - send_members:" . count($send_members) );
@@ -1322,6 +1336,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                             $this->write_log( $process_id . " 07-2 - send_member_id:" . $send_member['member_id'] );
                             $this->write_log( $process_id . " 07-3 - send_data_newsletter_id:" . $send_data['newsletter_id'] );
                             $this->write_log( $process_id . " 07-4 - newsletter_from_name:" . $newsletter_data['from_name'] );
+                            $this->write_log( $process_id . " 07-5 - send_id:" . $send_member['send_id'] );
 
                             $contents = $send_data['email_body'];
         
@@ -1334,10 +1349,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                             $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
 
-                            if( !$sent_status ) {
-                                //writing some information in the plugin log file
-                                $this->write_log( $process_id . " 08 - send_errors:" . $mail->ErrorInfo );
-                            } else {
+                            if( $sent_status == true ) {
                                 //write info of Sent in DB
                                 $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent', sent_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_member['send_id'], $send_member['member_id'] ) );
 
@@ -1351,16 +1363,19 @@ class Email_Newsletter extends Email_Newsletter_functions {
                                     delete_option( 'enewsletter_cron_send_run' );
                                     die(2);
                                 }
+                            } else {
+                                //writing some information in the plugin log file
+                                $this->write_log( $process_id . " 08 - send_errors" );
                             }
                         }
                         else {
-                            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced' WHERE send_id = %d AND member_id = %d", $send_member['send_id'], $send_member['member_id'] ) );
+                            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced', bounce_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_member['send_id'], $send_member['member_id'] ) );
                             
                             $this->write_log( $process_id . " 08 - send_errors:" . " newsletter data empty" );
                         }
                     }
                     else {
-                        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced' WHERE send_id = %d AND member_id = %d", $send_member['send_id'], $send_member['member_id'] ) );
+                        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced', bounce_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_member['send_id'], $send_member['member_id'] ) );
                         
                         $this->write_log( $process_id . " 08 - send_errors:" . " no_email" );
                     }
@@ -1392,13 +1407,76 @@ class Email_Newsletter extends Email_Newsletter_functions {
     }
 
     /**
+     * Check bounces email
+     **/
+    function check_bounces() {
+        if(!function_exists('imap_open'))
+            return false;
+            
+        global $wpdb;
+
+        @set_time_limit( 0 );
+        $email_address  = $this->settings['bounce_email'];
+        $email_username = $this->settings['bounce_username'];
+        $email_password = $this->settings['bounce_password'];
+        $email_host     = trim( $this->settings['bounce_host'] );
+        $email_port     = ( $this->settings['bounce_port'] ) ? $this->settings['bounce_port'] : 110;
+        
+        $email_password = $this->_decrypt($email_password);
+
+        if( ! $email_host )
+            return true;
+            
+        $email_security = ( $this->settings['bounce_security'] ) ? $this->settings['bounce_security'] : '';
+
+        $mbox = $this->pop3_connet($email_host, $email_port, $email_security, $email_username, $email_password );
+        
+        if( ! $mbox ) {
+            $this->write_log( 'bounce: error cant connect. Error details: '.strip_tags(imap_last_error()) );
+            return 'Error: Failed to connect when checking bounces!';
+        } else {
+            $this->write_log('bounce: connected to check bounce');
+
+            $MC     = imap_check( $mbox );
+            $mails  = imap_fetch_overview( $mbox, "1:{$MC->Nmsgs}", 0 );
+
+            foreach ( $mails as $mail ) {
+                $body = imap_body ( $mbox, $mail->msgno );
+
+                $this->write_log('bounce: checked email');
+
+                if( preg_match( '/X-Mailer:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) || preg_match( '/Message-ID:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ) {
+
+                    $member_id      = ( int ) $matches[1];
+                    $send_id        = ( int ) $matches[2];
+                    $email_hash     = trim( $matches[3] );
+                    $hash           = md5( 'Hash of bounce member_id='. $member_id . ', send_id='. $send_id );
+
+                    if( $email_hash == $hash ){
+                        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced' WHERE send_id = %d AND member_id = %d AND status = 'sent'", $send_id, $member_id ) );
+                        imap_delete( $mbox, $mail->msgno );
+                        echo 'ok';
+                    } else {
+                        echo 'Error: hash';
+                    }
+
+                    $this->write_log('bounce: found bounce:'.$member_id);
+                }
+            }
+            imap_expunge( $mbox );
+            imap_close( $mbox );
+        }
+        die();
+    }
+
+    /**
      * Send Preview (Test) newsletter email
      **/
     function send_preview_ajax() {
         $newsletter_id = (isset($_REQUEST['newsletter_id']) ? $_REQUEST['newsletter_id'] : false);
         
         if(!$newsletter_id)
-            die('No valid newsletter ID supplied');
+            die( __( 'No valid newsletter ID supplied.', 'email-newsletter' ) );
                         
         $newsletter_data = $this->get_newsletter_data( $newsletter_id );
         $content = $this->make_email_body($newsletter_id);
@@ -1411,109 +1489,77 @@ class Email_Newsletter extends Email_Newsletter_functions {
             }
     
             $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $_REQUEST['preview_email'], $subject, $content, $options );
-            if( !$sent_status  )
-                die( "Failed to send test email!" );
+            if( $sent_status == true )
+                die( __( 'Your test email has been sent.', 'email-newsletter' ) );
             else
-                die( "Your test email has been sent." );
+                die( __( 'Failed to send test email! Make sure that entered email is correct and also check outgoing email settings.', 'email-newsletter' ) );
         } else {
-            die( "Failed to generate email body." );
+            die( __( 'Failed to generate email body.', 'email-newsletter' ) );
         }
     }
 
-
     /**
-     * Make email body
+     * Test smtp settings
      **/
-    function make_email_body( $newsletter_id ) {
-        global $email_builder;
+    function test_smtp_ajax(){ 
+        global $current_user;
 
-        //get data of newsletter
-        $newsletter_data = $this->get_newsletter_data( $newsletter_id );
-        
-        if(!$newsletter_data || empty($newsletter_data))
-            return false;
-    
-        //open template file
+        @set_time_limit( 0 );
 
-        $theme = $this->get_selected_theme($newsletter_data['template']);
+        //Send test email on bounces address
+        $email_id           = time();
+        $email_to           = $_REQUEST['smtp_from'];
+        $email_from         = $_REQUEST['smtp_from'];
+        $email_subject      = "Test-Connection-Send-". $email_id;
+        $email_contents     = 'Test';
 
-        $template_path  = $theme['dir'];
-        $template_url  = $theme['url'];
-        $filename   = $template_path . "template.html";
+        $server_host = $_REQUEST['smtp_host'];
+        $server_username = $_REQUEST['smtp_username'];
+        $server_password = $_REQUEST['smtp_password'];
+        if($server_password == '********') {
+            $settings = $this->get_settings();
+            $server_password = $this->_decrypt($settings['smtp_pass']);
+        }
 
-        if(file_exists($filename)) {
-            $handle     = fopen( $filename, "r" );
-            $contents   = fread( $handle, filesize( $filename ) );
-            fclose( $handle );      
-        } else
-            return false;
+        $server_port = $_REQUEST['smtp_port'];
+        $server_security = $_REQUEST['smtp_security'];
 
-        $newsletter_data['content'] = '{OPENED_TRACKER}' . $newsletter_data['content'];
-        
-        // Extra Meta Replacements
-        // Use the "email_newsletter_make_email_body" filter below to filter your own custom data
-        
-        // We check for meta-data then look for a defined default coming from
-        // the newsletter template then we pick something anyways using the
-        // get_default_builder_var() located in class.functions.php
+        if ( !class_exists( 'PHPMailer' ) )
+            require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
 
-        //Translate template default elements
-        $contents = str_replace( "From", __( 'From', 'email-newsletter' ), $contents );
-        $contents = str_replace( "Not interested anymore?", __( 'Not interested anymore?', 'email-newsletter' ), $contents );
-        $contents = str_replace( "Unsubscribe Instantly.", __( 'Unsubscribe Instantly.', 'email-newsletter' ), $contents );
-        
-        //Take care of all text, replace body, title, subject... stuff like this:)
-        $contents = str_replace( "{EMAIL_BODY}", $newsletter_data['content'], $contents );
-        $contents = apply_filters('email_newsletter_make_email_content', $contents);
+        $mail = new PHPMailer();
+        $mail->CharSet = 'UTF-8';
 
-        //Email Title
-        $email_title = $this->get_newsletter_meta($newsletter_id,'email_title', $this->get_default_builder_var('email_title') );
-        $email_title = apply_filters('email_newsletter_make_email_title',$email_title,$newsletter_id);
-        $contents = str_replace( "{EMAIL_TITLE}", $email_title, $contents);
+        $mail->IsSMTP();
+        $mail->Host = $server_host;
         
-        $contents = str_replace( "{EMAIL_SUBJECT}", $newsletter_data['subject'], $contents );
-        $contents = str_replace( "{FROM_NAME}", (isset($newsletter_data['from_name']) ? $newsletter_data['from_name'] : $this->settings['from_name']), $contents );
-        $contents = str_replace( "{FROM_EMAIL}", (isset($newsletter_data['from_email']) ? $newsletter_data['from_email'] : $this->settings['from_email']), $contents );
-        $contents = str_replace( "{CONTACT_INFO}", (isset($newsletter_data['contact_info']) ? $newsletter_data['contact_info'] : $this->settings['contact_info']), $contents );
+        if($server_security == 'tls' || $server_security == 'ssl')
+            $mail->SMTPSecure = $server_security;
+        if(!empty($server_port))
+            $mail->Port = $server_port;
         
-        //Date
-        $date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
-        $contents = str_replace( "{DATE}", date($date_format), $contents );
+        $mail->SMTPAuth = ( strlen( $server_username ) > 0 );
+        
+        if( $mail->SMTPAuth ){
+            $mail->Username = esc_attr($server_username);
+            $mail->Password = $server_password;
+        }
 
-        //do the inline styling
-        $themedata = $email_builder->find_builder_theme();
-        $contents = $this->do_inline_styles($themedata, $contents);
-        
-        // REPLACE THE image LINKS AT THE START
-        $contents = str_replace( "images/", $template_url . "/images/", $contents );
-        
-        // BG COLOR
-        $bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color', $this->get_default_builder_var('bg_color'));
-        $bg_color = apply_filters('email_newsletter_make_email_bgcolor',$bg_color,$newsletter_id);
-        $contents = str_replace( "{BG_COLOR}", $bg_color, $contents);
-        
-        // BG IMAGE         
-        $default_bg = $this->get_default_builder_var('bg_image');
-        if(!empty($default_bg))
-            $default_bg = $template_url.$default_bg;
-        else 
-            $default_bg = '';
-        $bg_image = $this->get_newsletter_meta($newsletter_id,'bg_image', $default_bg);
-        $bg_image = apply_filters('email_newsletter_make_email_bg_image',$bg_image,$newsletter_id);
-        $contents = str_replace( "{BG_IMAGE}", $bg_image, $contents);
-        
-        // LINK COLOR
-        $link_color = $this->get_newsletter_meta($newsletter_id,'link_color', $this->get_default_builder_var('link_color'));
-        $link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$newsletter_id);
-        $contents = str_replace( "{LINK_COLOR}", $link_color, $contents);
-        $contents = str_replace( "#LINK_COLOR", $link_color, $contents);
-        
-        // BODY COLOR
-        $body_color = $this->get_newsletter_meta($newsletter_id,'body_color', $this->get_default_builder_var('body_color'));
-        $body_color = apply_filters('email_newsletter_make_email_body_color',$body_color,$newsletter_id);
-        $contents = str_replace( "{BODY_COLOR}", $body_color, $contents);
-        
-        return apply_filters('email_newsletter_make_email_body', $contents, $newsletter_id);
+        $mail->From = $email_from;
+        if( $email_from_name ) {
+            $mail->FromName = $email_from_name;
+        }
+        $mail->Subject = $email_subject;
+        $mail->isHTML( true );
+        $mail->MsgHTML( $email_contents );
+        $mail->AddAddress( $email_to );
+
+        $send_status = $mail->Send();
+        if( $send_status != true ) {
+            die( __( 'Failed to send test email! - Please check your outgoing email settings and server config to see if selected ports are open. Error details: ', 'email-newsletter' ).strip_tags($mail->ErrorInfo) );
+        }
+        else
+            die( __( 'Test message successfully sent! Feel free to save your settings.', 'email-newsletter' ) );
     }
 
     /**
@@ -1521,7 +1567,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function test_bounces_ajax(){
         if(!function_exists('imap_open'))
-            die("PHP Imap not supported");
+            die( __( 'PHP Imap not supported', 'email-newsletter' ) );
             
         @set_time_limit( 0 );
 
@@ -1534,9 +1580,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $email_contents     = 'Test';
         $options            = array ();
 
-        if( ! $this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents, $options ) ) {
-            die( "Failed to send test email!" );
-        }
+        $send_status = $this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents, $options );
+        if( $send_status != true )
+            die( __( 'Failed to send test email! Please check your outgoing email settings.', 'email-newsletter' )  );
 
         //Set value for connect to email server
         $email_address  = $_REQUEST['bounce_email'];
@@ -1555,12 +1601,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         sleep( 3 );
         
-        $email_security = isset($_REQUEST['bounce_security']) ? $_REQUEST['bounce_security'] : '/norsh';
+        $email_security = isset($_REQUEST['bounce_security']) ? $_REQUEST['bounce_security'] : '';
 
-        $mbox = imap_open( '{'.$email_host.':'.$email_port.'/pop3/notls/novalidate-cert'.$email_security.'}INBOX', $email_username, $email_password ) or die( imap_last_error() );
-
+        $mbox = $this->pop3_connet($email_host, $email_port, $email_security, $email_username, $email_password );
+        
         if( ! $mbox ) {
-            die( __( 'Failed to connect while checking bounces.', 'email-newsletter' ) );
+            die( __( 'Failed to connect while checking bounces! Please check your bounce settings and server config to see if selected ports are open. Error details: ', 'email-newsletter' ).strip_tags(imap_last_error()) );
         } else {
             $MC = imap_check( $mbox );
 
@@ -1573,12 +1619,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     imap_delete( $mbox, $mail->uid, FT_UID );
                     imap_expunge( $mbox );
                     imap_close( $mbox );
-                    die(  __( 'Successfully connected!', 'email-newsletter' ) );
+                    die( __( 'Successfully connected! Feel free to save your settings.', 'email-newsletter' ) );
                 }
             }
             imap_expunge( $mbox );
             imap_close( $mbox );
-            die(  __( 'Connection failed!', 'email-newsletter' ) );
+            die(  __( 'Bounce test message not found!', 'email-newsletter' ) );
         }
         
         die();
@@ -1621,10 +1667,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 if( is_array( $val ) )continue;
                 $email_contents = preg_replace( '/\{'.strtoupper( preg_quote( $key,'/' ) ).'\}/', $val, $email_contents );
             }
-            if( !$this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents ) ) {
+
+            $sent_status = $this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents );
+            if( $sent_status != true )
                 $message .= "Failed to send opt-in email, please contact us to inform us of this error.";
-            }else{
-            }
         }
 
     }

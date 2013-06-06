@@ -21,6 +21,7 @@
      <script type="text/javascript">
         jQuery( document ).ready( function() {
             var cron = 0;
+            var assoontext = jQuery('#timestamp b').html();
 
             jQuery( '#add_cron' ).click( function() {
                 cron = 1;
@@ -54,6 +55,39 @@
                     }
                     return true;
                 }
+            });
+
+            jQuery('a.edit-timestamp').click(function() {
+                if (jQuery('#timestampdiv').is(":hidden")) {
+                    jQuery('#timestampdiv').slideDown('fast');
+                    jQuery('#mm').focus();
+                    jQuery(this).hide();
+                }
+                return false;
+            });
+
+            jQuery('.save-timestamp', '#timestampdiv').click(function () {
+                aa = jQuery('#aa').val(), mm = jQuery('#mm').val(), jj = jQuery('#jj').val(), hh = jQuery('#hh').val(), mn = jQuery('#mn').val();
+
+                jQuery('#timestamp b').html(
+                    jQuery('option[value="' + jQuery('#mm').val() + '"]', '#mm').text() + ' ' +
+                    jj + ', ' +
+                    aa + ' @ ' +
+                    hh + ':' +
+                    mn
+                );
+                jQuery('#timestampdiv').slideUp('fast');
+                jQuery('a.edit-timestamp').show();
+                jQuery( '#cron_time' ).val( 'cron_time' );
+
+                return false;
+            });
+            jQuery('.cancel-timestamp', '#timestampdiv').click(function() {
+                jQuery('#timestampdiv').slideUp('fast');
+                jQuery('a.edit-timestamp').show();
+                jQuery('#timestamp b').html(assoontext);
+                jQuery( '#cron_time' ).val( '' );
+                return false;
             });
 
         });
@@ -182,6 +216,7 @@
         <form action="" method="post" id="send_form">
             <input type="hidden" name="newsletter_id" value="<?php echo $newsletter_data["newsletter_id"];?>">
             <input type="hidden" name="cron" id="cron" value="">
+            <input type="hidden" name="cron_time" id="cron_time" value="" />
             <input type="hidden" name="check_key" id="check_key" value="">
             <input type="hidden" name="action" value="send">
             <table cellpadding="10" cellspacing="10" class="widefat post">
@@ -196,8 +231,9 @@
 					<tr>
 						<td>
 						<p>
-							<label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members - except unsubscribed', 'email-newsletter' ) ?></strong> (<?php echo $this->get_count_members();?>)</label><br/>
-							&nbsp;&nbsp;-or-<br/>
+							<label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members - except unsubscribed', 'email-newsletter' ) ?></strong> (<?php echo $this->get_count_members();?>)</label>
+						</p>
+                        <p>
 							<?php
 								foreach ( array('administrator', 'editor', 'author', 'contributor', 'subscriber') as $role ) {
 									$col = count ( get_users( array( 'role' => $role ) ) );
@@ -212,7 +248,6 @@
 											echo "<label><input type='checkbox' name='group_id[]' value='{$group['group_id']}' /> {$group['group_name']} ({$col})</label><br>";
 									}
 							?>
-							<br />
 							</p>
 						</td>
 					</tr>
@@ -220,16 +255,59 @@
 						<td>
 							 <label>
 								 <input type="checkbox" name="dont_send_duplicate" value="1" checked="checked" />
-								 <?php echo _e( "Don't send to people who've already received this:", 'email-newsletter' ) ?>
+								 <?php _e( "Don't send to people who've already received this:", 'email-newsletter' ); ?>
 							 </label>
 						</td>
 					</tr>
 					<tr>
 						<td>
-							<input class="button button-primary" type="submit" name="send" value="<?php echo _e( 'Send Newsletter', 'email-newsletter' ) ?>" />
-							<input class="button button-secondary" type="button" name="send" id="add_cron" value="<?php echo _e( 'Add Newsletter to CRON list', 'email-newsletter' ) ?>" />
-						</td>
-					</tr>
+                            <p>
+                                <input class="button button-primary" type="submit" name="send" value="<?php echo _e( 'Send newsletter now', 'email-newsletter' ) ?>" />
+                            </p>
+                            <p>
+                                <input class="button button-secondary" type="button" name="send" id="add_cron" value="<?php echo _e( 'Send in background (by CRON)', 'email-newsletter' ) ?>" />
+                                <span id="timestamp">
+                                    <?php _e( "Send:", 'email-newsletter' ); ?> <b><?php _e( "As fast as possible.", 'email-newsletter' ); ?></b>
+                                </span>
+                                <a href="#edit_timestamp" class="edit-timestamp" style="display: inline;">Edit</a>
+                            </p>
+                                <div id="timestampdiv">
+                                    <div class="timestamp-wrap">
+                                        <?php
+                                        global $wp_locale;
+
+                                        $time_adj = current_time('timestamp');
+                                        $cur_jj = gmdate( 'd', $time_adj );
+                                        $cur_mm = gmdate( 'm', $time_adj );
+                                        $cur_aa = gmdate( 'Y', $time_adj );
+                                        $cur_hh = gmdate( 'H', $time_adj );
+                                        $cur_mn = gmdate( 'i', $time_adj );
+
+                                        $month = "";
+                                        for ( $i = 1; $i < 13; $i = $i +1 ) {
+                                            $monthnum = zeroise($i, 2);
+                                            $month .= "\t\t\t" . '<option value="' . $monthnum . '"';
+                                            if ( $i == $cur_mm )
+                                                $month .= ' selected="selected"';
+                                            /* translators: 1: month number (01, 02, etc.), 2: month abbreviation */
+                                            $month .= '>' . sprintf( __( '%1$s-%2$s' ), $monthnum, $wp_locale->get_month_abbrev( $wp_locale->get_month( $i ) ) ) . "</option>\n";
+                                        }
+                                        ?>
+                                        <select id="mm" name="mm">
+                                            <?php echo $month; ?>
+                                        </select>
+                                        <input type="text" id="jj" name="jj" value="<?php echo $cur_jj; ?>" size="2" maxlength="2" autocomplete="off">, 
+                                        <input type="text" id="aa" name="aa" value="<?php echo $cur_aa; ?>" size="4" maxlength="4" autocomplete="off"> @ 
+                                        <input type="text" id="hh" name="hh" value="<?php echo $cur_hh; ?>" size="2" maxlength="2" autocomplete="off"> : 
+                                        <input type="text" id="mn" name="mn" value="<?php echo $cur_mn; ?>" size="2" maxlength="2" autocomplete="off">
+                                    </div>
+                                    <p>
+                                        <a href="#edit_timestamp" class="save-timestamp button"><?php _e( "OK", 'email-newsletter' ); ?></a>
+                                        <a href="#edit_timestamp" class="cancel-timestamp"><?php _e( "Cancel/Unset", 'email-newsletter' ); ?></a>
+                                    </p>
+                                </div>
+                        </td>
+                    </tr>
 				</tbody>
             </table>
 
