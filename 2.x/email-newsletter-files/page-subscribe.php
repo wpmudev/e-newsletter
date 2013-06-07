@@ -1,5 +1,6 @@
 <?php
     global $current_user;
+    $this->set_current_user();
 
     $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
 

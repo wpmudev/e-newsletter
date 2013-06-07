@@ -55,7 +55,8 @@ class Email_Newsletter_Builder  {
 		return admin_url($final);
 	}
 	function builder_capability_fix() {
-		global $current_user, $pagenow;
+		global $current_user, $pagenow, $email_newsletter;
+		$email_newsletter->set_current_user();
 		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 0;
 
 		$user = new WP_User( $current_user->ID );
@@ -81,6 +82,7 @@ class Email_Newsletter_Builder  {
 	}
 	function plugins_loaded() {
 		global $current_user, $pagenow, $builder_id, $email_newsletter;
+		$email_newsletter->set_current_user();
 		
 		// Start the id at false for checking
 		$builder_id = false;
@@ -314,7 +316,8 @@ class Email_Newsletter_Builder  {
 	}
 	
 	function get_builder_email_id() {
-		global $current_user;
+		global $current_user, $email_newsletter;
+		$email_newsletter->set_current_user();
 
 		//if(($result = ) === false)
 			return get_transient('builder_email_id_'.$current_user->ID);

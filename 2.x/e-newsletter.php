@@ -212,7 +212,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function set_current_user() {
         global $current_user;
         
-        get_currentuserinfo();
+        if(!$current_user)
+            get_currentuserinfo();
     }
 
     /**
@@ -620,6 +621,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function save_subscribes( $groups_id, $redirect_to = "", $ajax = 0  ) {
         global $wpdb, $current_user;
+        $this->set_current_user();
 
         $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
 
@@ -658,6 +660,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function subscribe( $member_id = "", $redirect_to = "", $ajax = 0 ) {
         global $wpdb, $current_user;
+        $this->set_current_user();
 
         do_action( 'enewsletter_user_subscribe', $member_id );
 
@@ -1118,18 +1121,18 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $email_body = $this->make_email_body( $newsletter_id );
 
-
-        $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send SET newsletter_id = %d, start_time = %d, end_time = '', email_body = '%s'", $newsletter_id, time(), $email_body ) );
-        $send_id = $wpdb->insert_id;
-
+        $start_time = time();
         if ( 'cron_time' == $_REQUEST['cron_time'] ) {
             $time_str = $_REQUEST['aa'].'-'.$_REQUEST['mm'].'-'.$_REQUEST['jj'].' '.$_REQUEST['hh'].':'.$_REQUEST['mn'].':00 GMT';
-            $status = strtotime($time_str);
+            $status = $start_time = strtotime($time_str);
         }
         elseif ( 'cron' == $_REQUEST["cron"] )
             $status = 'by_cron';
         else
             $status = 'waiting_send';
+
+        $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send SET newsletter_id = %d, start_time = %d, end_time = '', email_body = '%s'", $newsletter_id, $start_time, $email_body ) );
+        $send_id = $wpdb->insert_id;
 
         if ( 0 < count( $members_id ) )
             foreach ( $members_id as $member_id ) {
@@ -1503,6 +1506,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function test_smtp_ajax(){ 
         global $current_user;
+        $this->set_current_user();
 
         @set_time_limit( 0 );
 
@@ -1773,6 +1777,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
     function subscribe_widget($show_name = false, $show_groups = true) {
         global $email_newsletter, $current_user;
+        $this->set_current_user();
 
         $groups = $this->get_groups();
 
@@ -1944,6 +1949,7 @@ class e_newsletter_subscribe extends WP_Widget {
     /** @see WP_Widget::widget */
     function widget( $args, $instance ) {
         global $email_newsletter, $current_user;
+        $this->set_current_user();
 
         extract( $args );
 

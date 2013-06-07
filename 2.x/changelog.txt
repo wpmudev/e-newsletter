@@ -6,7 +6,7 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 == Changelog ==
 
 = 2.1 =
-* ! Added ability to send newsletter at certain time
+* Added ability to send newsletter at certain time
 * Fixed CRON limits not working correctly
 * Improved POP3 under the hood settings detection for better compatibility
 * Added test button for SMTP configuration

@@ -267,7 +267,7 @@
                             <p>
                                 <input class="button button-secondary" type="button" name="send" id="add_cron" value="<?php echo _e( 'Send in background (by CRON)', 'email-newsletter' ) ?>" />
                                 <span id="timestamp">
-                                    <?php _e( "Send:", 'email-newsletter' ); ?> <b><?php _e( "As fast as possible.", 'email-newsletter' ); ?></b>
+                                    <?php _e( "Send(UTC):", 'email-newsletter' ); ?> <b><?php _e( "As fast as possible.", 'email-newsletter' ); ?></b>
                                 </span>
                                 <a href="#edit_timestamp" class="edit-timestamp" style="display: inline;">Edit</a>
                             </p>
