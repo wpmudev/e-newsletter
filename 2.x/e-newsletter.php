@@ -195,13 +195,13 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'wp_ajax_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax' ));
         add_action( 'wp_ajax_nopriv_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax'));
 
-            //adds cap for admin
-            $admin_role = get_role('administrator');
-            foreach($this->capabilities as $key => $cap) {
-                if(!isset($admin_role->capabilities[$key]) || $admin_role->capabilities[$key] == false ) {
-                    $admin_role->add_cap($key,true);
-                }
+        //adds cap for admin
+        $admin_role = get_role('administrator');
+        foreach($this->capabilities as $key => $cap) {
+            if(!isset($admin_role->capabilities[$key]) || $admin_role->capabilities[$key] == false ) {
+                $admin_role->add_cap($key,true);
             }
+        }
     }
     
     /**
