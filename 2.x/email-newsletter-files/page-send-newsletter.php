@@ -302,7 +302,7 @@
                                         <input type="text" id="mn" name="mn" value="<?php echo $cur_mn; ?>" size="2" maxlength="2" autocomplete="off">
                                     </div>
                                     <p>
-                                        <a href="#edit_timestamp" class="save-timestamp button"><?php _e( "OK", 'email-newsletter' ); ?></a>
+                                        <a href="#edit_timestamp" class="save-timestamp button"><?php _e( "Set", 'email-newsletter' ); ?></a>
                                         <a href="#edit_timestamp" class="cancel-timestamp"><?php _e( "Cancel/Unset", 'email-newsletter' ); ?></a>
                                     </p>
                                 </div>

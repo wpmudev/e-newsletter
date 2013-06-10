@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.1.0
+Version: 2.1.1
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -56,7 +56,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.1;
+        $this->plugin_ver = 2.11;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -1949,7 +1949,6 @@ class e_newsletter_subscribe extends WP_Widget {
     /** @see WP_Widget::widget */
     function widget( $args, $instance ) {
         global $email_newsletter, $current_user;
-        $this->set_current_user();
 
         extract( $args );
 
