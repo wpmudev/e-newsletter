@@ -1113,14 +1113,20 @@ class Email_Newsletter_functions {
         //Date
         $date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
         $contents = str_replace( "{DATE}", date($date_format), $contents );
+        
+        // REPLACE THE image LINKS AT THE START
+        $contents = str_replace( "'images/", "'".$template_url . "images/", $contents );
+        $contents = str_replace( '"images/', '"'.$template_url . 'images/', $contents );
+        $contents = str_replace( "'/images/", "'".$template_url . "images/", $contents );
+        $contents = str_replace( '"/images/', '"'.$template_url . 'images/', $contents );
+
+        //Add url to elements
+        $contents = str_replace( "{TEMPLATE_URL}", $template_url, $contents );
 
         //do the inline styling
         $themedata = $email_builder->find_builder_theme();
         $contents = $this->do_inline_styles($themedata, $contents);
-        
-        // REPLACE THE image LINKS AT THE START
-        $contents = str_replace( "images/", $template_url . "/images/", $contents );
-        
+
         // BG COLOR
         $bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color', $this->get_default_builder_var('bg_color'));
         $bg_color = apply_filters('email_newsletter_make_email_bgcolor',$bg_color,$newsletter_id);
@@ -1171,9 +1177,20 @@ class Email_Newsletter_functions {
         else
             $contents = str_replace( "{TO_EMAIL}", '', $contents );
 
+        //Set up permalinks
         $contents = str_replace( "{OPENED_TRACKER}", '<img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id) . '" width="1" height="1" style="display:none;" />', $contents );
-        $contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", site_url('/e-newsletter/unsubscribe/' . $code . $member_id . '/'), $contents );
-        $view_browser_url = site_url('/e-newsletter/view/' . $code . $send_id . '/');
+        
+        if(get_option('permalink_structure')) {
+            $unsubscribe_url = site_url('/e-newsletter/unsubscribe/' . $code . $member_id . '/');
+            $view_browser_url = site_url('/e-newsletter/view/' . $code . $send_id . '/');
+        }
+        else {
+            $view_browser_url = add_query_arg( array('view_newsletter' => '1', 'view_newsletter_code' => $code, 'view_newsletter_send_id' => $send_id), site_url() );
+            $unsubscribe_url = add_query_arg( array('unsubscribe_page' => '1', 'unsubscribe_code' => $code, 'unsubscribe_member_id' => $member_id), site_url() );
+        }
+
+        $contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", $unsubscribe_url, $contents );
+        
         $contents = str_replace( "{VIEW_LINK}", $view_browser_url, $contents );
         $contents = str_replace( "%7BVIEW_LINK%7D", $view_browser_url, $contents );
         

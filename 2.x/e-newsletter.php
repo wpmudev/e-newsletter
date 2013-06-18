@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.1.1
+Version: 2.1.2
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -56,7 +56,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.11;
+        $this->plugin_ver = 2.12;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -963,8 +963,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
         
         $meta = $data['meta'];
         
-        if($data['newsletter_template'] != $current_theme)
-            $this->delete_newsletter_meta($newsletter_id, 'email_title', 1 );
+        if($data['newsletter_template'] != $current_theme) {
+            if($meta['email_title'] != BUILDER_DEFAULT_EMAIL_TITLE)
+                $this->delete_newsletter_meta($newsletter_id, 'email_title', 1 );
+            else
+                $this->delete_newsletter_meta($newsletter_id);
+        }
         else        
             foreach($meta as $meta_key => $meta_value) {
                 $this->update_newsletter_meta($newsletter_id, $meta_key, $meta_value);
@@ -1937,6 +1941,7 @@ $email_builder =& new Email_Newsletter_Builder();
 class e_newsletter_subscribe extends WP_Widget {
     //constructor
     function e_newsletter_subscribe() {
+        //TODO - Save to remove?
         if( isset( $_REQUEST['wp3_newsletter_subscribe'] ) ) {
         }
         if (session_id() == "" || !isset($_SESSION))

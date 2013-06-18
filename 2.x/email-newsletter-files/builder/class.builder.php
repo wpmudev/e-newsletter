@@ -517,11 +517,11 @@ class Email_Newsletter_Builder  {
 		$instance->remove_section( 'title_tagline' );
 		$instance->remove_section( 'static_front_page' );
 		$instance->add_section( 'builder_email_settings', array(
-			'title'          => 'Settings',
+			'title'          => __('Settings','email-newsletter'),
 			'priority'       => 35,
 		) );
 		$instance->add_section( 'builder_email_content', array(
-			'title'          => 'Content',
+			'title'          => __('Content','email-newsletter'),
 			'priority'       => 36,
 		) );
 		$instance->add_section( 'builder_preview', array(

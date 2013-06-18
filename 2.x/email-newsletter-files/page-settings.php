@@ -40,7 +40,7 @@
 			
             $( "input[type=button][name='save']" ).click( function() {
                 if ( "" == $( "#smtp_host" ).val() && $( "#smtp_method" ).attr( 'checked' ) ) {
-                    alert('<?php _e( 'Please write SMTP Outgoing Server, or select another Sending Method!', 'email-newsletter' ) ?>');
+                    alert("<?php _e( 'Please write SMTP Outgoing Server, or select another Sending Method!', 'email-newsletter' ); ?>");
                     return false;
                 }
 
@@ -51,7 +51,7 @@
             //install plugin data
             $( "#install" ).click( function() {
                 if ( "" == $( "#smtp_host" ).val() && $( "#smtp_method" ).attr( 'checked' ) ) {
-                    alert('<?php _e( 'Please write SMTP Outgoing Server, or select another Sending Method!', 'email-newsletter' ) ?>');
+                    alert("<?php _e( 'Please write SMTP Outgoing Server, or select another Sending Method!', 'email-newsletter' ); ?>");
                     return false;
                 }
 
@@ -446,7 +446,7 @@
 					<div id="tabs-4">
 						<?php global $wp_roles; ?>
 						<h3><?php _e('User Permissions','email-newsletter'); ?></h3>
-						<p><?php _e('Here you can set your desired permissions for each user role on your site'); ?></p>
+						<p><?php _e('Here you can set your desired permissions for each user role on your site','email-newsletter'); ?></p>
 						<div class="metabox-holder" id="newsletter_user_permissions">
 							<?php foreach($wp_roles->get_names() as $name => $label) : ?>
 								<?php if($name == 'administrator') continue; ?>

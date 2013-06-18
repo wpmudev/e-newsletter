@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: e-newsletter 2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-06-10 08:30+0100\n"
-"PO-Revision-Date: 2013-06-10 08:30+0100\n"
+"POT-Creation-Date: 2013-06-18 14:22+0100\n"
+"PO-Revision-Date: 2013-06-18 14:23+0100\n"
 "Last-Translator: \n"
 "Language-Team: Incsub\n"
 "MIME-Version: 1.0\n"
@@ -183,149 +183,149 @@ msgid "The Newsletter is deleted!"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:996
 #: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1000
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1004
 msgid "The Newsletter is saved!"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1032
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1036
 msgid "Error: Wrong subscription data!"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1046
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1050
 msgid "Successful subscription!"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1059
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1063
 msgid "Select groups for this user:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1072
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1076
 msgid "Please create some groups."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1147
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1151
 msgid "All members have already received it or no user is subscribed!"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1150
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1169
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1154
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1173
 msgid "Members are added to CRON list"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1229
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1239
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1233
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1243
 msgid "Error when updating DB."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1231
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1235
 msgid "Error sending email. Please check outgoing email settings."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1482
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1486
 msgid "No valid newsletter ID supplied."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1496
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1500
 msgid "Your test email has been sent."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1498
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1502
 msgid ""
 "Failed to send test email! Make sure that entered email is correct and also "
 "check outgoing email settings."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1500
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1504
 msgid "Failed to generate email body."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1563
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1567
 msgid ""
 "Failed to send test email! - Please check your outgoing email settings and "
 "server config to see if selected ports are open. Error details: "
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1566
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1570
 msgid "Test message successfully sent! Feel free to save your settings."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1574
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1578
 msgid "PHP Imap not supported"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1589
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1593
 msgid "Failed to send test email! Please check your outgoing email settings."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1613
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1617
 msgid ""
 "Failed to connect while checking bounces! Please check your bounce settings "
 "and server config to see if selected ports are open. Error details: "
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1626
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1630
 msgid "Successfully connected! Feel free to save your settings."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1631
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1635
 msgid "Bounce test message not found!"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1652
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1656
 msgid "Confirm newsletter subscription"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1691
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1713
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1695
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1717
 msgid "eNewsletter"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1692
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1696
 msgid "Reports"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1693
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1697
 #: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/email-newsletter-files/page-newsletters-dashboard.php:30
 #: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/email-newsletter-files/page-newsletters.php:15
 msgid "Newsletters"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1694
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1698
 msgid "Create Newsletter"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1695
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1699
 msgid "Member Groups"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1696
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1700
 #: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/email-newsletter-files/page-groups.php:134
 #: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/email-newsletter-files/page-members.php:206
 #: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/email-newsletter-files/page-newsletters-dashboard.php:33
@@ -333,84 +333,85 @@ msgid "Members"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1697
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1701
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/email-newsletter-files/builder/class.builder.php:520
 msgid "Settings"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1700
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1704
 #: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/email-newsletter-files/page-subscribe.php:42
 msgid "My Subscriptions"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1714
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1718
 msgid "Install Settings"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1821
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1825
 msgid "Your Email:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1827
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1831
 msgid "Your Name:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1833
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1868
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1837
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1872
 msgid "Subscribe to:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1853
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1857
 msgid "Subscribe"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1888
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1892
 msgid "Save Subscriptions"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1892
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1896
 msgid "Unsubscribe"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1902
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1906
 msgid "Subscribe to Newsletters"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1945
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1950
 msgid "Allow people to subscribe to your newsletter database."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1946
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1951
 msgid "eNewsletter: Subscribe"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1983
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1988
 msgid "Subscribe to our Newsletters"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:1997
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2002
 msgid "Title"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2002
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2007
 msgid "Ask the name?"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2007
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2012
 msgid "Show Groups?"
 msgstr ""
 
@@ -1602,6 +1603,11 @@ msgstr ""
 #: C:\Programs
 #: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/email-newsletter-files/builder/class.builder.php:510
 msgid "Email Title"
+msgstr ""
+
+#: C:\Programs
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/email-newsletter-files/builder/class.builder.php:524
+msgid "Content"
 msgstr ""
 
 #: C:\Programs
