@@ -1466,7 +1466,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                         }
                     }
                     else {
-                        $result = $this->set_send_email_status('bounced', $send_member['member_id']);
+                        $result = $this->set_send_email_status('bounced', $send_member['send_id'], $send_member['member_id']);
                         
                         $this->write_log( $process_id . " 08 - send_errors:" . " no_email" );
                     }

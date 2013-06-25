@@ -16,7 +16,6 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 * Fixed incorrect URLs for sites with different home url then site url
 * Other small improvements
 
-
 = 2.1.2 =
 * Fixed newsletter default title overwrite
 * Fixed missing translations

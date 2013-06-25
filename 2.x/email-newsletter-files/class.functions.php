@@ -1022,11 +1022,18 @@ class Email_Newsletter_functions {
     /**
      * Exporting members of selected groups to csv
      **/
-    function export_members( $groups, $ungrouped = 0, $separate_by = ';' ) {
+    function export_members( $groups = array(), $ungrouped = 0, $separate_by = ';' ) {
         global $wpdb;
         $sitename = sanitize_key( get_bloginfo( 'name' ) );
         if ( ! empty($sitename) ) $sitename .= '.';
-        $filename = $sitename . 'wordpress.enewsletter.members.' . date( 'Y-m-d' ) . '.csv';
+        $groups_filename = $groups;
+        if($ungrouped == 1)
+            $groups_filename[] = 'ug';
+        elseif(empty($groups))
+            $groups_filename[] = 'all';
+        $groups_filename = implode('-', $groups_filename);
+
+        $filename = $sitename . 'wp.enewsletter.members.'.$groups_filename.'.'.date( 'Y-m-d' ) . '.csv';
     
         header( 'Content-Description: File Transfer' );
         header( 'Content-Disposition: attachment; filename=' . $filename );
