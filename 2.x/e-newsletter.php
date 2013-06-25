@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.1.2
+Version: 2.2
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -56,7 +56,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.12;
+        $this->plugin_ver = 2.2;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -97,6 +97,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $this->capabilities['change_newsletter_group'] = __('Change Newsletter Groups','email-newsletter');
         $this->capabilities['view_newsletter_members'] = __('View Newsletter Members','email-newsletter');
         $this->capabilities['add_newsletter_member'] = __('Add Newsletter Members','email-newsletter');
+        $this->capabilities['edit_newsletter_member'] = __('Edit Newsletter Members','email-newsletter');
         $this->capabilities['delete_newsletter_member'] = __('Delete Newsletter Members','email-newsletter');
         $this->capabilities['add_members_group'] = __('Add Members To Group','email-newsletter');
         $this->capabilities['delete_members_group'] = __('Delete Members From Group','email-newsletter');
@@ -195,13 +196,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'wp_ajax_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax' ));
         add_action( 'wp_ajax_nopriv_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax'));
 
-        //adds cap for admin
-        $admin_role = get_role('administrator');
-        foreach($this->capabilities as $key => $cap) {
-            if(!isset($admin_role->capabilities[$key]) || $admin_role->capabilities[$key] == false ) {
-                $admin_role->add_cap($key,true);
-            }
-        }
     }
     
     /**
@@ -435,6 +429,26 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $this->add_member( $_REQUEST['member'] );
                 break;
 
+                //action edit member
+                case "edit_member":
+                    
+                    if(! (current_user_can('edit_newsletter_member') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+                    
+                    $this->edit_member( $_REQUEST['member_id'], $_REQUEST['edit_member_nicename'], $_REQUEST['edit_member_email'] );
+                break;
+
+                //action delete member
+                case "delete_member":
+                    
+                    if(! (current_user_can('delete_newsletter_member') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+
+                    $member_id = array($_REQUEST['member_id']);
+                    
+                    $this->delete_members( $member_id );
+                break;
+
                 //Bulk action delete members
                 case "delete_members":
                     
@@ -460,6 +474,20 @@ class Email_Newsletter extends Email_Newsletter_functions {
                         wp_die('You do not have permission to do that');
                     
                     $this->delete_members_group( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
+                break;
+
+                //Bulk action add members to group
+                case "export_members":
+                    
+                    if(! (current_user_can('edit_newsletter_member') || current_user_can($mu_cap)) )
+                        wp_die('You do not have permission to do that');
+
+                    if($_REQUEST['separ_sign'] == 1)
+                        $separate_by = ';';
+                    else
+                        $separate_by = ',';
+                    
+                    $this->export_members($_REQUEST['groups_id'], $_REQUEST['groups_ungrouped'], $separate_by);
                 break;
 
                 //action save settings
@@ -751,7 +779,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         } else {
             //check email of new member there isn't on list of members
-            $member =  $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members WHERE member_email = '%s'", $member_data['email'] ), "ARRAY_A" );
+            $member =  $this->get_member_by_email($member_data['email']);
             if ( $member )
                 if ( "" != $member['unsubscribe_code'] ) {
                     $dmsg =   __( 'This email is already subscribed!', 'email-newsletter' );
@@ -826,6 +854,36 @@ class Email_Newsletter extends Email_Newsletter_functions {
     }
 
     /**
+     * Edit member
+     **/
+    function edit_member( $member_id, $member_nicename, $member_email ) {
+        global $wpdb;
+
+        if ( $member_id && is_email( $member_email ) ) {
+            $member_name = explode(' ', $member_nicename);
+            if(!isset($member_name[1]))
+                $member_name[1] = '';
+
+            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET
+            member_fname = %s,
+            member_lname = %s,
+            member_email = %s
+            WHERE member_id = %d
+            ", $member_name[0], $member_name[1], $member_email, $member_id ) );
+        }
+
+        if($result)
+            $message = 'User updated!';
+        else
+            $message = 'Updating user failed!';
+
+        do_action( 'enewsletter_user_edit', $members_id, $member_nicename, $member_email );
+
+        wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( $message ) ), 'admin.php' ) );
+        exit;
+    }
+
+    /**
      * Delete members
      **/
     function delete_members( $members_id ) {
@@ -839,7 +897,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_members WHERE member_id = %d", $member_id ) );
             }
 
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( __( 'Members are deleted!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            if(count($members_id) == 1)
+                $message = __( 'Member deleted!', 'email-newsletter' );
+            elseif(count($members_id) == 0)
+                $message = __( 'No members to delete!', 'email-newsletter' );
+            else
+                $message = __( 'Members deleted!', 'email-newsletter' );
+
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'dmsg' => urlencode( $message ) ), 'admin.php' ) );
             exit;
         }
     }
@@ -859,13 +924,23 @@ class Email_Newsletter extends Email_Newsletter_functions {
         else
             $user = (array) $data;
 
-        $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_members SET
+        $member =  $this->get_member_by_email($user['user_email']);
+        if ( $member ) {
+            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET
             wp_user_id = %d,
-            member_fname = %s,
-            member_email = %s,
-            join_date = %d,
-            unsubscribe_code = '%s'
-         ", $user['ID'], $user['user_nicename'], $user['user_email'], time(), $unsubscribe_code ) );
+            member_fname = %s
+            WHERE member_id = %d
+            ", $user['ID'], $user['user_nicename'], $member['member_id'] ) );           
+        }
+        else {
+            $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_members SET
+                wp_user_id = %d,
+                member_fname = %s,
+                member_email = %s,
+                join_date = %d,
+                unsubscribe_code = '%s'
+             ", $user['ID'], $user['user_nicename'], $user['user_email'], time(), $unsubscribe_code ) );
+        }
     }
 
     /**
@@ -1223,8 +1298,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
             $options['message_id'] = 'Newsletters-' . $send_member['member_id'] . '-' . $send_id . '-'. md5( 'Hash of bounce member_id='. $send_member['member_id'] . ', send_id='. $send_id );
 
             $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
-
-            if( $sent_status == true ) {
+            $this->write_log( 'Send status: '.$sent_status);
+            if( $sent_status === true ) {
                 //write info of Sent in DB
                 $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent' WHERE send_id = %d AND member_id = %d", $send_id, $send_member['member_id'] ) );
                 if ( $result )
@@ -1232,11 +1307,20 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 else
                     die( __( 'Error when updating DB.', 'email-newsletter' ) );
             } else {
-                die(__( 'Error sending email. Please check outgoing email settings.', 'email-newsletter' ) );
+                if( $sent_status == 'recipients_failed' || $sent_status == 'invalid_address' ) {
+                    $result = $this->set_send_email_status('bounced', $send_id, $send_member['member_id']);
+                    if ( $result )
+                        die('ok');
+                    else
+                        die( __( 'Error when updating DB.', 'email-newsletter' ) );   
+                }
+                else {
+                    die(__( 'Error sending email. Please check outgoing email settings.', 'email-newsletter' ) );
+                }
             }
         }
         else {
-            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced', bounce_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_id, $send_member['member_id'] ) );
+            $result = $this->set_send_email_status('bounced', $send_id, $send_member['member_id']);
             if ( $result )
                 die('ok');
             else
@@ -1376,13 +1460,13 @@ class Email_Newsletter extends Email_Newsletter_functions {
                             }
                         }
                         else {
-                            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced', bounce_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_member['send_id'], $send_member['member_id'] ) );
+                            $result = $this->set_send_email_status('bounced', $send_member['send_id'], $send_member['member_id']);
                             
                             $this->write_log( $process_id . " 08 - send_errors:" . " newsletter data empty" );
                         }
                     }
                     else {
-                        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced', bounce_time = %d WHERE send_id = %d AND member_id = %d", time(), $send_member['send_id'], $send_member['member_id'] ) );
+                        $result = $this->set_send_email_status('bounced', $send_member['member_id']);
                         
                         $this->write_log( $process_id . " 08 - send_errors:" . " no_email" );
                     }
@@ -1460,7 +1544,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $hash           = md5( 'Hash of bounce member_id='. $member_id . ', send_id='. $send_id );
 
                     if( $email_hash == $hash ){
-                        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'bounced' WHERE send_id = %d AND member_id = %d AND status = 'sent'", $send_id, $member_id ) );
+                        $result = $this->set_send_email_status('bounced', $send_id, $member_id);
                         imap_delete( $mbox, $mail->msgno );
                         echo 'ok';
                     } else {
@@ -1488,7 +1572,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $newsletter_data = $this->get_newsletter_data( $newsletter_id );
         $content = $this->make_email_body($newsletter_id);
         $content = str_replace( "{UNSUBSCRIBE_URL}", '#', $content );
-        $content = str_replace( "{OPENED_TRACKER}", '', $content );
+        $content = str_replace( "{OPENED_TRACKER}", '<div style="display:none; font-size: 0px; line-height:0px;"><img src="' . admin_url('admin-ajax.php') . '" width="1" height="1"/></div>', $content );
         if($newsletter_data && $content) {
             $subject = '(PREVIEW) '.$newsletter_data['subject'];
             if( $this->settings['bounce_email'] ) {
@@ -1567,7 +1651,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             die( __( 'Failed to send test email! - Please check your outgoing email settings and server config to see if selected ports are open. Error details: ', 'email-newsletter' ).strip_tags($mail->ErrorInfo) );
         }
         else
-            die( __( 'Test message successfully sent! Feel free to save your settings.', 'email-newsletter' ) );
+            die( __( 'Test message successfully sent! Feel free to save your settings. Please keep in mind that your server may limit the number of allowed messages to be sent per hour/day/week.', 'email-newsletter' ) );
     }
 
     /**
@@ -1592,6 +1676,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if( $send_status != true )
             die( __( 'Failed to send test email! Please check your outgoing email settings.', 'email-newsletter' )  );
 
+        sleep(10);
+
         //Set value for connect to email server
         $email_address  = $_REQUEST['bounce_email'];
         $email_username = $_REQUEST['bounce_username'];
@@ -1607,7 +1693,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if( ! $email_host )
             return true;
 
-        sleep( 3 );
+        sleep( 5 );
         
         $email_security = isset($_REQUEST['bounce_security']) ? $_REQUEST['bounce_security'] : '';
 
@@ -1616,26 +1702,35 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if( ! $mbox ) {
             die( __( 'Failed to connect while checking bounces! Please check your bounce settings and server config to see if selected ports are open. Error details: ', 'email-newsletter' ).strip_tags(imap_last_error()) );
         } else {
-            $MC = imap_check( $mbox );
+            $i = 1;
+            while ($i <= 5) {
+                $i++;
+                $MC = imap_check( $mbox );
 
-            //get all emails
-            $mails = imap_fetch_overview( $mbox, "1:{$MC->Nmsgs}", 0 );
+                $this->write_log('bounce_test: find bounce attempt: '.$i);
+                
+                //get all emails
+                $mails = imap_fetch_overview( $mbox, "1:{$MC->Nmsgs}", 0 );
 
-            foreach ( $mails as $mail ) {
-                //Search test email on server
-                if( $mail->subject == 'Test-Connection-Bounce-'. $email_id ) {
-                    imap_delete( $mbox, $mail->uid, FT_UID );
-                    imap_expunge( $mbox );
-                    imap_close( $mbox );
-                    die( __( 'Successfully connected! Feel free to save your settings.', 'email-newsletter' ) );
+                foreach ( $mails as $mail ) {
+                    $this->write_log('bounce_test: subject: '.$mail->subject);
+                    //Search test email on server
+                    if( $mail->subject == 'Test-Connection-Bounce-'. $email_id ) {
+                        imap_delete( $mbox, $mail->uid, FT_UID );
+                        imap_expunge( $mbox );
+                        imap_close( $mbox );
+
+                        $this->write_log('bounce_test: subject found!');
+                        die( __( 'Successfully connected! Feel free to save your settings.', 'email-newsletter' ) );
+                    }
                 }
+                imap_expunge( $mbox );
+                imap_close( $mbox );
+
+                sleep( 5 );
             }
-            imap_expunge( $mbox );
-            imap_close( $mbox );
             die(  __( 'Bounce test message not found!', 'email-newsletter' ) );
         }
-        
-        die();
     }
 
 

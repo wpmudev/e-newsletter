@@ -115,6 +115,14 @@ class Email_Newsletter_functions {
         global $wpdb;
         return  $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE unsubscribe_code = '%s'", $code ), "ARRAY_A" );
     }
+
+    /**
+     * get member id by unsubscribe code
+     **/
+    function get_member_by_email( $email ) {
+        global $wpdb;
+        return  $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members WHERE member_email = '%s'", $email ), "ARRAY_A" );
+    }
            
 
     /**
@@ -182,6 +190,15 @@ class Email_Newsletter_functions {
      function get_count_sent_to_user( $member_id ) {
         global $wpdb;
         $count = $wpdb->get_row( $wpdb->prepare( "SELECT Count(member_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE member_id = %d  AND status = 'sent'", $member_id ), "ARRAY_A");
+        return $count['Count(member_id)'];
+    }
+
+    /**
+     * Get count of bounced email from user
+     **/
+     function get_count_bounced_from_user( $member_id ) {
+        global $wpdb;
+        $count = $wpdb->get_row( $wpdb->prepare( "SELECT Count(member_id) FROM {$this->tb_prefix}enewsletter_send_members WHERE member_id = %d  AND status = 'bounced'", $member_id ), "ARRAY_A");
         return $count['Count(member_id)'];
     }
 
@@ -293,11 +310,17 @@ class Email_Newsletter_functions {
 
         $sent_status = $mail->Send();
         if( !$sent_status ) {
-            $this->write_log( 'Send email eroor: '.$mail->ErrorInfo);
-            return false;
+            $this->write_log( 'Send email error: '.$mail->ErrorInfo.'['.$mail->ErrorInfoRaw.']');
+            return $mail->ErrorInfoRaw;
         }
 
         return true;
+    }
+
+    function set_send_email_status($status, $send_id, $member_id) {
+        global $wpdb;
+
+        return $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = %s WHERE send_id = %d AND member_id = %d", $status, $send_id, $member_id ) );     
     }
 
     function pop3_connet($email_host, $email_port = 110, $email_security = '', $email_username = '', $email_password = '' ) {
@@ -651,9 +674,6 @@ class Email_Newsletter_functions {
             unset( $member['member_info'] );
         }
 
-        $member['count_sent']   = $this->get_count_sent_to_user( $member_id );
-        $member['count_opened'] = $this->get_count_opened_by_user( $member_id );
-
         return $member;
     }
 
@@ -679,40 +699,61 @@ class Email_Newsletter_functions {
     /**
      * Get all members
      **/
-    function get_members( $arg = "") {
+    function get_members( $arg = "", $count = 0, $details = 1) {
         global $wpdb;
 
         $where      = "";
         $orderby    = "";
         $limit      = "";
+        $left_join  = "";
 
         if ( isset( $arg['where'] ) ) {
             $where = "WHERE ". $arg['where'];
+        }
+
+        if ( isset( $arg['inner_join'] ) ) {
+            $inner_join= "INNER JOIN ". $arg['inner_join'];
+        }
+
+        if ( isset( $arg['left_join'] ) ) {
+            $inner_join= "LEFT JOIN ". $arg['left_join'];
         }
 
         if ( isset( $arg['limit'] ) ) {
             $limit = $arg['limit'];
         }
 
-        if ( isset( $arg['orderby'] ) ) {
+        $allowed_order_by = array('member_email', 'member_fname', 'join_date', 'count_sent', 'count_bounced', 'count_sent', 'count_opened');
+        if ( isset( $arg['orderby'] ) && in_array($arg['orderby'], $allowed_order_by) ) {
             $orderby = "ORDER BY ". $arg['orderby'];
-            if ( $arg['order'] )
+            if ( $arg['order'] == 'asc' || $arg['order'] == 'desc' )
                 $orderby .= " ". $arg['order'];
         }
+        if($count == 1)
+            $select = 
+            "SELECT COUNT(*)";
+        else
+            $select = 
+            "SELECT A.*";
 
-        $results = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_members ". $where . " ".  $orderby . " " . $limit, "ARRAY_A");
+        if($details == 1) {
+            $details = ",
+            SUM(if(B.status = 'bounced', 1, 0)) AS 'count_bounced', 
+            SUM(if(B.status = 'sent', 1, 0)) AS 'count_sent', 
+            SUM(if(B.opened_time < 0, 1, 0)) AS 'count_opened'
+            ";
+            $left_join = "LEFT JOIN {$this->tb_prefix}enewsletter_send_members B ON (A.member_id = B.member_id)";
+        }
+        else
+            $details = "";
 
-        if ( $results )
-                foreach( $results as $member ) {
-                    $member['count_sent']   = $this->get_count_sent_to_user( $member['member_id'] );
-                    $member['count_opened'] = $this->get_count_opened_by_user( $member['member_id'] );
-                    $members[] = $member;
-                }
+        $query = $select." ".$details." FROM {$this->tb_prefix}enewsletter_members A ".$left_join." ".$inner_join." " .$where." GROUP BY A.member_id ".$orderby." " .$limit;
+        $results = $wpdb->get_results($query, "ARRAY_A");
 
-        if ( isset( $arg['sortby'] ) )
-            $members = $this->sort_array_by_field( $members, $arg['sortby'], $arg['order'] );
-
-        return $members;
+        if($count == 1)
+            return count($results);
+        else
+            return $results;
     }
 
 
@@ -722,38 +763,11 @@ class Email_Newsletter_functions {
     function get_members_of_group( $group_id, $limit = '' ) {
         global $wpdb;
         $members = NULL;
-        $results = $wpdb->get_results( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_member_group WHERE group_id = %d" . $limit , $group_id ), "ARRAY_A" );
+        $results = $wpdb->get_results( $wpdb->prepare( "SELECT A.member_id FROM {$this->tb_prefix}enewsletter_member_group A INNER JOIN {$this->tb_prefix}enewsletter_members B ON A.member_id = B.member_id WHERE A.group_id = %d" . $limit , $group_id ), "ARRAY_A" );
         foreach( $results as $member ){
             $members[] = $member['member_id'];
         }
         return $members;
-    }
-
-    /**
-     * Get count members of Group
-     **/
-    function get_count_members_of_group( $group_id ) {
-        global $wpdb;
-        $results = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(member_id) FROM {$this->tb_prefix}enewsletter_member_group WHERE group_id = %d", $group_id ) );
-        return $results;
-    }
-
-    /**
-     * Get unsubscribe members
-     **/
-    function get_unsubscribe_member( $limit = '' ) {
-        global $wpdb;
-        $results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members WHERE unsubscribe_code = '' OR unsubscribe_code IS NULL" . $limit ), "ARRAY_A" );
-        return $results;
-    }
-
-    /**
-     * Get count unsubscribe members
-     **/
-    function get_count_unsubscribe_members() {
-        global $wpdb;
-        $results = $wpdb->get_var( "SELECT COUNT(member_id) FROM {$this->tb_prefix}enewsletter_members WHERE unsubscribe_code = '' OR unsubscribe_code IS NULL" );
-        return $results;
     }
 
     /**
@@ -1005,6 +1019,44 @@ class Email_Newsletter_functions {
         }
     }
 
+    /**
+     * Exporting members of selected groups to csv
+     **/
+    function export_members( $groups, $ungrouped = 0, $separate_by = ';' ) {
+        global $wpdb;
+        $sitename = sanitize_key( get_bloginfo( 'name' ) );
+        if ( ! empty($sitename) ) $sitename .= '.';
+        $filename = $sitename . 'wordpress.enewsletter.members.' . date( 'Y-m-d' ) . '.csv';
+    
+        header( 'Content-Description: File Transfer' );
+        header( 'Content-Disposition: attachment; filename=' . $filename );
+        header( 'Content-Type: text/plain; charset=' . get_option( 'blog_charset' ), true );
+        
+        if(count($groups) > 0) {
+            foreach ($groups as $key => $group)
+                if(!is_numeric($group))
+                    unset($groups[$key]);
+
+            $groups_string = implode(',', $groups);
+
+            $arg['where'] = 'group_id IN('.$groups_string.')';
+
+            if($ungrouped == 1)
+                $arg['where'] .= ' OR group_id IS NULL';
+        }
+        elseif($ungrouped == 1)
+                $arg['where'] .= 'group_id IS NULL';
+
+        $arg['left_join'] = $this->tb_prefix.'enewsletter_member_group C ON (A.member_id = C.member_id)';
+
+        $results = $this->get_members( $arg, 0, 0 );
+        if ( $results )
+            foreach( $results as $member ) {
+                echo $member['member_email'].$separate_by.$member['member_fname'].$separate_by.$member['member_lname']."\r\n";
+            }
+
+        die();        
+    }
 
     /**
      * Get pagination data
@@ -1013,7 +1065,7 @@ class Email_Newsletter_functions {
             if ( 'all' == $per_page )
                 $per_page = 1000000;
 
-            if ( $count > $per_page ) {
+            if ( is_numeric($count) && is_numeric($per_page) && $count > $per_page ) {
                 $pagination_data['count'] = $count;
 
                 if ( isset( $_REQUEST['cpage'] ) && 0 < $_REQUEST['cpage'] )
@@ -1082,7 +1134,7 @@ class Email_Newsletter_functions {
         } else
             return false;
 
-        $newsletter_data['content'] = '{OPENED_TRACKER}' . $newsletter_data['content'];
+        $newsletter_data['content'] = $newsletter_data['content'].'{OPENED_TRACKER}';
         
         // Extra Meta Replacements
         // Use the "email_newsletter_make_email_body" filter below to filter your own custom data
@@ -1178,15 +1230,15 @@ class Email_Newsletter_functions {
             $contents = str_replace( "{TO_EMAIL}", '', $contents );
 
         //Set up permalinks
-        $contents = str_replace( "{OPENED_TRACKER}", '<img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id) . '" width="1" height="1" style="display:none;" />', $contents );
+        $contents = str_replace( "{OPENED_TRACKER}", '<div style="display:none; font-size: 0px; line-height:0px;"><img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id) . '" width="1" height="1"/></div>', $contents );
         
         if(get_option('permalink_structure')) {
-            $unsubscribe_url = site_url('/e-newsletter/unsubscribe/' . $code . $member_id . '/');
-            $view_browser_url = site_url('/e-newsletter/view/' . $code . $send_id . '/');
+            $unsubscribe_url = home_url('/e-newsletter/unsubscribe/' . $code . $member_id . '/');
+            $view_browser_url = home_url('/e-newsletter/view/' . $code . $send_id . '/');
         }
         else {
-            $view_browser_url = add_query_arg( array('view_newsletter' => '1', 'view_newsletter_code' => $code, 'view_newsletter_send_id' => $send_id), site_url() );
-            $unsubscribe_url = add_query_arg( array('unsubscribe_page' => '1', 'unsubscribe_code' => $code, 'unsubscribe_member_id' => $member_id), site_url() );
+            $view_browser_url = add_query_arg( array('view_newsletter' => '1', 'view_newsletter_code' => $code, 'view_newsletter_send_id' => $send_id), home_url() );
+            $unsubscribe_url = add_query_arg( array('unsubscribe_page' => '1', 'unsubscribe_code' => $code, 'unsubscribe_member_id' => $member_id), home_url() );
         }
 
         $contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", $unsubscribe_url, $contents );

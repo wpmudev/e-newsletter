@@ -1,5 +1,8 @@
 jQuery( document ).ready( function() {
 
+    jQuery("#subscribes_form").submit(function() {
+        event.preventDefault(); //disable default behavior
+    });
     jQuery("#subscribes_form .enewletter_widget_submit").click(function(event){
         var stop = 0; 
 
@@ -36,7 +39,6 @@ jQuery( document ).ready( function() {
             };
             
             jQuery.post(email_newsletter_widget_scripts.ajax_url, data, function(data){ //post data to specified action trough special WP ajax page
-                console.log(data);
                 data = jQuery.parseJSON(data);
                 parent.find('#message').text(data.message).slideDown('fast');
 

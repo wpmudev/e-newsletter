@@ -107,8 +107,10 @@
 					<td>
 						<input type="text" class="input" name="group_name" id="group_name" value="" size="30" />
 						<br/>
-						<input type="checkbox" name="public" id="public" value="1" />
-						<label><?php _e( 'public users can join this group', 'email-newsletter' ) ?></label>
+                        <fieldset>
+                            <label for="public"><input type="checkbox" name="public" id="public" value="1" />
+                            <?php _e( 'public users can join this group', 'email-newsletter' ) ?></label>
+                        </fieldset>
                     </td>
                 </tr>
             </table>

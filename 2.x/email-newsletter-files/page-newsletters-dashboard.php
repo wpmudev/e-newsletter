@@ -6,9 +6,10 @@
         $newsletters_sent = array_slice ( $newsletters_sent, $newsletter_count - 5, 5 );
 	}
 
-    $members = $this->get_members( array( 'limit' => 'LIMIT 0,5','orderby' => 'join_date','order' => 'DESC' ) );
-    if ( 5 < count( $members ) )
-        $members = array_slice ($members, 0, 5 );
+    $arg['limit'] = 'LIMIT 0,5';
+    $arg['orderby'] = 'join_date';
+    $arg['order'] = 'desc';
+    $members = $this->get_members( $arg );
 
 
     //Display status message
@@ -173,7 +174,7 @@
                     </th>
                 </tr>
             </thead>
-        <?php
+        <?php        
         $i = 0;
         if ( $members )
             foreach( $members as $member ) {
@@ -197,10 +198,10 @@
                     <?php echo date( $this->settings['date_format'] . " h:i:s", $member['join_date'] ); ?>
                 </td>
                 <td>
-                    <?php echo $this->get_count_sent_to_user( $member['member_id'] ); ?> <?php _e( 'newsletters', 'email-newsletter' ) ?>
+                    <?php echo $member['count_sent']; ?> <?php _e( 'newsletters', 'email-newsletter' ) ?>
                 </td>
                 <td>
-                    <?php echo $this->get_count_opened_by_user( $member['member_id'] ); ?> <?php _e( 'newsletters', 'email-newsletter' ) ?>
+                    <?php echo $member['count_opened']; ?> <?php _e( 'newsletters', 'email-newsletter' ) ?>
                 </td>
                 <td>
                 <?php

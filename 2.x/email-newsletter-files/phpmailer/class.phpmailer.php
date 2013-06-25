@@ -78,6 +78,12 @@ class PHPMailer {
    */
   public $ErrorInfo         = '';
 
+    /**
+   * Holds the most recent mailer error message.
+   * @var string
+   */
+  public $ErrorInfoRaw         = '';
+
   /**
    * Sets the From email address for the message.
    * @var string
@@ -2325,6 +2331,7 @@ class PHPMailer {
       }
     }
     $this->ErrorInfo = $msg;
+    $this->ErrorInfoRaw = $lasterror;
   }
 
   /**

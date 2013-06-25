@@ -5,6 +5,18 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.2 =
+* Added ability to export members
+* Added ability to search and easily filter members by: bounced, unsubscribed, ungrouped
+* Added ability to edit members details
+* Improved bounce test
+* Improved members sorting
+* Improved preview email to make it as close to proper email as possible
+* Fixed duplicating already subscribed members when WP user registers
+* Fixed incorrect URLs for sites with different home url then site url
+* Other small improvements
+
+
 = 2.1.2 =
 * Fixed newsletter default title overwrite
 * Fixed missing translations

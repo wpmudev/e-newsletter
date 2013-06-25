@@ -26,10 +26,10 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 		?>
 		<style type="text/css">
 			.wp-full-overlay.expanded.wider {
-				margin-left:550px;
+				margin-left:600px;
 			}
 			.wp-full-overlay.expanded.wider #customize-controls {
-				width:550px;
+				width:600px;
 			}
 		</style>
 		

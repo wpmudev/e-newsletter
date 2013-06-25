@@ -89,7 +89,7 @@ Email-Newsletter CSS Styles
 
 /* Add member block */
 
-#panel {
+.panel {
     background: #F9F9F9;
     border: solid 1px #DFDFDF;
     -moz-border-radius-topleft: 4px;
@@ -97,22 +97,20 @@ Email-Newsletter CSS Styles
     -moz-border-radius-bottomleft: 4px;
     -moz-border-radius-bottomright: 4px;
     display: none;
-    width: 95%;
     margin: 10px 0px 30px 0px;
 }
 
-#panel form {
+.panel form {
     padding: 0px 20px 0px 20px;
 }
 
-#panel .create_mamber {
+.panel .create_member, .panel .export_members {
     width: 430px;
-    border-right: solid 1px #555;
     padding: 10px 40px 10px 0px;
     margin : 0px 10px 0px 20px;
 }
 
-#panel .import_members {
+.panel .import_members {
     padding: 10px 0px 10px 0px;
     margin : 0px 20px 0px 20px;
 }
@@ -188,4 +186,11 @@ vertical-align: middle !important;
 }
 #timestampdiv {
     display: none;
+}
+
+.members-join, .members-groups {
+    width: 180px;
+}
+.members-count {
+    width:150px;
 }
