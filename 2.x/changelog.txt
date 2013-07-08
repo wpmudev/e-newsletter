@@ -5,6 +5,13 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.2.1 =
+* Big improvements in syncing with WP users
+* Added ability to resend newsletter only to bounced members
+* Added support for emails with unnecesary spaces
+* Fixed bulk add to group not displaying correctly
+* Other small fixes
+
 = 2.2 =
 * Added ability to export members
 * Added ability to search and easily filter members by: bounced, unsubscribed, ungrouped

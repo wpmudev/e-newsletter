@@ -230,41 +230,47 @@
 				<tbody>
 					<tr>
 						<td>
-						<p>
-							<label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members - except unsubscribed', 'email-newsletter' ) ?></strong> (<?php echo $this->get_count_members();?>)</label>
-						</p>
-                        <p>
-							<?php
-								foreach ( array('administrator', 'editor', 'author', 'contributor', 'subscriber') as $role ) {
-									$col = count ( get_users( array( 'role' => $role ) ) );
-									if ( 0 < $col )
-										echo "<label><input type='checkbox' name='group_name[]' value='{$role}' /> All site {$role}s ({$col})</label><br>";
-								}
-	
-								if ( $groups )
-									foreach ( $groups as $group ) {
-										$col = count( $this->get_members_of_group( $group['group_id'] ) );
-										if ( 0 < $col )
-											echo "<label><input type='checkbox' name='group_id[]' value='{$group['group_id']}' /> {$group['group_name']} ({$col})</label><br>";
-									}
-							?>
-							</p>
+    						<p>
+    							<label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members - except unsubscribed', 'email-newsletter' ) ?></strong> (<?php echo $this->get_count_members();?>)</label>
+    						</p>
+                            <p>
+    							<?php
+    								foreach ( array('administrator', 'editor', 'author', 'contributor', 'subscriber') as $role ) {
+    									$col = count ( get_users( array( 'role' => $role ) ) );
+    									if ( 0 < $col )
+    										echo "<label><input type='checkbox' name='group_name[]' value='{$role}' /> ".__( 'Role:', 'email-newsletter' )." {$role} ({$col})</label><br>";
+    								}
+                                ?>
+                            </p>
+                            <p>
+                                <?php
+    								if ( $groups )
+    									foreach ( $groups as $group ) {
+    										$col = count( $this->get_members_of_group( $group['group_id'] ) );
+    										if ( 0 < $col )
+    											echo "<label><input type='checkbox' name='group_id[]' value='{$group['group_id']}' /> {$group['group_name']} ({$col})</label><br>";
+    									}
+    							?>
+    						</p>
 						</td>
 					</tr>
 					<tr>
 						<td>
 							 <label>
 								 <input type="checkbox" name="dont_send_duplicate" value="1" checked="checked" />
-								 <?php _e( "Don't send to people who've already received this:", 'email-newsletter' ); ?>
+								 <?php _e( "Don't send to people who've already received this.", 'email-newsletter' ); ?>
 							 </label>
+
+                             <label>
+                                 <input type="checkbox" name="send_to_bounced" value="1" />
+                                 <?php _e( "Send to bounced members.", 'email-newsletter' ); ?>
+                             </label>
 						</td>
 					</tr>
 					<tr>
 						<td>
                             <p>
-                                <input class="button button-primary" type="submit" name="send" value="<?php echo _e( 'Send newsletter now', 'email-newsletter' ) ?>" />
-                            </p>
-                            <p>
+                                <input class="button button-primary" type="submit" name="send" value="<?php echo _e( 'Send newsletter now', 'email-newsletter' ) ?>" /> 
                                 <input class="button button-secondary" type="button" name="send" id="add_cron" value="<?php echo _e( 'Send in background (by CRON)', 'email-newsletter' ) ?>" />
                                 <span id="timestamp">
                                     <?php _e( "Send(UTC):", 'email-newsletter' ); ?> <b><?php _e( "As fast as possible.", 'email-newsletter' ); ?></b>

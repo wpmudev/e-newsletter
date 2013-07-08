@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.2
+Version: 2.2.1
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -56,7 +56,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.2;
+        $this->plugin_ver = 2.21;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -144,6 +144,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
             add_action( 'user_register', array( &$this, 'user_create' ) );
             add_action( 'delete_user', array( &$this, 'user_delete' ) );            
         }
+
+        //Update member when editing user action
+        add_action( 'edit_user_profile_update', array( &$this, 'edit_user_update_member' ) );
+        add_action( 'personal_options_update', array( &$this, 'edit_user_update_member' ) );
 
         //creating menu of the plugin
         add_action( 'admin_menu', array( &$this, 'admin_page' ) );
@@ -581,7 +585,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 //action for Subscribe of public member (not user of site)
                 case "new_subscribe":
-                    if(!preg_match("/^[-+\\.0-9=a-z_]+@([-0-9a-z]+\\.)+([0-9a-z]){2,4}$/i", $_REQUEST['e_newsletter_email'])) {
+                    if(is_email($_REQUEST['e_newsletter_email'])) {
                         $_SESSION['newsletter_widget_status'] = __( 'Please use correct email', 'email-newsletter' );
                         $_SESSION['newsletter_widget_email'] = $_REQUEST['e_newsletter_email'];
                         wp_redirect( $redirect_to );
@@ -622,7 +626,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 //action for Subscribe of public member (not user of site)
                 case "new_subscribe":
-                    if(!preg_match("/^[-+\\.0-9=a-z_]+@([-0-9a-z]+\\.)+([0-9a-z]){2,4}$/i", $_REQUEST['e_newsletter_email'])) {
+                    if(!is_email($_REQUEST['e_newsletter_email'])) {
                         $data['message'] = __( 'Please use correct email', 'email-newsletter' );
                         echo json_encode($data);
                         die();
@@ -690,15 +694,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
         global $wpdb, $current_user;
         $this->set_current_user();
 
+        $user_id = $current_user->data->ID;
+
         do_action( 'enewsletter_user_subscribe', $member_id );
 
-        if ( "" == $member_id )
-            $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
-
-        $unsubscribe_code = $this->gen_unsubscribe_code();
-        
-        if(isset($member_id) && isset($unsubscribe_code))
-            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '%s' WHERE member_id = %d", $unsubscribe_code, $member_id ) );
+        $result = $this->create_update_member_user($user_id, array(), 1);
 
         if ( "false" != $redirect_to )
             if ( "" == $redirect_to ) {
@@ -711,10 +711,18 @@ class Email_Newsletter extends Email_Newsletter_functions {
             }
 
         if ( 1 == $ajax ) {
-            $data['message'] = __( 'You are subscribed successfully!', 'email-newsletter' );
-            $data['view'] = 'manage_subscriptions';
-            $data['hide'] = 'subscribe';
-            $data['unsubscribe_code'] = $unsubscribe_code;
+            if($result) {
+                $data['message'] = __( 'You are subscribed successfully!', 'email-newsletter' );
+                $data['view'] = 'manage_subscriptions';
+                $data['hide'] = 'subscribe';
+                $data['unsubscribe_code'] = $result['unsubscribe_code'];
+            }
+            else {
+                $data['message'] = __( 'Error occured while subscribing!', 'email-newsletter' );
+                $data['view'] = 'subscribe';
+                $data['hide'] = 'subscribe';
+            }
+
             echo json_encode($data);
         }
     }
@@ -778,24 +786,20 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $dmsg =  __( 'This email is already used!', 'email-newsletter' );
 
         } else {
-            //check email of new member there isn't on list of members
+            //check email of new member that isn't on list of members
             $member =  $this->get_member_by_email($member_data['email']);
             if ( $member )
-                if ( "" != $member['unsubscribe_code'] ) {
+                if ( "" != $member['unsubscribe_code'] )
                     $dmsg =   __( 'This email is already subscribed!', 'email-newsletter' );
-                } else {
-                    $this->subscribe( $member['member_id'], $redirect_to );
-                    exit;
-                }
         }
 
         if ( "" == $dmsg ) {
             if ( isset( $member_data['double_opt_in'] ) && 1 == $member_data['double_opt_in'] )
-                $unsubscribe_code = "";
+                $subscribe = "";
             else
-                $unsubscribe_code = $this->gen_unsubscribe_code();
+                $subscribe = 1;
 
-                $member_info = '';
+            $member_info = '';
             if ( isset( $member_data['future_groups_id'] ) && $member_data['future_groups_id'] ) {
                 $member_info = array(
                     "future_groups_id" => $member_data['future_groups_id']
@@ -804,19 +808,19 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $member_info = serialize( $member_info );
             }
 
-            $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_members SET
-                member_fname = '%s',
-                member_lname = '%s',
-                member_email = '%s',
-                join_date = '%s',
-                member_info = '%s',
-                unsubscribe_code = '%s'",
-                $member_data['fname'], $member_data['lname'], $member_data['email'], time(), $member_info, $unsubscribe_code ) );
+            $member_data_ready = array(
+                    'member_fname' => $member_data['fname'],
+                    'member_lname' => $member_data['lname'],
+                    'member_email' => $member_data['email'],
+                    'member_info' => $member_info            
+                );
+            $result = $this->create_update_member_user('', $member_data_ready, $subscribe);
 
-            $member_id = $wpdb->insert_id;
+            $member_id = $result['member_id'];
 
             if ( isset( $member_data['double_opt_in'] ) && 1 == $member_data['double_opt_in'] ) {
                 $this->do_double_opt_in( $member_id );
+                $dmsg = __( 'Confirmation email has been sent! Please confirm subscription.', 'email-newsletter' );
             } else {
                 //creating new list of groups for user
                 if ( isset( $member_data['groups_id'] ) && is_array( $member_data['groups_id'] ) )
@@ -824,12 +828,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
                         $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
             }
 
-            if ( "" == $redirect_to )
-                $dmsg =  __( 'The new member is added!', 'email-newsletter' );
-            else
-                $dmsg =  __( 'You have been successfully subscribed!', 'email-newsletter' );
-
-
+            if("" == $dmsg)
+                if ( "" == $redirect_to )
+                    $dmsg =  __( 'The new member is added!', 'email-newsletter' );
+                else
+                    $dmsg =  __( 'You have been successfully subscribed!', 'email-newsletter' );
         }
 
         if ( "false" != $redirect_to ) {
@@ -845,8 +848,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         if ( 1 == $ajax ) {
             $data['message'] = $dmsg;
-            //$data['view'] = 'subscribe';
-            //$data['hide'] = 'manage_subscriptions';
             echo json_encode($data);
         }
 
@@ -913,34 +914,21 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * Adding new member when create new user
      **/
     function user_create( $userID ) {
-        global $wpdb;
+        $result = $this->create_update_member_user($userID, array(), 1);
+    }
 
-        $unsubscribe_code = $this->gen_unsubscribe_code();
-
-        $data = get_userdata( $userID );
-
-        if ( !empty( $data->data ) )
-            $user = (array) $data->data;
-        else
-            $user = (array) $data;
-
-        $member =  $this->get_member_by_email($user['user_email']);
-        if ( $member ) {
-            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET
-            wp_user_id = %d,
-            member_fname = %s
-            WHERE member_id = %d
-            ", $user['ID'], $user['user_nicename'], $member['member_id'] ) );           
-        }
-        else {
-            $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_members SET
-                wp_user_id = %d,
-                member_fname = %s,
-                member_email = %s,
-                join_date = %d,
-                unsubscribe_code = '%s'
-             ", $user['ID'], $user['user_nicename'], $user['user_email'], time(), $unsubscribe_code ) );
-        }
+    /**
+     * Updates newsletters member details when updating any wp profile
+     **/
+    function edit_user_update_member( $user_id, $old_user_data ) {
+        if ( current_user_can('edit_user',$user_id) && is_email( $_POST['email'] ) ) {
+            $member_data_ready = array(
+                    'member_fname' => $_POST['first_name'],
+                    'member_lname' => $_POST['last_name'],
+                    'member_email' => $_POST['email']         
+                );
+            $result = $this->create_update_member_user('', $member_data_ready, '', 1);
+        }          
     }
 
     /**
@@ -1216,7 +1204,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ( 0 < count( $members_id ) )
             foreach ( $members_id as $member_id ) {
 
-                if ( ! ( isset( $_REQUEST['dont_send_duplicate'] ) && "1" == $_REQUEST['dont_send_duplicate'] && $this->check_duplicate_send( $newsletter_id, $member_id ) ) )
+                if ( !( isset( $_REQUEST['dont_send_duplicate'] ) && "1" == $_REQUEST['dont_send_duplicate'] && $this->check_duplicate_send($newsletter_id, $member_id) ) || ( isset($_REQUEST['send_to_bounced']) && "1" == $_REQUEST['send_to_bounced'] && $this->check_status_send($newsletter_id, $member_id) ) )
                     $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send_members SET send_id = %d, member_id = %d, status = '%s' ", $send_id, $member_id, $status ) );
             }
 
@@ -1280,6 +1268,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         }
 
         $member_data = $this->get_member( $send_member['member_id'] );
+        $member_data["member_email"] = str_replace(' ', '', $member_data["member_email"]);
 
         if( !empty($member_data["member_email"]) && is_email($member_data["member_email"]) ) {
 
@@ -1299,7 +1288,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
             $this->write_log( 'Send status: '.$sent_status);
-            if( $sent_status === true ) {
+            if( $sent_status == true ) {
                 //write info of Sent in DB
                 $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'sent' WHERE send_id = %d AND member_id = %d", $send_id, $send_member['member_id'] ) );
                 if ( $result )
@@ -1418,6 +1407,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     update_option( 'enewsletter_cron_send_run', time() );
 
                     $member_data = $this->get_member( $send_member['member_id'] );
+                    $member_data["member_email"] = str_replace(' ', '', $member_data["member_email"]);
+
                     if( !empty($member_data["member_email"]) && is_email($member_data["member_email"]) ) {
                         $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_member['send_id'] ), "ARRAY_A");
                         $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
@@ -1772,6 +1763,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             }
 
             $sent_status = $this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents );
+            $this->write_log('double opt in send status:'.$sent_status);
             if( $sent_status != true )
                 $message .= "Failed to send opt-in email, please contact us to inform us of this error.";
         }

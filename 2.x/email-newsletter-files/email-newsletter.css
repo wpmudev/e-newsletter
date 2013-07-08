@@ -97,7 +97,7 @@ Email-Newsletter CSS Styles
     -moz-border-radius-bottomleft: 4px;
     -moz-border-radius-bottomright: 4px;
     display: none;
-    margin: 10px 0px 30px 0px;
+    margin: 10px 0 0 0;
 }
 
 .panel form {
@@ -120,7 +120,7 @@ Email-Newsletter CSS Styles
     padding: 0;
     background: none transparent no-repeat center top;
     width: 95%;
-    margin : 10px 0px 20px 0px;
+    margin : 0;
 }
 
 /* End Add member block */

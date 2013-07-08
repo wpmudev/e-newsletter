@@ -16,6 +16,7 @@
         	<a href="<?php echo $email_builder->generate_builder_link('new'); ?>" class="add-new-h2"><?php _e('Create New','email-newsletter'); ?></a>
         </h2>
         <p><?php _e( 'This page contains the list of all Newsletters.', 'email-newsletter' ) ?></p>
+        <p><?php _e( 'Note: please store your custom themes in enewsletter-custom-themes folder located in wp-content/uploads(+/siteID/ if activated on a single blog of a multi-site install).', 'email-newsletter' ) ?></p>
         <table id="newsletterList" class="widefat post">
             <thead>
                 <tr>

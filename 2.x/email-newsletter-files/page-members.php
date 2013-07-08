@@ -188,8 +188,6 @@
             });
 
            jQuery.fn.editMember = function ( id ) {
-//            alert(member_nicename);
-
                 if ( "<?php _e( 'Edit', 'email-newsletter' ) ?>" == jQuery( this ).val() ) {
                     jQuery( "#member_id" ).val( id );
 
@@ -232,10 +230,6 @@
 
 
             jQuery.fn.saveMember = function ( ) {
-                if ( "" == jQuery( "#edit_member_nicename" ).val() ) {
-                    alert( '<?php _e( "Please write a name" ) ?>' );
-                    return false;
-                }
                 filter = /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
                 if (filter.test(jQuery( "#edit_member_email" ).val())) {} else {
                     alert( '<?php _e( "Please use proper email", "email-newsletter" ) ?>' );
@@ -248,9 +242,11 @@
 
 
             jQuery.fn.deleteMember = function ( id ) {
-                jQuery( "#newsletter_action" ).val( "delete_member" );
-                jQuery( "#member_id" ).val( id );
-                jQuery( "#form_members" ).submit();
+                if (confirm('<?php _e( "Are you sure?", "email-newsletter" ) ?>')) {
+                    jQuery( "#newsletter_action" ).val( "delete_member" );
+                    jQuery( "#member_id" ).val( id );
+                    jQuery( "#form_members" ).submit();
+                }
             };
 
         });
@@ -259,6 +255,7 @@
     <div class="wrap">
         <h2><?php _e( 'Members', 'email-newsletter' ) ?></h2>
         <p><?php _e( 'At this page you can manage your members.', 'email-newsletter' ) ?></p>
+        <p><?php _e( 'Note: edits made to members will not sync to wordpress user but they will the other way around.', 'email-newsletter' ) ?></p>
 
         <p class="slide">
             <input type="button" class="button-secondary action" id="show_add_form" value="<?php _e( 'Show the New Member / Import forms', 'email-newsletter' ) ?>" />
@@ -485,6 +482,9 @@
                         <th class="manage-column column-cb check-column" id="cb" scope="col">
                             <input type="checkbox">
                         </th>
+                        <th class="members-wp manage-column column-name">
+                            <?php _e( 'WP ID', 'email-newsletter' ) ?>
+                        </th>
                         <th class="members-email manage-column column-name <?php echo (isset($arg['orderby']) && "member_email" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
                             <?php $url = add_query_arg( array('orderby' => 'member_email'), $url_orginal ); ?> 
                             <a href="<?php echo $url; ?>">
@@ -553,6 +553,14 @@
                     <th class="check-column" scope="row">
                         <input type="checkbox" value="<?php echo $member['member_id'];?>" class="administrator" id="user_<?php echo $member['member_id'];?>" name="members_id[]">
                     </th>
+                    <td style="vertical-align: middle;">
+                        <?php 
+                        if(current_user_can('edit_users'))
+                            echo '<a href="'.admin_url( 'user-edit.php?user_id='.$member['wp_user_id'] ).'">'.$member['wp_user_id'].'</a>';
+                        else
+                            echo $member['wp_user_id']
+                        ?>
+                    </td>
                     <td style="vertical-align: middle;">
                         <span id="member_email_block_<?php echo $member['member_id'];?>">
                             <?php echo $member['member_email']; ?>
@@ -630,7 +638,7 @@
                         <option selected="selected" value="-1"> <?php _e( 'Group List', 'email-newsletter' ) ?> </option>
                         <?php foreach( $groups as $group ) : ?>
                             <option value="<?php echo $group['group_id'];?>">
-                            <?php echo ( $group['public'] ) ? $group['member_nicename'] .' (public)' : $group['member_nicename']; ?>
+                            <?php echo ( $group['public'] ) ? $group['group_name'] .' (public)' : $group['group_name']; ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

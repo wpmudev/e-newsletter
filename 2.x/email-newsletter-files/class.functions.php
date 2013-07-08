@@ -97,6 +97,18 @@ class Email_Newsletter_functions {
     }
 
     /**
+     * Checking for x send status
+     **/
+    function check_status_send( $newsletter_id, $member_id, $status = 'bounced' ) {
+        global $wpdb;
+        $result = $wpdb->get_row( $wpdb->prepare( "SELECT b.send_id FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b WHERE a.newsletter_id = %d AND a.send_id = b.send_id AND b.member_id = %d AND b.status = %s", $newsletter_id, $member_id, $status ), "ARRAY_A");
+        if ( 0 < $result )
+            return true;
+        else
+            return false;
+    }
+
+    /**
      * get email body of already sent email
      **/
     function get_sent_email( $send_id, $member_id ) {
@@ -525,7 +537,7 @@ class Email_Newsletter_functions {
     function get_sent_newsletters() {
         global $wpdb;
         $newsletters = NULL;
-        $results = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_newsletters WHERE newsletter_id IN (SELECT newsletter_id FROM {$this->tb_prefix}enewsletter_send GROUP BY newsletter_id)", "ARRAY_A");
+        $results = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_newsletters WHERE newsletter_id IN (SELECT newsletter_id FROM {$this->tb_prefix}enewsletter_send GROUP BY newsletter_id) LIMIT 0,5", "ARRAY_A");
 
         foreach( $results as $result ){
 
@@ -666,15 +678,18 @@ class Email_Newsletter_functions {
         global $wpdb;
         $member =  $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members WHERE member_id = %d", $member_id ), "ARRAY_A" );
 
-        $member['member_nicename'] = $member['member_fname'];
-        $member['member_nicename'] .= $member['member_lname'] ? ' ' . $member['member_lname'] : '';
+        if($member) {
+            $member['member_nicename'] = $member['member_fname'];
+            $member['member_nicename'] .= $member['member_lname'] ? ' ' . $member['member_lname'] : '';
 
-        if ( $member['member_info'] ) {
-            $member =  array_merge ( $member, unserialize( $member['member_info'] ) );
-            unset( $member['member_info'] );
+            if ( $member['member_info'] ) {
+                $member =  array_merge ( $member, unserialize( $member['member_info'] ) );
+                unset( $member['member_info'] );
+            }
+            return $member;
         }
 
-        return $member;
+        return 0;
     }
 
     /**
@@ -697,6 +712,131 @@ class Email_Newsletter_functions {
     }
 
     /**
+     * Creates or merges users
+     **/
+    function create_update_member_user($wp_user_id = '', $member_data = array(), $subscribe = '', $force_data = 0) {
+        global $wpdb;
+        $member_results = array();
+
+        if( ( isset($member_data['member_email']) && is_email($member_data['member_email']) ) || is_numeric($wp_user_id) || ( isset($member_data['member_id']) && is_numeric($member_data['member_id']) ) ) {
+            $member_possible_data = array('wp_user_id', 'member_fname', 'member_lname', 'unsubscribe_code', 'member_info');
+            foreach ($member_possible_data as $data)
+                if(!isset($member_data[$data]))
+                    $member_data[$data] = '';
+
+            if(is_email($member_data['member_email'])) {
+                $user = get_user_by_email( $member_data['member_email'] );
+                $member = $this->get_member_by_email($member_data['member_email']);
+            }
+            
+            if(is_numeric($wp_user_id)) {
+                if(empty($user))
+                    $user = get_userdata( $wp_user_id );
+                $member_data['member_id'] = $this->get_members_by_wp_user_id( $wp_user_id );
+            }
+            if(is_numeric($member_data['member_id'])) {
+                if(empty($member))
+                    $member = $this->get_member($member_data['member_id']);
+                if(empty($user))
+                    $user = get_userdata( $member['wp_user_id'] );
+            }
+
+            if ( !empty($member) ) {
+                $member_results[] = 'member_exists';
+
+                if(empty($member_data['wp_user_id']) && !empty($member['wp_user_id']))
+                    $member_data['wp_user_id'] = $member['wp_user_id'];
+                if(empty($member_data['member_fname']) && !empty($member['member_fname']))
+                    $member_data['member_fname'] = $member['member_fname'];
+                if(empty($member_data['member_lname']) && !empty($member['member_lname']))
+                    $member_data['member_lname'] = $member['member_lname'];
+                if(empty($member_data['member_email']) && !empty($member['member_email']))
+                    $member_data['member_email'] = $member['member_email'];
+                if(empty($member_data['member_info']) && !empty($member['member_info']))
+                    $member_data['member_info'] = $member['member_info'];
+                
+                if(!empty($member['unsubscribe_code']))
+                    $member_data['unsubscribe_code'] = $member['unsubscribe_code'];
+
+                if( is_numeric($member['member_id']) )
+                    $member_data['member_id'] = $member['member_id'];
+            }
+
+            if ( !empty($user) && $force_data == 0 ) {
+                $member_results[] = 'user_exists';
+
+                $member_data['wp_user_id'] = $user->ID;
+
+                if(!empty($user->user_firstname)) {
+                    $member_data['member_fname'] = $user->user_firstname;
+                    if(!empty($user->user_lastname))
+                        $member_data['member_lname'] = $user->user_lastname;
+                }
+                elseif(!empty($user->display_name))
+                    $member_data['member_fname'] = $user->display_name;
+                if(!empty($user->user_email))
+                    $member_data['member_email'] = $user->user_email;
+
+                if(isset($member['member_id']))
+                    $member_data['member_id'] = $member['member_id'];
+            }
+
+            if($subscribe == 1 && $member_data['unsubscribe_code'] == '')
+                $member_data['unsubscribe_code'] = $this->gen_unsubscribe_code();
+            elseif($subscribe === 0) 
+                $member_data['unsubscribe_code'] = '';
+
+            //remove spaces from email
+            $member_data['member_email'] = str_replace(' ', '', $member_data['member_email']);
+           
+            //if email - do the magic!
+            if(is_email($member_data['member_email'])) {  
+                if ( is_numeric($member_data['member_id']) ) {
+                    $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET
+                    wp_user_id = %d,
+                    member_fname = %s,
+                    member_lname = %s,
+                    member_email = %s,
+                    member_info = '%s',
+                    unsubscribe_code = %s
+                    WHERE member_id = %d
+                    ", $member_data['wp_user_id'], $member_data['member_fname'], $member_data['member_lname'], $member_data['member_email'], $member_data['member_info'], $member_data['unsubscribe_code'], $member_data['member_id'] ) );           
+                
+                    if($result)
+                        $member_results[] = 'member_updated';
+                    else
+                        $member_results[] = 'problem_updating_member';
+                }
+                else {
+                    $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_members SET
+                        wp_user_id = %d,
+                        member_fname = %s,
+                        member_lname = %s,
+                        member_email = %s,
+                        join_date = %d,
+                        member_info = '%s',
+                        unsubscribe_code = %s
+                     ", $member_data['wp_user_id'], $member_data['member_fname'], $member_data['member_lname'], $member_data['member_email'], time(), $member_data['member_info'], $member_data['unsubscribe_code'] ) );
+
+                    if($result) {
+                        $member_results[] = 'member_inserted';
+                        $member_data['member_id'] = $wpdb->insert_id;
+                    }
+                    else
+                        $member_results[] = 'problem_inserting_member';
+                }
+            }
+        }
+
+        if($result) {
+            $member_data['results'] = $member_results;
+            return $member_data;
+        }
+        else
+            return 0;
+    }
+
+    /**
      * Get all members
      **/
     function get_members( $arg = "", $count = 0, $details = 1) {
@@ -706,6 +846,7 @@ class Email_Newsletter_functions {
         $orderby    = "";
         $limit      = "";
         $left_join  = "";
+        $inner_join = "";
 
         if ( isset( $arg['where'] ) ) {
             $where = "WHERE ". $arg['where'];
@@ -969,24 +1110,30 @@ class Email_Newsletter_functions {
                             //email of member already exist
                             $exist_members[] = $email;
                         } else {
-                            //create new member
-                            $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_members SET
-                                    wp_user_id = 0,
-                                    member_email = %s,
-                                    member_fname = %s,
-                                    member_lname = %s,
-                                    join_date = %d,
-                                    unsubscribe_code = '%s'
-                                 ", $email, $fname, $lname, time(), $unsubscribe_code ) );
+                            if ( is_email($email) ) {
+                                $member_data_ready = array(
+                                        'member_fname' => $fname,
+                                        'member_lname' => $lname,
+                                        'member_email' => $email  
+                                    );
+                                $result = $this->create_update_member_user('', $member_data_ready, 1);
+                                
+                                $member_id = $result['member_id'];
 
-                            $member_id = $wpdb->insert_id;
+                                if($result) {
+                                    //creating new list of groups for user
+                                    if ( isset( $import_groups_id ) )
+                                        foreach( $import_groups_id as $group_id )
+                                            $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
 
-                            //creating new list of groups for user
-                            if ( isset( $import_groups_id ) )
-                                foreach( $import_groups_id as $group_id )
-                                    $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
-
-                            $i++;
+                                    $i++;
+                                }
+                                else
+                                    $incorrect_members[] = $email;
+                            }
+                            else {
+                                $incorrect_members[] = $email;
+                            }
                         }
                     }
                 }
@@ -1000,6 +1147,11 @@ class Email_Newsletter_functions {
                     $dmsg .= '<br />' . __( 'These emails already exist in member list:', 'email-newsletter' ) . '<br />';
                     foreach($exist_members as $exist_member )
                         $dmsg .= $exist_member . '<br />';
+                }
+                if ( isset( $incorrect_members ) && is_array( $incorrect_members ) ) {
+                    $dmsg .= '<br />' . __( 'These emails are incorrect:', 'email-newsletter' ) . '<br />';
+                    foreach($incorrect_members as $incorrect_member )
+                        $dmsg .= $incorrect_member . '<br />';
                 }
 				
 				if(empty($dmsg)) {

@@ -1,10 +1,6 @@
 <?php
 	global $email_builder;
     $newsletters_sent = $this->get_sent_newsletters();
-	$newsletter_count = count( $newsletters_sent );
-    if ( 5 < $newsletter_count ) {
-        $newsletters_sent = array_slice ( $newsletters_sent, $newsletter_count - 5, 5 );
-	}
 
     $arg['limit'] = 'LIMIT 0,5';
     $arg['orderby'] = 'join_date';
