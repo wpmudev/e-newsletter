@@ -258,7 +258,7 @@
 						<td>
 							 <label>
 								 <input type="checkbox" name="dont_send_duplicate" value="1" checked="checked" />
-								 <?php _e( "Don't send to people who've already received this.", 'email-newsletter' ); ?>
+								 <?php _e( "Don't resend to people that had this newsletter sent to.", 'email-newsletter' ); ?>
 							 </label>
 
                              <label>

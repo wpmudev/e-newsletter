@@ -99,11 +99,14 @@ class Email_Newsletter_functions {
     /**
      * Checking for x send status
      **/
-    function check_status_send( $newsletter_id, $member_id, $status = 'bounced' ) {
+    function check_bounced_send( $newsletter_id, $member_id ) {
         global $wpdb;
-        $result = $wpdb->get_row( $wpdb->prepare( "SELECT b.send_id FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b WHERE a.newsletter_id = %d AND a.send_id = b.send_id AND b.member_id = %d AND b.status = %s", $newsletter_id, $member_id, $status ), "ARRAY_A");
-        if ( 0 < $result )
-            return true;
+        $result_bounced = $wpdb->get_row( $wpdb->prepare( "SELECT b.send_id FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b WHERE a.newsletter_id = %d AND a.send_id = b.send_id AND b.member_id = %d AND b.status = 'bounced'", $newsletter_id, $member_id ), "ARRAY_A");
+        if ( $result_bounced ){
+            $result_sent = $wpdb->get_row( $wpdb->prepare( "SELECT b.send_id FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b WHERE a.newsletter_id = %d AND a.send_id = b.send_id AND b.member_id = %d AND b.status = 'sent'", $newsletter_id, $member_id ), "ARRAY_A");
+            if(!$result_sent)
+                return true;
+        }
         else
             return false;
     }
@@ -679,6 +682,9 @@ class Email_Newsletter_functions {
         $member =  $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members WHERE member_id = %d", $member_id ), "ARRAY_A" );
 
         if($member) {
+            $member['member_email'] = str_replace(' ', '', $member['member_email']);
+            $member['member_email'] = str_replace("\t", '', $member['member_email']);
+
             $member['member_nicename'] = $member['member_fname'];
             $member['member_nicename'] .= $member['member_lname'] ? ' ' . $member['member_lname'] : '';
 
@@ -732,7 +738,9 @@ class Email_Newsletter_functions {
             if(is_numeric($wp_user_id)) {
                 if(empty($user))
                     $user = get_userdata( $wp_user_id );
-                $member_data['member_id'] = $this->get_members_by_wp_user_id( $wp_user_id );
+                $member_id = $this->get_members_by_wp_user_id( $wp_user_id );
+                if($member_id)
+                    $member_data['member_id'] = $member_id;
             }
             if(is_numeric($member_data['member_id'])) {
                 if(empty($member))
@@ -772,8 +780,11 @@ class Email_Newsletter_functions {
                     if(!empty($user->user_lastname))
                         $member_data['member_lname'] = $user->user_lastname;
                 }
-                elseif(!empty($user->display_name))
+                elseif(!empty($user->nickname)) {
                     $member_data['member_fname'] = $user->display_name;
+                    $member_data['member_lname'] = '';
+                }
+
                 if(!empty($user->user_email))
                     $member_data['member_email'] = $user->user_email;
 
@@ -786,8 +797,9 @@ class Email_Newsletter_functions {
             elseif($subscribe === 0) 
                 $member_data['unsubscribe_code'] = '';
 
-            //remove spaces from email
+            //remove spaces and tabs from email
             $member_data['member_email'] = str_replace(' ', '', $member_data['member_email']);
+            $member_data['member_email'] = str_replace("\t", '', $member_data['member_email']);
            
             //if email - do the magic!
             if(is_email($member_data['member_email'])) {  

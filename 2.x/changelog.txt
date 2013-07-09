@@ -5,10 +5,14 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.2.2 =
+* Added support for emails with unnecessary tabs
+* Fixed syncing with WP user email change
+
 = 2.2.1 =
 * Big improvements in syncing with WP users
 * Added ability to resend newsletter only to bounced members
-* Added support for emails with unnecesary spaces
+* Added support for emails with unnecessary spaces
 * Fixed bulk add to group not displaying correctly
 * Other small fixes
 

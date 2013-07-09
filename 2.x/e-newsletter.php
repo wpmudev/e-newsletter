@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.2.1
+Version: 2.2.2
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -56,7 +56,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.21;
+        $this->plugin_ver = 2.22;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -920,14 +920,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
     /**
      * Updates newsletters member details when updating any wp profile
      **/
-    function edit_user_update_member( $user_id, $old_user_data ) {
+    function edit_user_update_member( $user_id ) {
         if ( current_user_can('edit_user',$user_id) && is_email( $_POST['email'] ) ) {
             $member_data_ready = array(
+                    'wp_user_id' => $user_id,
                     'member_fname' => $_POST['first_name'],
                     'member_lname' => $_POST['last_name'],
                     'member_email' => $_POST['email']         
                 );
-            $result = $this->create_update_member_user('', $member_data_ready, '', 1);
+            $result = $this->create_update_member_user($user_id, $member_data_ready, '', 1);
         }          
     }
 
@@ -1204,7 +1205,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ( 0 < count( $members_id ) )
             foreach ( $members_id as $member_id ) {
 
-                if ( !( isset( $_REQUEST['dont_send_duplicate'] ) && "1" == $_REQUEST['dont_send_duplicate'] && $this->check_duplicate_send($newsletter_id, $member_id) ) || ( isset($_REQUEST['send_to_bounced']) && "1" == $_REQUEST['send_to_bounced'] && $this->check_status_send($newsletter_id, $member_id) ) )
+                if ( !( isset( $_REQUEST['dont_send_duplicate'] ) && "1" == $_REQUEST['dont_send_duplicate'] && $this->check_duplicate_send($newsletter_id, $member_id) ) || ( isset($_REQUEST['send_to_bounced']) && "1" == $_REQUEST['send_to_bounced'] && $this->check_bounced_send($newsletter_id, $member_id) ) )
                     $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send_members SET send_id = %d, member_id = %d, status = '%s' ", $send_id, $member_id, $status ) );
             }
 
@@ -1268,7 +1269,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         }
 
         $member_data = $this->get_member( $send_member['member_id'] );
-        $member_data["member_email"] = str_replace(' ', '', $member_data["member_email"]);
 
         if( !empty($member_data["member_email"]) && is_email($member_data["member_email"]) ) {
 
@@ -1407,7 +1407,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     update_option( 'enewsletter_cron_send_run', time() );
 
                     $member_data = $this->get_member( $send_member['member_id'] );
-                    $member_data["member_email"] = str_replace(' ', '', $member_data["member_email"]);
 
                     if( !empty($member_data["member_email"]) && is_email($member_data["member_email"]) ) {
                         $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_member['send_id'] ), "ARRAY_A");
