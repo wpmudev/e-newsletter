@@ -725,28 +725,31 @@ class Email_Newsletter_functions {
         $member_results = array();
 
         if( ( isset($member_data['member_email']) && is_email($member_data['member_email']) ) || is_numeric($wp_user_id) || ( isset($member_data['member_id']) && is_numeric($member_data['member_id']) ) ) {
-            $member_possible_data = array('wp_user_id', 'member_fname', 'member_lname', 'unsubscribe_code', 'member_info');
+            $member_possible_data = array('member_id', 'wp_user_id', 'member_fname', 'member_lname', 'member_email', 'unsubscribe_code', 'member_info');
             foreach ($member_possible_data as $data)
                 if(!isset($member_data[$data]))
                     $member_data[$data] = '';
-
-            if(is_email($member_data['member_email'])) {
-                $user = get_user_by_email( $member_data['member_email'] );
-                $member = $this->get_member_by_email($member_data['member_email']);
-            }
-            
+           
             if(is_numeric($wp_user_id)) {
-                if(empty($user))
-                    $user = get_userdata( $wp_user_id );
+                $user = get_userdata( $wp_user_id );
                 $member_id = $this->get_members_by_wp_user_id( $wp_user_id );
+                $member_email = $user->user_email;
                 if($member_id)
                     $member_data['member_id'] = $member_id;
+                if($member_email && empty($member_data['member_email']))
+                    $member_data['member_email'] = $member_email;
             }
             if(is_numeric($member_data['member_id'])) {
-                if(empty($member))
-                    $member = $this->get_member($member_data['member_id']);
+                $member = $this->get_member($member_data['member_id']);
                 if(empty($user))
                     $user = get_userdata( $member['wp_user_id'] );
+            }
+
+            if(is_email($member_data['member_email'])) {
+                if(empty($user))
+                    $user = get_user_by_email( $member_data['member_email'] );
+                if(empty($member))
+                    $member = $this->get_member_by_email($member_data['member_email']);
             }
 
             if ( !empty($member) ) {
@@ -781,7 +784,7 @@ class Email_Newsletter_functions {
                         $member_data['member_lname'] = $user->user_lastname;
                 }
                 elseif(!empty($user->nickname)) {
-                    $member_data['member_fname'] = $user->display_name;
+                    $member_data['member_fname'] = $user->nickname;
                     $member_data['member_lname'] = '';
                 }
 
@@ -1291,7 +1294,6 @@ class Email_Newsletter_functions {
             return false;
     
         //open template file
-
         $theme = $this->get_selected_theme($newsletter_data['template']);
 
         $template_path  = $theme['dir'];
@@ -1305,6 +1307,7 @@ class Email_Newsletter_functions {
         } else
             return false;
 
+        //Adds tracker code
         $newsletter_data['content'] = $newsletter_data['content'].'{OPENED_TRACKER}';
         
         // Extra Meta Replacements
@@ -1321,23 +1324,33 @@ class Email_Newsletter_functions {
         
         //Take care of all text, replace body, title, subject... stuff like this:)
         $contents = str_replace( "{EMAIL_BODY}", $newsletter_data['content'], $contents );
-        $contents = apply_filters('email_newsletter_make_email_content', $contents);
+        $contents = apply_filters('email_newsletter_make_email_content', $contents, $newsletter_id);
 
         //Email Title
         $email_title = $this->get_newsletter_meta($newsletter_id,'email_title', $this->get_default_builder_var('email_title') );
-        $email_title = apply_filters('email_newsletter_make_email_title',$email_title,$newsletter_id);
+        $email_title = apply_filters('email_newsletter_make_email_title', $email_title, $newsletter_id);
         $contents = str_replace( "{EMAIL_TITLE}", $email_title, $contents);
         
-        $contents = str_replace( "{EMAIL_SUBJECT}", $newsletter_data['subject'], $contents );
-        $contents = str_replace( "{FROM_NAME}", (isset($newsletter_data['from_name']) ? $newsletter_data['from_name'] : $this->settings['from_name']), $contents );
-        $contents = str_replace( "{FROM_EMAIL}", (isset($newsletter_data['from_email']) ? $newsletter_data['from_email'] : $this->settings['from_email']), $contents );
-        $contents = str_replace( "{CONTACT_INFO}", (isset($newsletter_data['contact_info']) ? $newsletter_data['contact_info'] : $this->settings['contact_info']), $contents );
+        $email_subject = apply_filters('email_newsletter_make_email_subject', $newsletter_data['subject'], $newsletter_id);
+        $contents = str_replace( "{EMAIL_SUBJECT}", $email_subject, $contents );
+
+        $email_from_name = (isset($newsletter_data['from_name']) ? $newsletter_data['from_name'] : $this->settings['from_name']);
+        $email_from_name = apply_filters('email_newsletter_make_email_from_name', $email_from_name, $newsletter_id);
+        $contents = str_replace( "{FROM_NAME}", $email_from_name, $contents );
+
+        $email_from_email = (isset($newsletter_data['from_email']) ? $newsletter_data['from_email'] : $this->settings['from_email']);
+        $email_from_email = apply_filters('email_newsletter_make_email_from_email', $email_from_email, $newsletter_id);
+        $contents = str_replace( "{FROM_EMAIL}", $email_from_email, $contents );
+
+        $email_contact_info = (isset($newsletter_data['contact_info']) ? $newsletter_data['contact_info'] : $this->settings['contact_info']);
+        $email_contact_info = apply_filters('email_newsletter_make_email_contact_info', $email_contact_info, $newsletter_id);
+        $contents = str_replace( "{CONTACT_INFO}", $email_contact_info, $contents );
         
         //Date
         $date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
         $contents = str_replace( "{DATE}", date($date_format), $contents );
         
-        // REPLACE THE image LINKS AT THE START
+        //REPLACE THE image LINKS AT THE START
         $contents = str_replace( "'images/", "'".$template_url . "images/", $contents );
         $contents = str_replace( '"images/', '"'.$template_url . 'images/', $contents );
         $contents = str_replace( "'/images/", "'".$template_url . "images/", $contents );
@@ -1352,7 +1365,7 @@ class Email_Newsletter_functions {
 
         // BG COLOR
         $bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color', $this->get_default_builder_var('bg_color'));
-        $bg_color = apply_filters('email_newsletter_make_email_bgcolor',$bg_color,$newsletter_id);
+        $bg_color = apply_filters('email_newsletter_make_email_bg_color',$bg_color, $newsletter_id);
         $contents = str_replace( "{BG_COLOR}", $bg_color, $contents);
         
         // BG IMAGE         
@@ -1362,18 +1375,18 @@ class Email_Newsletter_functions {
         else 
             $default_bg = '';
         $bg_image = $this->get_newsletter_meta($newsletter_id,'bg_image', $default_bg);
-        $bg_image = apply_filters('email_newsletter_make_email_bg_image',$bg_image,$newsletter_id);
+        $bg_image = apply_filters('email_newsletter_make_email_bg_image',$bg_image, $newsletter_id);
         $contents = str_replace( "{BG_IMAGE}", $bg_image, $contents);
         
         // LINK COLOR
         $link_color = $this->get_newsletter_meta($newsletter_id,'link_color', $this->get_default_builder_var('link_color'));
-        $link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$newsletter_id);
+        $link_color = apply_filters('email_newsletter_make_email_link_color',$link_color ,$newsletter_id);
         $contents = str_replace( "{LINK_COLOR}", $link_color, $contents);
         $contents = str_replace( "#LINK_COLOR", $link_color, $contents);
         
         // BODY COLOR
         $body_color = $this->get_newsletter_meta($newsletter_id,'body_color', $this->get_default_builder_var('body_color'));
-        $body_color = apply_filters('email_newsletter_make_email_body_color',$body_color,$newsletter_id);
+        $body_color = apply_filters('email_newsletter_make_email_body_color',$body_color, $newsletter_id);
         $contents = str_replace( "{BODY_COLOR}", $body_color, $contents);
         
         return apply_filters('email_newsletter_make_email_body', $contents, $newsletter_id);

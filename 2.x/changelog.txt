@@ -5,6 +5,11 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.2.3 =
+* Improved visual editor resizing(support for extra icons)
+* Small improvements to filters and action
+* Fixed syncing with WP user email change(duplicating issue)
+
 = 2.2.2 =
 * Added support for emails with unnecessary tabs
 * Fixed syncing with WP user email change

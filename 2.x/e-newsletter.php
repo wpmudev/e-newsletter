@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.2.2
+Version: 2.2.3
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -56,7 +56,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.22;
+        $this->plugin_ver = 2.23;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -924,10 +924,22 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ( current_user_can('edit_user',$user_id) && is_email( $_POST['email'] ) ) {
             $member_data_ready = array(
                     'wp_user_id' => $user_id,
-                    'member_fname' => $_POST['first_name'],
-                    'member_lname' => $_POST['last_name'],
                     'member_email' => $_POST['email']         
                 );
+            if(!empty($_POST['first_name'])) {
+                $member_data_ready['member_fname'] = $_POST['first_name'];
+                if(!empty($_POST['last_name']))
+                    $member_data_ready['member_lname'] = $_POST['last_name'];
+            }
+            elseif(!empty($_POST['nickname'])) {
+                $member_data_ready['member_fname'] = $_POST['nickname'];
+                $member_data_ready['member_lname'] = '';
+            }
+            else {
+                $member_data_ready['member_fname'] = '';
+                $member_data_ready['member_lname'] = '';               
+            }
+
             $result = $this->create_update_member_user($user_id, $member_data_ready, '', 1);
         }          
     }
