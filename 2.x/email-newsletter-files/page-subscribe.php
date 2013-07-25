@@ -1,6 +1,5 @@
 <?php
     global $current_user;
-    $this->set_current_user();
 
     $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
 
@@ -15,7 +14,7 @@
     }
     //Display status message
     if ( isset( $_GET['updated'] ) ) {
-        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['dmsg'] ); ?></p></div><?php
+        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['message'] ); ?></p></div><?php
     }
 
 ?>
@@ -63,7 +62,7 @@
                                     else
                                         $checked = 'checked="checked"';
 										
-                                    $groups_echo[] = '<input type="checkbox" name="e_newsletter_groups_id[]" ' . $checked . ' value="' . $group['group_id'] . '" /><label>' . $group['group_name'] . '</label>';
+                                    $groups_echo[] = '<label><input type="checkbox" name="e_newsletter_groups_id[]" ' . $checked . ' value="' . $group['group_id'] . '" />' . $group['group_name'] . '</label>';
                                 }
 							echo implode('<br/>', $groups_echo);
                         ?>

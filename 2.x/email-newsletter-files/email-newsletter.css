@@ -60,8 +60,8 @@ Email-Newsletter CSS Styles
 .enewsletter_progressbar #progressbar_text {
     font-weight: bold;
     position: absolute;
-    left: 45%;
-    top: 2px;
+    left: 233px;
+    top: 4px;
     z-index: 1001;
 }
 
@@ -171,8 +171,11 @@ vertical-align: middle !important;
     margin: 3px 0px 0px 0px;
 }
 
-#groups_table {
+.table_slim {
 	width:auto;
+}
+.table_centered {
+    text-align: center;
 }
 #subscribes_table input {
 	margin-right:5px;
@@ -193,4 +196,14 @@ vertical-align: middle !important;
 }
 .members-count {
     width:150px;
+}
+
+.newsletters_actions {
+    width:170px;
+}
+.members-actions {
+    width:220px;
+}
+.panel_margin {
+    margin: 10px 0;
 }

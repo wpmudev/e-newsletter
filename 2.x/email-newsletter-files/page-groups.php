@@ -4,7 +4,7 @@
 
     //Display status message
     if ( isset( $_GET['updated'] ) ) {
-        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['dmsg'] ); ?></p></div><?php
+        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['message'] ); ?></p></div><?php
     }
 
 ?>
@@ -123,7 +123,7 @@
         <form method="post" action="" name="edit_group" id="edit_group" >
             <input type="hidden" name="newsletter_action" id="newsletter_action2" value="" />
             <input type="hidden" name="group_id" id="group_id" value="" />
-            <table id="groups_table" class="widefat post">
+            <table id="groups_table" class="widefat post table_slim">
                 <thead>
                     <tr>
                         <th>

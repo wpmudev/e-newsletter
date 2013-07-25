@@ -61,7 +61,7 @@
 
     //Display status message
     if ( isset( $_GET['updated'] ) ) {
-        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['dmsg'] ); ?></p></div><?php
+        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['message'] ); ?></p></div><?php
     }
 
 ?>
@@ -381,7 +381,7 @@
                                 <tr>
                                     <td colspan="2">
                                         <p class="submit">
-                                            <input class="button button-secondary" type="button" name="import_members" id="import_members" value="<?php _e( 'Import members', 'email-newsletter' ) ?>" />
+                                            <input class="button button-primary" type="button" name="import_members" id="import_members" value="<?php _e( 'Import members', 'email-newsletter' ) ?>" />
                                         </p>
                                     </td>
                                 </tr>
@@ -446,7 +446,7 @@
                                 <tr>
                                     <td colspan="2">
                                         <p class="submit">
-                                            <input class="button button-secondary" type="submit" name="add_member" id="add_member" value="<?php _e( 'Exports Members', 'email-newsletter' ) ?>" />
+                                            <input class="button button-primary" type="submit" name="add_member" id="add_member" value="<?php _e( 'Exports Members', 'email-newsletter' ) ?>" />
                                         </p>
                                     </td>
                                 </tr>

@@ -5,6 +5,14 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.3 =
+* Added ability to send to users on selected "Membership" plugin levels
+* Added ability to send to admins of every site in network
+* Added ability to sort newsletters by date, subject or template
+* Fixed incorrect 5 latest sent newsletters in "Reports"
+* Big code clean up
+* Other small improvements
+
 = 2.2.3 =
 * Improved visual editor resizing(support for extra icons)
 * Small improvements to filters and action

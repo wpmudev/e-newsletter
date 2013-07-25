@@ -317,7 +317,6 @@ class Email_Newsletter_Builder  {
 	
 	function get_builder_email_id() {
 		global $current_user, $email_newsletter;
-		$email_newsletter->set_current_user();
 
 		return get_transient('builder_email_id_'.$current_user->ID);
 	}

@@ -1,19 +1,14 @@
 <?php
     $siteurl = get_option( 'siteurl' );
+    $check_key = wp_create_nonce('newsletter_send');
 
     $newsletter_data = $this->get_newsletter_data( $_REQUEST['newsletter_id'] );
 
     $groups = $this->get_groups();
 
-    //send newsletter
-    if ( ! isset( $_REQUEST['send_id'] ) ) {
-        $check_key = substr( md5( uniqid( rand(), true ) ), 0, 7);
-        $_SESSION['check_key'] = $check_key;
-    }
-
     //Display status message
     if ( isset( $_GET['updated'] ) ) {
-        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['dmsg'] ); ?></p></div><?php
+        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['message'] ); ?></p></div><?php
     }
 
 ?>
@@ -35,15 +30,24 @@
                 if ( true == jQuery( "input[name='all_members']" ).prop( 'checked' ) )
                     error = '0'
 
-                jQuery( "input[name='group_name[]']" ).each( function() {
+                jQuery( "input[name='target[groups][]']" ).each( function() {
                     if ( true == jQuery(this).prop( 'checked' ) )
                         error = '0'
                 });
 
-                jQuery( "input[name='group_id[]']" ).each( function() {
+                jQuery( "input[name='target[roles][]']" ).each( function() {
                     if ( true == jQuery(this).prop( 'checked' ) )
                         error = '0'
                 });
+
+                jQuery( "input[name='target[membership_levels][]']" ).each( function() {
+                    if ( true == jQuery(this).prop( 'checked' ) )
+                        error = '0'
+                });
+
+                if ( true == jQuery( "input[name='target[site_admins]']" ).prop( 'checked' ) )
+                    error = '0'
+
 
                 if ( '1' == error ) {
                     alert( "<?php _e( 'Please select members.', 'email-newsletter' ) ?>" );
@@ -174,7 +178,7 @@
                         jQuery.ajax({
                             type: 'POST',
                             url: ajaxurl,
-                            data: 'action=send_email_to_member&send_id=<?php echo $send_id ; ?>&check_key=<?php echo $_REQUEST['check_key'] ; ?>',
+                            data: 'action=send_email_to_member&send_id=<?php echo $send_id ; ?>&check_key=<?php echo $_REQUEST["check_key"] ; ?>',
                             success: function( html ){
                                 if ( 'ok' == html ) {
 
@@ -194,6 +198,7 @@
                                      jQuery( "#send_cron" ).hide();
                                      jQuery( "#progressbar_text" ).html( '<?php echo _e( 'Done', 'email-newsletter' ) ?>' );
 									 jQuery( "#send_cancel" ).val('finish');
+                                     jQuery( ".ui-progressbar-value" ).fadeOut();
                                 } else {
                                 	if(typeof console.log != 'undefined')
                                 		console.log(html);
@@ -217,9 +222,9 @@
             <input type="hidden" name="newsletter_id" value="<?php echo $newsletter_data["newsletter_id"];?>">
             <input type="hidden" name="cron" id="cron" value="">
             <input type="hidden" name="cron_time" id="cron_time" value="" />
-            <input type="hidden" name="check_key" id="check_key" value="">
+            <input type="hidden" name="check_key" id="check_key" value="<?php echo $check_key; ?>">
             <input type="hidden" name="action" value="send">
-            <table cellpadding="10" cellspacing="10" class="widefat post">
+            <table cellpadding="10" cellspacing="10" class="widefat post table_slim">
 				<thead>
 					<tr>
 						<th>
@@ -231,27 +236,16 @@
 					<tr>
 						<td>
     						<p>
-    							<label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Members - except unsubscribed', 'email-newsletter' ) ?></strong> (<?php echo $this->get_count_members();?>)</label>
+    							<label><input type="checkbox" name="all_members" value="1" /> <strong><?php _e( 'All Active Members', 'email-newsletter' ) ?></strong> (<?php echo $this->get_count_members();?>)</label>
     						</p>
                             <p>
     							<?php
-    								foreach ( array('administrator', 'editor', 'author', 'contributor', 'subscriber') as $role ) {
-    									$col = count ( get_users( array( 'role' => $role ) ) );
-    									if ( 0 < $col )
-    										echo "<label><input type='checkbox' name='group_name[]' value='{$role}' /> ".__( 'Role:', 'email-newsletter' )." {$role} ({$col})</label><br>";
-    								}
+    								$this->the_targets();
                                 ?>
                             </p>
-                            <p>
-                                <?php
-    								if ( $groups )
-    									foreach ( $groups as $group ) {
-    										$col = count( $this->get_members_of_group( $group['group_id'] ) );
-    										if ( 0 < $col )
-    											echo "<label><input type='checkbox' name='group_id[]' value='{$group['group_id']}' /> {$group['group_name']} ({$col})</label><br>";
-    									}
-    							?>
-    						</p>
+                            <p class="description">
+                                <?php _e( 'Please keep in mind emails are not being sent to unsubscribed users.', 'email-newsletter' ) ?>
+                            </p>
 						</td>
 					</tr>
 					<tr>
@@ -397,7 +391,7 @@
                         <a href="?page=<?php echo $_REQUEST['page']; ?>&newsletter_action=send_newsletter&cron=add_to_cron&newsletter_id=<?php echo $newsletter_data["newsletter_id"];?>&send_id=<?php echo $send['send_id'];?>">
                             <input class="button button-secondary" type="button" value="<?php echo _e( "Add to CRON list", 'email-newsletter' ) ?>" />
                         </a>
-                        <a href="?page=<?php echo $_REQUEST['page']; ?>&newsletter_action=send_newsletter&newsletter_id=<?php echo $newsletter_data["newsletter_id"];?>&send_id=<?php echo $send['send_id'];?>&check_key=<?php echo $check_key;?>">
+                        <a href="?page=<?php echo $_REQUEST['page']; ?>&newsletter_action=send_newsletter&newsletter_id=<?php echo $newsletter_data["newsletter_id"];?>&send_id=<?php echo $send['send_id'];?>&check_key=<?php echo $check_key; ?>">
                             <input class="button button-secondary" type="button" value="<?php _e( 'Continue Send', 'email-newsletter' ) ?>" />
                         </a>
                 <?php

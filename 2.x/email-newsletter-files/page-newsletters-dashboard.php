@@ -1,7 +1,13 @@
 <?php
 	global $email_builder;
-    $newsletters_sent = $this->get_sent_newsletters();
 
+    $arg['where'] = 'S.start_time > 0';
+    $arg['limit'] = 'LIMIT 0,5';
+    $arg['orderby'] = 'start_time';
+    $arg['order'] = 'desc';
+    $newsletters_sent = $this->get_newsletters($arg);
+    
+    $arg = array();
     $arg['limit'] = 'LIMIT 0,5';
     $arg['orderby'] = 'join_date';
     $arg['order'] = 'desc';
@@ -10,7 +16,7 @@
 
     //Display status message
     if ( isset( $_GET['updated'] ) ) {
-        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['dmsg'] ); ?></p></div><?php
+        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['message'] ); ?></p></div><?php
     }
 
 ?>
@@ -20,7 +26,7 @@
 		<p><?php _e( 'Take a look at newsletter reports.', 'email-newsletter' ) ?></p>
 		
 		<h3><?php _e( 'Statistics:', 'email-newsletter' ) ?></h3>
-        <table class="widefat post newsletter_table_center">
+        <table class="widefat post table_slim table_centered">
             <thead>
                 <tr>
                     <th>
@@ -48,7 +54,7 @@
 
             <tr class="alternate">
                 <td>
-                    <?php echo $this->get_count_newsletters(); ?>
+                    <?php echo $this->get_newsletters("", 1); ?>
                 </td>
                 <td>
                     <?php echo $this->get_count_members(); ?>
@@ -90,7 +96,7 @@
                     <th>
                         <?php _e( 'Opened', 'email-newsletter' ) ?>
                     </th>
-                    <th>
+                    <th class="newsletters_actions">
                         <?php _e( 'Actions', 'email-newsletter' ) ?>
                     </th>
                 </tr>
@@ -125,14 +131,14 @@
                 <td>
                      <?php echo $one_sent['count_opened']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
-                <td style="width: 280px;">
-                    <a href="?page=newsletters-dashboard&newsletter_action=delete_newsletter&newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
+                <td style="width: 180px;">
+                    <a href="?page=newsletters-dashboard&amp;newsletter_action=delete_newsletter&amp;newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
                         <input class="button button-secondary" type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" />
                     </a>
                     <a href="<?php echo $email_builder->generate_builder_link($one_sent['newsletter_id']); ?>">
                         <input class="button button-secondary" type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
                     </a>
-                    <a href="?page=newsletters-dashboard&newsletter_action=send_newsletter&newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
+                    <a href="?page=newsletters-dashboard&amp;newsletter_action=send_newsletter&amp;newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
                         <input class="button button-primary" type="button" value="<?php _e( 'Send', 'email-newsletter' ) ?>" />
                     </a>
                 </td>

@@ -1,14 +1,43 @@
 <?php
 	global $email_builder;
+    $arg['orderby'] = 'create_date';
+    $arg['order'] = 'desc';
 
-    $newsletters = $this->get_newsletters();
+    if(isset( $_REQUEST['order'] ) && $_REQUEST['order'] == 'asc')
+        $order = "desc";
+    else {
+        $order = "asc";
+    }
+    $url_orginal = add_query_arg( array('order' => $order, 'orderby' => false, 'search_members' => $_REQUEST['search_members']) );
+
+    if ( isset( $_REQUEST['orderby'] ) )
+        $arg['orderby'] = $_REQUEST['orderby'];
+
+    if ( isset( $_REQUEST['order'] ) )
+        $arg['order'] = $_REQUEST['order'];
+
+    $newsletters = $this->get_newsletters($arg);
 
     //Display status message
     if ( isset( $_GET['updated'] ) ) {
-        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['dmsg'] ); ?></p></div><?php
+        ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['message'] ); ?></p></div><?php
     }
 
 ?>
+    <script type="text/javascript">
+        jQuery( document ).ready( function() {
+            jQuery( "#show_trigger_form" ).click( function() {
+                jQuery( "#panel" ).slideToggle( "slow" );
+
+                if ( "<?php _e( 'Show and Configure Triggers', 'email-newsletter' ) ?>" == jQuery(this).val() )
+                    jQuery(this).val( "<?php _e( 'Hide Triggers Form', 'email-newsletter' ) ?>" );
+                else
+                    jQuery(this).val( "<?php _e( 'Show and Configure Triggers', 'email-newsletter' ) ?>" );
+
+                return false;
+            });
+        });
+    </script>
 
     <div class="wrap">
         <h2>
@@ -16,26 +45,49 @@
         	<a href="<?php echo $email_builder->generate_builder_link('new'); ?>" class="add-new-h2"><?php _e('Create New','email-newsletter'); ?></a>
         </h2>
         <p><?php _e( 'This page contains the list of all Newsletters.', 'email-newsletter' ) ?></p>
-        <p><?php _e( 'Note: please store your custom themes in enewsletter-custom-themes folder located in wp-content/uploads(+/siteID/ if activated on a single blog of a multi-site install).', 'email-newsletter' ) ?></p>
-        <table id="newsletterList" class="widefat post">
+        <p class="description"><?php _e( 'Note: please store your custom themes in enewsletter-custom-themes folder located in wp-content/uploads(+/siteID/ if activated on a single blog of a multi-site install).', 'email-newsletter' ) ?></p>
+
+        <table id="newsletter_list" class="widefat post">
             <thead>
                 <tr>
-                    <th class="subjectCol">
-                        <?php _e( 'Email Subject', 'email-newsletter' ) ?>
+                    <th <?php echo (isset($arg['orderby']) && "newsletter_id" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
+                        <?php $url = add_query_arg( array('orderby' => 'newsletter_id'), $url_orginal ); ?> 
+                        <a href="<?php echo $url; ?>">
+                            <span><?php _e( 'ID', 'email-newsletter' ) ?></span>
+                            <span class="sorting-indicator"></span>
+                        </a>
+                    </th>
+                    <th <?php echo (isset($arg['orderby']) && "create_date" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
+                        <?php $url = add_query_arg( array('orderby' => 'create_date'), $url_orginal ); ?> 
+                        <a href="<?php echo $url; ?>">
+                            <span><?php _e( 'Create Date', 'email-newsletter' ) ?></span>
+                            <span class="sorting-indicator"></span>
+                        </a>
+                    </th>
+                    <th <?php echo (isset($arg['orderby']) && "subject" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
+                        <?php $url = add_query_arg( array('orderby' => 'subject'), $url_orginal ); ?> 
+                        <a href="<?php echo $url; ?>">
+                            <span><?php _e( 'Email Subject', 'email-newsletter' ) ?></span>
+                            <span class="sorting-indicator"></span>
+                        </a>
+                    </th>
+                    <th <?php echo (isset($arg['orderby']) && "template" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
+                        <?php $url = add_query_arg( array('orderby' => 'template'), $url_orginal ); ?> 
+                        <a href="<?php echo $url; ?>">
+                            <span><?php _e( 'Template', 'email-newsletter' ) ?></span>
+                            <span class="sorting-indicator"></span>
+                        </a>
                     </th>
                     <th>
-                        <?php _e( 'Template', 'email-newsletter' ) ?>
+                        <span><?php _e( 'Bounced', 'email-newsletter' ) ?>
                     </th>
                     <th>
-                        <?php _e( 'Bounced', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
-                        <?php _e( 'Sent To', 'email-newsletter' ) ?>
+                        <span><?php _e( 'Sent To', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Opened', 'email-newsletter' ) ?>
                     </th>
-                    <th class="actionCol">
+                    <th class="newsletters_actions">
                         <?php _e( 'Actions', 'email-newsletter' ) ?>
                     </th>
                 </tr>
@@ -61,30 +113,35 @@
 
                 $i++;
         ?>
-                <td class="subjectCol" style="vertical-align: middle;">
-                    <?php echo $newsletter['subject']; ?><br />
-                    <span class="description"><?php echo date( $this->settings['date_format'] . " h:i:s", $newsletter['create_date'] ); ?></span>
+                <td>
+                    <?php echo $newsletter['newsletter_id']; ?>
                 </td>
-                <td style="vertical-align: middle;">
+                <td>
+                    <?php echo date( $this->settings['date_format'] . " h:i:s", $newsletter['create_date'] ); ?>
+                </td>
+                <td>
+                    <?php echo $newsletter['subject']; ?>
+                </td>
+                <td>
                     <?php echo $newsletter['template']; ?>
                 </td>
-                <td style="vertical-align: middle;">
-                    <?php echo $this->get_count_bounced( $newsletter['newsletter_id'] ); ?> <?php _e( 'members', 'email-newsletter' ) ?>
+                <td>
+                    <?php echo $newsletter['count_bounced']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
-                <td style="vertical-align: middle;">
-                    <?php echo $this->get_count_sent( $newsletter['newsletter_id'] ); ?> <?php _e( 'members', 'email-newsletter' ) ?>
+                <td>
+                    <?php echo $newsletter['count_sent']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
-                <td style="vertical-align: middle;">
-                    <?php echo $this->get_count_opened( $newsletter['newsletter_id'] ); ?> <?php _e( 'members', 'email-newsletter' ) ?>
+                <td>
+                    <?php echo $newsletter['count_opened']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
-                <td class="actionCol">
-                    <a class="deleteNewsletter button button-secondary" href="?page=newsletters&newsletter_action=delete_newsletter&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
+                <td>
+                    <a class="deleteNewsletter button button-secondary" href="?page=newsletters&amp;newsletter_action=delete_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
                         <?php _e( 'Delete', 'email-newsletter' ) ?>
                     </a>
                     <a class="button button-secondary" href="<?php echo $email_builder->generate_builder_link($newsletter['newsletter_id'],'admin.php?page=newsletters') ?>">
                         <?php _e( 'Edit', 'email-newsletter' ) ?>
                     </a>
-                    <a class="button button-primary"  href="?page=newsletters&newsletter_action=send_newsletter&newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
+                    <a class="button button-primary"  href="?page=newsletters&amp;newsletter_action=send_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
                         <?php _e( 'Send', 'email-newsletter' ) ?>
                     </a>
                 </td>
