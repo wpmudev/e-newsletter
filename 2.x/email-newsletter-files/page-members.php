@@ -8,7 +8,11 @@
     else {
         $order = "asc";
     }
-    $url_orginal = add_query_arg( array('order' => $order, 'orderby' => false, 'search_members' => $_REQUEST['search_members']) );
+    $args = array('order' => $order, 'orderby' => false);
+    if(isset($_REQUEST['search_members']))
+        $args['search_members'] = $_REQUEST['search_members'];
+    
+    $url_orginal = add_query_arg( $args );
 
     //Pagination option
     if ( isset( $_REQUEST['per_page'] ) )
@@ -555,7 +559,7 @@
                     </th>
                     <td style="vertical-align: middle;">
                         <?php 
-                        if(current_user_can('edit_users'))
+                        if(current_user_can('edit_users') && $member['wp_user_id'])
                             echo '<a href="'.admin_url( 'user-edit.php?user_id='.$member['wp_user_id'] ).'">'.$member['wp_user_id'].'</a>';
                         else
                             echo $member['wp_user_id']

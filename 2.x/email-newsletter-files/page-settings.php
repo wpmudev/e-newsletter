@@ -235,7 +235,71 @@
                                     <span class="description"><?php _e( 'This HTML message will be visible before newsletter starts so user have ability to display email in browser. Use "{VIEW_LINK}" as link. Leave blank to disable.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
+                            <tr valign="top">
+                                <th scope="row">
+                                    <?php _e( 'Preview mail:', 'email-newsletter' ) ?>
+                                </th>
+                                <td>
+                                    <input type="text" class="regular-text" name="settings[preview_email]" value="<?php echo isset($settings['preview_email']) ? esc_attr($settings['preview_email']) : $settings['from_email'];?>" />
+                                    <span class="description"><?php _e( 'Default email adress to send previews to.', 'email-newsletter' ) ?></span>
+                                </td>
+                            </tr>
                         </table>
+
+                        <h3><?php _e( 'Default Public User Subscribe Settings', 'email-newsletter' ) ?></h3>
+
+                        <table class="settings-form form-table">
+                            <tr valign="top">
+                                <th scope="row">
+                                    <?php _e( 'Groups:', 'email-newsletter' ) ?>
+                                </th>
+                                <td>
+                                    <?php
+                                    $groups = $this->get_groups();
+                                    $settings['subscribe_groups'] = explode(',', $settings['subscribe_groups']);
+
+                                    if ( $groups ) {
+                                    ?>
+                                        <?php foreach( $groups as $group ) : ?>
+                                            <input type="checkbox" name="settings[subscribe_groups][<?php echo $group['group_id'];?>]" value="<?php echo $group['group_id'];?>" <?php if(in_array($group['group_id'], $settings['subscribe_groups'])) echo 'checked'; ?>/>
+                                            <label for="member[groups_id][]">
+                                                <?php echo ( $group['public'] ) ? $group['group_name'] .' (public)' : $group['group_name']; ?>
+                                            </label>
+                                            <br />
+                                        <?php endforeach; ?>
+                                    <?php 
+                                    }
+                                    else {
+                                    ?>
+                                        <p><?php _e( 'You have not created any member groups yet.', 'email-newsletter' ); ?></p>
+                                    <?php
+                                    }
+                                    ?>
+                                    <span class="description"><?php _e( 'Default groups to add user to after subscription (even if nothing is selected in subscribe widget).', 'email-newsletter' ) ?></span>
+                                </td>
+                            </tr>
+
+                            <tr valign="top">
+                                <th scope="row">
+                                    <?php _e( 'Newsletter:', 'email-newsletter' ) ?>
+                                </th>
+                                <td>
+                                    <select name="settings[subscribe_newsletter]">
+                                        <?php
+                                        $newsletters = $this->get_newsletters();
+
+                                        foreach( $newsletters as $key => $newsletter ) {
+                                            if (strlen($newsletter['subject']) > 30)
+                                            $newsletter['subject'] = substr($newsletter['subject'], 0, 27) . '...';
+                                            echo '<option value="'.$newsletter['newsletter_id'].'" '.selected( $settings['subscribe_newsletter'], $newsletter['newsletter_id'], true).'>'.$newsletter['newsletter_id'].': '.$newsletter['subject'].'</option>';
+                                        }
+                                        ?>
+                                    </select>
+                                    <span class="description"><?php _e( 'Default newsletter that will be sent on user subscription. Keep in mind that cron email sending must be enabled.', 'email-newsletter' ) ?></span>
+                                </td>
+                            </tr>
+                        </table>
+
                     </div>
 
                     <div id="tabs-2">

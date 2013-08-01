@@ -4,6 +4,7 @@ $view_newsletter_send_id = get_query_var( 'view_newsletter_send_id' );
 
 $result = $this->get_member_id_by_code($view_newsletter_code);
 if($result['member_id'] > 0 || $result['wp_only_user_id'] > 0) {
+	$member_id = $wp_only_user_id = 0;
 	if($result['member_id'] > 0) {
 		$member_id = $result['member_id'];
 		$member_data = $this->get_member( $member_id );

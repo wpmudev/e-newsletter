@@ -384,7 +384,7 @@ class Email_Newsletter_functions {
 
             if(is_email($member_data['member_email'])) {
                 if(empty($user))
-                    $user = get_user_by_email( $member_data['member_email'] );
+                    $user = get_user_by( 'email', $member_data['member_email'] );
                 if(empty($member))
                     $member = $this->get_member_by_email($member_data['member_email']);
             }
@@ -955,6 +955,8 @@ class Email_Newsletter_functions {
         $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send SET newsletter_id = %d, start_time = %d, end_time = '', email_body = '%s'", $newsletter_id, $start_time, $email_body ) );
         $send_id = $wpdb->insert_id;
 
+        if(!is_array($members_id) && is_numeric($members_id))
+            $members_id = array($members_id);
         if ( 0 < count( $members_id ) )
             foreach ( $members_id as $member_id ) {
 
@@ -964,8 +966,9 @@ class Email_Newsletter_functions {
                         $count ++;
                 }
             }
-
-        if ( 0 < count( $wp_only_users_id ) )
+        if(!is_array($wp_only_users_id) && is_numeric($wp_only_users_id))
+            $wp_only_users_id = array($wp_only_users_id);
+        if ( $wp_only_users_id && 0 < count( $wp_only_users_id ) )
             foreach ( $wp_only_users_id as $wp_only_user_id ) {
 
                 if ( !( "1" == $dont_send_duplicate && $this->check_duplicate_send($newsletter_id, '', $wp_only_user_id) ) || ( "1" == $send_to_bounced && $this->check_bounced_send($newsletter_id, '', $wp_only_user_id) ) ) {
@@ -1099,7 +1102,7 @@ class Email_Newsletter_functions {
         
         //Take care of all text, replace body, title, subject... stuff like this:)
         $contents = str_replace( "{EMAIL_BODY}", $newsletter_data['content'], $contents );
-        $contents = apply_filters('email_newsletter_make_email_content', $contents, $newsletter_id);
+        $contents = apply_filters('email_newsletter_make_email_content', $contents, $newsletter_id);   
 
         //Email Title
         $email_title = $this->get_newsletter_meta($newsletter_id,'email_title', $this->get_default_builder_var('email_title') );
@@ -1135,7 +1138,7 @@ class Email_Newsletter_functions {
         $contents = str_replace( "{TEMPLATE_URL}", $template_url, $contents );
 
         //do the inline styling
-        $themedata = $email_builder->find_builder_theme();
+        $themedata = $email_builder->find_builder_theme($newsletter_data['template']);
         $contents = $this->do_inline_styles($themedata, $contents);
 
         // BG COLOR
@@ -1255,6 +1258,47 @@ class Email_Newsletter_functions {
     }
 
     /**
+     * Get custom theme details
+     **/
+    function get_selected_theme($theme_name) {
+        global $wp_theme_directories;
+
+        $added = 0;
+        if(!in_array($this->template_custom_directory, $wp_theme_directories)) {
+            $added = 1;
+            register_theme_directory($this->template_custom_directory);
+        }
+        if(!in_array($this->template_directory, $wp_theme_directories)) {
+            $added = 1;
+            register_theme_directory($this->template_directory);
+        }
+        
+        //cheating message fix
+        if($added)
+            wp_clean_themes_cache();
+
+        $theme = wp_get_theme($theme_name);
+        if($theme) {
+            $theme_root_dir = $theme->theme_root.'/';
+
+            if(strpos($theme_root_dir, 'enewsletter-custom-themes') !== FALSE) {
+                $upload_dir = wp_upload_dir();
+                $theme_root_url = $upload_dir['baseurl'].'/enewsletter-custom-themes/';
+            }
+            else
+                $theme_root_url = $this->plugin_url . "email-newsletter-files/templates/";
+
+            $template_dir  = $theme_root_dir.$theme_name.'/';
+            $template_url  = $theme_root_url.$theme_name.'/';
+
+            $return = array('url' => $template_url, 'dir' => $template_dir, 'Stylesheet' => $theme['Stylesheet'], 'Template' => $theme['Template'], 'Status' => $theme['Status']);
+            return $return;
+        }
+        else
+            return false;
+    }
+
+    /**
      * Prepare inline styles
      **/
     function do_inline_styles($themedata, $contents) {
@@ -1263,7 +1307,7 @@ class Email_Newsletter_functions {
             if(!class_exists('CssToInlineStyles'))
                 require_once($this->plugin_dir.'email-newsletter-files/builder/lib/css-inline.php');
                 
-            $style_path = $themedata->theme_root . '/' . $themedata->stylesheet . '/style.css';
+            $style_path = $themedata['dir'] . 'style.css';
             if(file_exists($style_path)) {
                 $handle = fopen( $style_path, "r" );
                 $style_content = fread( $handle, filesize( $style_path ) );
@@ -1506,19 +1550,20 @@ class Email_Newsletter_functions {
         if( ! is_array( $settings ) )
             $settings = array();
         
-
-        $caps = $settings['email_caps'];
-        unset($settings['email_caps']);
-        
-        foreach($wp_roles->get_names() as $name => $obj) {
-            if($name == 'administrator') continue;
-            $role_obj = get_role($name);
-            if($role_obj) {
-                foreach($this->capabilities as $cap => $label) {
-                    if(isset($caps[$cap][$name])) {
-                        $role_obj->add_cap($cap);
-                    } else {
-                        $role_obj->remove_cap($cap);
+        if(isset($settings['email_caps'])) {
+            $caps = $settings['email_caps'];
+            unset($settings['email_caps']);
+            
+            foreach($wp_roles->get_names() as $name => $obj) {
+                if($name == 'administrator') continue;
+                $role_obj = get_role($name);
+                if($role_obj) {
+                    foreach($this->capabilities as $cap => $label) {
+                        if(isset($caps[$cap][$name])) {
+                            $role_obj->add_cap($cap);
+                        } else {
+                            $role_obj->remove_cap($cap);
+                        }
                     }
                 }
             }
@@ -1555,6 +1600,9 @@ class Email_Newsletter_functions {
         else
             $settings['bounce_password'] = '';
         
+        if (isset( $settings['subscribe_groups']))
+            $settings['subscribe_groups'] = implode(',', $settings['subscribe_groups']);
+
 
         foreach( $settings as $key => $item )
              $result = $wpdb->query( $wpdb->prepare( "REPLACE INTO {$tb_prefix}enewsletter_settings SET `key` = '%s', `value` = '%s'", $key, stripslashes( $item ) ) );
@@ -1948,32 +1996,6 @@ class Email_Newsletter_functions {
 		}
 		
 		return false;
-    }
-
-    /**
-     * Get path to custom theme directory
-     **/
-    function get_selected_theme($theme_name) {
-        register_theme_directory($this->template_custom_directory);
-        register_theme_directory($this->template_directory);
-        
-        //cheating message fix
-        wp_clean_themes_cache();
-
-        $themes = wp_get_themes();
-        $theme_root_dir = $themes[$theme_name]->theme_root.'/';
-
-        if (strpos($theme_root_dir, 'enewsletter-custom-themes') !== FALSE) {
-            $upload_dir = wp_upload_dir();
-            $theme_root_url = $upload_dir['baseurl'].'/enewsletter-custom-themes/';
-        }
-        else
-            $theme_root_url = $this->plugin_url . "email-newsletter-files/templates/";
-
-        $template_dir  = $theme_root_dir.$theme_name.'/';
-        $template_url  = $theme_root_url.$theme_name.'/';
-
-        return array('url' => $template_url, 'dir' => $template_dir);
     }
 	
     /**

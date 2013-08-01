@@ -2330,6 +2330,9 @@ class PHPMailer {
         $msg .= '<p>' . $this->Lang('smtp_error') . $lasterror['smtp_msg'] . "</p>\n";
       }
     }
+    else 
+      $lasterror = '';
+
     $this->ErrorInfo = $msg;
     $this->ErrorInfoRaw = $lasterror;
   }

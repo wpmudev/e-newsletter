@@ -8,7 +8,9 @@
     else {
         $order = "asc";
     }
-    $url_orginal = add_query_arg( array('order' => $order, 'orderby' => false, 'search_members' => $_REQUEST['search_members']) );
+    $args = array('order' => $order, 'orderby' => false);
+
+    $url_orginal = add_query_arg( $args );
 
     if ( isset( $_REQUEST['orderby'] ) )
         $arg['orderby'] = $_REQUEST['orderby'];

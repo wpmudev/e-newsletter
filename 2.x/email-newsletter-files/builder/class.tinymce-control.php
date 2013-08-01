@@ -54,8 +54,9 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 						jQuery('#customize-controls').css("width", emce_width+"px");
 						jQuery('.wp-full-overlay').css("margin-left", emce_width+"px");
 					} else {
-						jQuery('.wp-full-overlay').css("margin-left","400px");
-						jQuery('#customize-controls').css("width", "400px");
+						console.log('kupa');
+						jQuery('.wp-full-overlay').css("margin-left","300px");
+						jQuery('#customize-controls').css("width", "300px");
 					}
 				}
 				// If the tinyMCE editor is open then widen the sidebar

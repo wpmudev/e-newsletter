@@ -5,7 +5,7 @@ class Builder_Preview_Control extends WP_Customize_Control {
 	public function render_content() {
 		?>
 		<span class="customize-control-title"><?php echo $this->label; ?></span>
-		<p><input id="previewEmail" type="text" <?php $this->link(); ?> value="" placeholder="email@yourdomain.com" /></p>
+		<p><input id="previewEmail" type="text" <?php $this->link(); ?> value="<?php echo $this->default; ?>" placeholder="email@yourdomain.com" /></p>
 		<button id="sendPreview" style="width: 100%; text-align: center;" class="button button-primary" href="#"><?php _e('Send Preview','email-newsletter'); ?></button>
 		<script type="text/javascript">
 			jQuery(document).ready( function($) {

@@ -308,7 +308,6 @@ class Email_Newsletter_Builder  {
 		<?php
 		// We need to call this action for the tinyMCE editor to work properly
 		do_action('admin_print_footer_scripts');
-		do_action('admin_footer');
 	}
 
 	function force_default_editor() {
@@ -320,66 +319,41 @@ class Email_Newsletter_Builder  {
 
 		return get_transient('builder_email_id_'.$current_user->ID);
 	}
-	function get_builder_theme($id=false) {
+	function get_builder_theme($newsletter_id = '') {
 		global $builder_id, $email_newsletter;
-		$email_id = ($id !== false ? $id : $builder_id);
+
+		$newsletter_id = ($newsletter_id != '' ? $newsletter_id : $builder_id);
 		if( isset($_GET['theme']) ) {
 			return $_GET['theme'];
 		} else {
-			$data = $email_newsletter->get_newsletter_data($email_id);
+			$data = $email_newsletter->get_newsletter_data($newsletter_id);
 			return (isset($data['template']) ? $data['template'] : 'iletter');
 		}
 
 	}
-	function find_builder_theme() {
-		$cap = 'save_newsletter';
-		
-    	if (!current_user_can($cap)) {
-        	return false;
-        }
+	function find_builder_theme($theme = '') {
+		global $email_newsletter;
 
-		  $theme = $this->get_builder_theme();
-	      
-	      $theme_data = wp_get_theme($theme);
-	      
-	      if (empty($theme_data) || !$theme_data) {
-	      	return false;
-		  } else {
-	          // Don't let people peek at unpublished themes
-	          if (isset($theme_data['Status']) && $theme_data['Status'] != 'publish') {
-	              return false;
-	          }
-	          return $theme_data;
-	      }
-	      
-	      // perhaps they are using the theme directory instead of title
-	      $themes = wp_get_themes();
-	      
-	      foreach ($themes as $theme_data) {
-	          // use Stylesheet as it's unique to the theme - Template could point to another theme's templates
-	          if ($theme_data['Stylesheet'] == $theme) {
-	              // Don't let people peek at unpublished themes
-	              if (isset($theme_data['Status']) && $theme_data['Status'] != 'publish') {
-	                  return false;
-				  }
-	            	return $theme_data;
-	        	}
-	    	}
-    	return false;
+        if(empty($theme))
+			$theme = $this->get_builder_theme();
+
+		$theme_data = $email_newsletter->get_selected_theme($theme);
+
+		return $theme_data;
 	}
-	function inject_builder_stylesheet($stylesheet) {
+	function inject_builder_stylesheet() {
 		$theme = $this->find_builder_theme();
-		if ($theme === false)
-			return $stylesheet;
-		else
+		if ($theme)
 			return $theme['Stylesheet'];
+		else
+			return false;
 	}
-	function inject_builder_template($template) {
+	function inject_builder_template() {
 		$theme = $this->find_builder_theme();
-		if ($theme === false)
-			return $template;
-		else		  
+		if ($theme)  
 			return $theme['Template'];
+		else
+			return false;
 	}
 	function init_newsletter_builder( $instance ) {
 		global $builder_id, $email_newsletter;
@@ -567,7 +541,7 @@ class Email_Newsletter_Builder  {
 		$instance->add_setting( 'email_preview', array(
 			//'subject'        => '',
 			//'capability' => NULL,
-			'default' => '',
+			'default' => (isset($email_newsletter->settings['preview_email'])) ? $email_newsletter->settings['preview_email'] : '',
 			'type' => 'newsletter_save'
 		) );
 		
@@ -939,7 +913,7 @@ class Email_Newsletter_Builder  {
 		    </head>
 			<?php
 			
-			$email_data = $email_newsletter->get_newsletter_data($this->ID);
+			//$email_data = $email_newsletter->get_newsletter_data($this->ID);
 			$content = $email_newsletter->make_email_body($this->ID);
 			$content = $this->prepare_preview($content);
 			echo $content;
