@@ -5,6 +5,12 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.3.4 =
+* Added compatibility with new WordPress 3.6
+* Tweaked behavior so new WP users are also added to selected groups on registration
+* Tweaked behavior so new WP users are also receiving welcome email on registration
+* Improved adding WP users to eNewsletter members list
+
 = 2.3.3 =
 * Added ability add new subscribers to selected group
 * Added ability to send welcome email on user subscription

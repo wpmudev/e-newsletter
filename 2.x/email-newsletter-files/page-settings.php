@@ -246,7 +246,7 @@
                             </tr>
                         </table>
 
-                        <h3><?php _e( 'Default Public User Subscribe Settings', 'email-newsletter' ) ?></h3>
+                        <h3><?php _e( 'Default User Subscribe Settings', 'email-newsletter' ) ?></h3>
 
                         <table class="settings-form form-table">
                             <tr valign="top">
@@ -285,6 +285,7 @@
                                 </th>
                                 <td>
                                     <select name="settings[subscribe_newsletter]">
+                                        <option value=""><?php _e( 'Disable', 'email-newsletter' ) ?></option>
                                         <?php
                                         $newsletters = $this->get_newsletters();
 

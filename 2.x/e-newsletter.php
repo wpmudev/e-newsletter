@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.3.3
+Version: 2.3.4
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -56,7 +56,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.33;
+        $this->plugin_ver = 2.34;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -133,17 +133,16 @@ class Email_Newsletter extends Email_Newsletter_functions {
         //some actions for MultiSite
         if ( function_exists( 'is_multisite' ) && is_multisite() ) {
             add_action( 'wpmu_activate_user', array( &$this, 'user_create' ) );
+            add_action( 'wpmu_new_user', array( &$this, 'user_create' ) );
             add_action( 'added_existing_user', array( &$this, 'user_create' ) );
             add_action( 'remove_user_from_blog', array( &$this, 'user_remove_from_site' ) );
             add_action( 'wpmu_delete_user', array( &$this, 'user_delete' ) );
             add_action( 'delete_blog', array( &$this, 'uninstall' ) );
             add_action( 'network_admin_menu', array( &$this, 'admin_page' ) );
         }
-        else {
-            //changing list of members when we create or delete user of the standard site
-            add_action( 'user_register', array( &$this, 'user_create' ) );
-            add_action( 'delete_user', array( &$this, 'user_delete' ) );            
-        }
+        //changing list of members when we create or delete user of the standard site
+        add_action( 'user_register', array( &$this, 'user_create' ) );
+        add_action( 'delete_user', array( &$this, 'user_delete' ) );            
 
         //Update member when editing user action
         add_action( 'edit_user_profile_update', array( &$this, 'edit_user_update_member' ) );
@@ -886,6 +885,22 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function user_create( $userID ) {
         $result = $this->create_update_member_user($userID, array(), 1);
+
+        $member_id = $result['member_id'];
+
+        if($member_id) {
+            global $wpdb;
+            $settings = $this->get_settings();
+
+            //creating new list of groups for user
+            $subscribe_groups = explode(',', $settings['subscribe_groups']);
+            if ( isset( $subscribe_groups ) && is_array( $subscribe_groups ) )
+                foreach( $subscribe_groups as $group_id )
+                    $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
+
+            if($settings['subscribe_newsletter'])
+                $this->add_send_email_info( $settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
+        }
     }
 
     /**
@@ -984,11 +999,13 @@ class Email_Newsletter extends Email_Newsletter_functions {
             else
                 $tb_prefix = $wpdb->base_prefix;
 
-            $member_id = $this->get_members_by_wp_user_id( $userID, $blog_id );
+            if($this->get_settings($tb_prefix)) {
+                $member_id = $this->get_members_by_wp_user_id( $userID, $blog_id );
 
-            if ( 0 < $member_id ) {
-                $wpdb->query( $wpdb->prepare( "DELETE FROM {$tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
-                $wpdb->query( $wpdb->prepare( "DELETE FROM {$tb_prefix}enewsletter_members WHERE member_id = %d", $member_id ) );
+                if ( 0 < $member_id ) {
+                    $wpdb->query( $wpdb->prepare( "DELETE FROM {$tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
+                    $wpdb->query( $wpdb->prepare( "DELETE FROM {$tb_prefix}enewsletter_members WHERE member_id = %d", $member_id ) );
+                }
             }
         }
     }

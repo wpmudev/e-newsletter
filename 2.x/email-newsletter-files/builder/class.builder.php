@@ -148,9 +148,17 @@ class Email_Newsletter_Builder  {
 			if($theme->theme_root != $email_newsletter->template_directory && $theme->theme_root != $email_newsletter->template_custom_directory )
 				unset($themes[$key]);
 		}
-		?><script type="text/javascript">
+		global $wp_version, $selector;
+		if(version_compare($wp_version, "3.6", ">="))
+			$selector = 'accordion';
+		else 
+			$selector = 'customize';
+
+		?>
+		<script type="text/javascript">
 			_wpCustomizeControlsL10n.save = "<?php _e('Save Newsletter','email-newsletter'); ?>";
 			ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
+			selector = "<?php echo $selector; ?>";
 
 			activate_theme = "<?php _e('Activate Theme','email-newsletter'); ?>";
 			jQuery('#customize-info').prepend('<input type="button" value="'+activate_theme+'" id="activate_theme" class="button button-primary save">');
@@ -165,7 +173,8 @@ class Email_Newsletter_Builder  {
 				},
 				<?php endforeach; ?>
 			];
-			var _info = jQuery('#customize-info .customize-section-content');
+			
+			var _info = jQuery('#customize-info .'+selector+'-section-content');
 			_info
 				.prepend('<a href="#" class="arrow left" />')
 				.prepend('<a href="#" class="arrow right" />')
@@ -188,20 +197,29 @@ class Email_Newsletter_Builder  {
 				
 			});
 				
-			jQuery('#customize-info').on('click', '.customize-section-title', function() {
+			jQuery('#customize-info').on('click', '.'+selector+'-section-title', function() {
+				var fix = setInterval(function() {
+							var attr = jQuery('.'+selector+'-section-content[style]');
+							if (typeof attr !== 'undefined' && attr !== false) {
+								jQuery('.'+selector+'-section-content').removeAttr('style');
+								clearInterval(fix);
+							}
+						}, 150);
 
+				
 				//remove arrows for first and last
-				jQuery("#customize-info .customize-section-content:first").find('a.left').remove();
-				jQuery("#customize-info .customize-section-content:last").find('a.right').remove();
+				jQuery('#customize-info .'+selector+'-section-content:first').find('a.left').remove();
+				jQuery('#customize-info .'+selector+'-section-content:last').find('a.right').remove();
 				
 				var new_theme;
 
 				jQuery('#customize-info .arrow').on('click', function(event) {
+
 					var _this = jQuery(this);
 					data = jQuery(this).parent().data('theme');
 					
-					var next = _this.parent().next('.customize-section-content');
-					var prev = _this.parent().prev('.customize-section-content');
+					var next = _this.parent().next('.'+selector+'-section-content');
+					var prev = _this.parent().prev('.'+selector+'-section-content');
 					
 					if(_this.hasClass('left')) {
 						if(prev.length > 0) {
@@ -256,9 +274,11 @@ class Email_Newsletter_Builder  {
 		</script>
 		
 		<style type="text/css">
+			#customize-info .<?php echo $selector; ?>-section-content {
+				text-align: center;
+			}
 			.theme-screenshot {
 				min-height:258px;	
-				display:block;
 			}
 			.wp-full-overlay {
 				z-index: 15000;
@@ -266,7 +286,7 @@ class Email_Newsletter_Builder  {
 			#TB_overlay, #TB_window {
 				z-index: 16000!important;
 			}
-			.customize-section.open .customize-section-content.hidden {
+			.<?php echo $selector; ?>-section.open .<?php echo $selector; ?>-section-content.hidden {
 				display:none;
 			}
 			#activate_theme {

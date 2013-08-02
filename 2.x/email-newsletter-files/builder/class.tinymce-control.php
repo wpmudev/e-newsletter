@@ -27,7 +27,7 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 		?>
 		<style type="text/css">
 			#customize-control-email_content {
-				width: auto;
+				width:auto;
 			}
 		</style>
 		
@@ -48,21 +48,26 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 					}
 				}
 				window.builder_check_sidebar = function() {
-					var sectionClicked = jQuery(this).attr('id');
-					if( sectionClicked == 'customize-section-builder_email_content' && jQuery(this).hasClass('open')) {
-						emce_width = jQuery('#content_tinymce_tbl').width()+70;
-						jQuery('#customize-controls').css("width", emce_width+"px");
-						jQuery('.wp-full-overlay').css("margin-left", emce_width+"px");
+					if(jQuery(this).parent().is('#'+selector+'-section-builder_email_content') && !jQuery(this).parent().hasClass('open')) {
+						prev_emce_width = 0;
+						var resize =setInterval(function() {
+							emce_width = jQuery('#content_tinymce_ifr').width()+60;
+							if(emce_width != prev_emce_width) {
+								prev_emce_width = emce_width;
+								jQuery('#customize-controls').css("width", emce_width+"px");
+								jQuery('.wp-full-overlay').css("margin-left", emce_width+"px");
+							}
+						}, 150);						
+						
 					} else {
-						console.log('kupa');
-						jQuery('.wp-full-overlay').css("margin-left","300px");
-						jQuery('#customize-controls').css("width", "300px");
+						jQuery('.wp-full-overlay').css("margin-left","320px");
+						jQuery('#customize-controls').css("width", "320px");
+						clearInterval(resize);
 					}
 				}
 				// If the tinyMCE editor is open then widen the sidebar
 				// Slide animation is already handled with css transitions
-				jQuery('#customize-theme-controls > ul > li').bind('click', builder_check_sidebar);
-				jQuery('#customize-info').bind('click', builder_check_sidebar)
+				jQuery('#customize-theme-controls ul li h3, #customize-info .'+selector+'-section-title').bind('click', builder_check_sidebar);
 			});
 		</script>
 		<?php
