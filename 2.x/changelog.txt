@@ -5,6 +5,18 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
  
 == Changelog ==
 
+= 2.3.5 =
+* Tweaked behavior so new newsletter starts with last used template
+* Improvements to subscribe widget
+* Improvements to the templates
+* Fixed permlinks with PATH_INFO 
+* Fixed "Add Media" button
+* Fixed problems with MarketPress
+* Fixed redirecting to incorrect blog after user update
+* Fixed sending to non existant and not subscribed WP role
+* Possible fix for PATHINFO permalinks
+* Other small improvements
+
 = 2.3.4 =
 * Added compatibility with new WordPress 3.6
 * Tweaked behavior so new WP users are also added to selected groups on registration

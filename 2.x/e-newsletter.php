@@ -3,7 +3,8 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.3.4
+Version: 2.3.5
+Text Domain: email-newsletter
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
@@ -33,6 +34,7 @@ require_once( 'email-newsletter-files/builder/class.builder.php' );
 class Email_Newsletter extends Email_Newsletter_functions {
 
     var $plugin_ver;
+    var $plugin_main_file;
     var $plugin_dir;
     var $plugin_url;
     var $template_directory;
@@ -56,7 +58,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.34;
+        $this->plugin_ver = 2.35;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -72,6 +74,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $this->cron_bounce_name = 'e_newsletter_cron_check_bounces_' . $wpdb->blogid;
 
         //setup proper directories
+        $this->plugin_main_file = __FILE__;
         $this->plugin_dir = plugin_dir_path( __FILE__ );
         $this->plugin_url = plugins_url( '/', __FILE__ );
         if(!isset($this->plugin_dir) || !isset($this->plugin_url))
@@ -115,7 +118,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_filter( 'rewrite_rules_array', array( &$this, 'insert_rewrite_rules' ) );
         add_filter( 'query_vars', array( &$this, 'insert_query_vars' ) );
         
-        add_action('plugins_loaded',array(&$this,'import_wpmu_plugins'));
         add_action('plugins_loaded',array(&$this,'set_current_user'), 1);
         add_action('plugins_loaded',array(&$this,'upgrade_check'));
 
@@ -125,10 +127,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         // filter schedules
         add_filter( 'cron_schedules', array( &$this, 'add_new_cron_time' ) );
 
-        // filter does shortcodes
-        add_filter('email_newsletter_make_email_content', 'do_shortcode', 11);
-
-        add_action( 'init', array( &$this, 'init' ) );  
+        add_action( 'init', array( &$this, 'init' ), 999 );  
 
         //some actions for MultiSite
         if ( function_exists( 'is_multisite' ) && is_multisite() ) {
@@ -202,6 +201,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'wp_ajax_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax' ));
         add_action( 'wp_ajax_nopriv_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax'));
 
+        // filter does shortcodes
+        add_filter('email_newsletter_make_email_content', 'do_shortcode', 11);
     }
     
     /**
@@ -334,7 +335,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * init for admin
      **/
     function admin_init() {
-        
         $mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
 
         //adds cap for admin
@@ -590,7 +590,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 //action for Subscribe of public member (not user of site)
                 case "new_subscribe":
                     if(!is_email($_REQUEST['e_newsletter_email'])) {
-                        $data['message'] = __( 'Please use correct email', 'email-newsletter' );
+                        $data['message'] = __( 'Please use correct email!', 'email-newsletter' );
                         echo json_encode($data);
                         die();
                     }
@@ -911,8 +911,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
             if(is_email( $_POST['email'] )) {
                 $blogs = get_blogs_of_user( $user_id );
                 foreach ($blogs as $blog) {
-                    if(is_multisite())
+                    if(is_multisite()) {
+                        if(!$current_blog)
+                            $current_blog = get_current_blog_id();
                         switch_to_blog( $blog->userblog_id  );
+                    }
 
                     $member_data_ready = array(
                             'wp_user_id' => $user_id,
@@ -936,7 +939,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 }
 
                 if(is_multisite())
-                    restore_current_blog();
+                    switch_to_blog( $current_blog  );
             }
 
             if(isset($_POST['email_newsletter_unsubscribe_code'])) {
@@ -957,26 +960,27 @@ class Email_Newsletter extends Email_Newsletter_functions {
         } else {
             $user_id = $user_ID;
         }
+        if($this->is_plugin_active_for_network(plugin_basename($this->plugin_main_file))) {
+            $results = $wpdb->get_results( $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key LIKE %s AND meta_value LIKE %s AND user_id = %d", '%capabilities', '%administrator%', $user_id) );
+            if($results) {
+                $unsubscribe_code = get_user_meta( $user_id, 'email_newsletter_unsubscribe_code', true );
+                ?>
+                <h3><?php _e('Multisite users newsletters', 'email-newsletter'); ?></h3>
 
-        $results = $wpdb->get_results( $wpdb->prepare("SELECT user_id FROM $wpdb->usermeta WHERE meta_key LIKE %s AND meta_value LIKE %s AND user_id = %d", '%capabilities', '%administrator%', $user_id) );
-        if($results) {
-            $unsubscribe_code = get_user_meta( $user_id, 'email_newsletter_unsubscribe_code', true );
-            ?>
-            <h3><?php _e('Multisite users newsletters', 'email-newsletter'); ?></h3>
+                <table class="form-table">
+                <tr>
+                    <th><label for="email_newsletter_unsubscribe_code"><?php _e('Recieve newsletters for site admins', 'email-newsletter'); ?></label></th>
+                    <td>
+                        <select name="email_newsletter_unsubscribe_code" id="email_newsletter_unsubscribe_code">
+                                <option value="yes"<?php if ( $unsubscribe_code != 'unsubscribed' ) { echo ' selected="selected" '; } ?>><?php _e('Yes', 'email-newsletter'); ?></option>
+                                <option value="unsubscribed"<?php if ( $unsubscribe_code == 'unsubscribed' ) { echo ' selected="selected" '; } ?>><?php _e('No', 'email-newsletter'); ?></option>
+                        </select>
+                    </td>
 
-            <table class="form-table">
-            <tr>
-                <th><label for="email_newsletter_unsubscribe_code"><?php _e('Recieve newsletters for site admins', 'email-newsletter'); ?></label></th>
-                <td>
-                    <select name="email_newsletter_unsubscribe_code" id="email_newsletter_unsubscribe_code">
-                            <option value="yes"<?php if ( $unsubscribe_code != 'unsubscribed' ) { echo ' selected="selected" '; } ?>><?php _e('Yes', 'email-newsletter'); ?></option>
-                            <option value="unsubscribed"<?php if ( $unsubscribe_code == 'unsubscribed' ) { echo ' selected="selected" '; } ?>><?php _e('No', 'email-newsletter'); ?></option>
-                    </select>
-                </td>
-
-            </tr>
-            </table>
-        <?php
+                </tr>
+                </table>
+            <?php
+            }
         }
     }
 
@@ -1037,7 +1041,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             $page_redirect = "newsletters";
 
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_newsletters WHERE newsletter_id = %d", $newsletter_id ) );
-        $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_send WHERE newsletter_id = %d", $newsletter_id ) );
+        //$wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_send WHERE newsletter_id = %d", $newsletter_id ) );
         
         $this->delete_newsletter_meta($newsletter_id);
 
@@ -1246,18 +1250,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 foreach ( $_REQUEST["target"]["roles"] as $role_name ) {
                     $users_id = get_users( array( 'role' => $role_name ) );
                     foreach ( $users_id as $user_id ) {
-                        $member_id = $this->get_members_by_wp_user_id( $user_id->ID );
-                        if ( 0 < $member_id )
-                            $members_id[] = $member_id;
-                    }
-                }
-
-            //Get ids for admins of other sites
-            if ( isset( $_REQUEST["target"]["roles"] ) && is_array($_REQUEST["target"]["roles"]) )
-                foreach ( $_REQUEST["target"]["roles"] as $role_name ) {
-                    $users_id = get_users( array( 'role' => $role_name ) );
-                    foreach ( $users_id as $user_id ) {
-                        $member_id = $this->get_members_by_wp_user_id( $user_id->ID );
+                        $member_id = $this->get_members_by_wp_user_id( $user_id->ID, '', 1 );
                         if ( 0 < $member_id )
                             $members_id[] = $member_id;
                     }
@@ -1265,7 +1258,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             $members_id = array_unique( $members_id );
         }
-
         //Get ids for admins of other sites
         if ( isset( $_REQUEST["target"]["site_admins"] ) && $_REQUEST["target"]["site_admins"] == 'yes' )
             $wp_only_users_id = $this->get_global_wp_user_ids();
@@ -1869,7 +1861,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function admin_page() {
             
-        $mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
+        $mu_cap = ( $this->is_plugin_active_for_network(plugin_basename(__FILE__)) ) ? 'manage_network_options' : 'view_newsletter_dashboard';
         
         if ( $this->settings ) {
             global $email_builder, $submenu;
@@ -1963,7 +1955,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function subscribe_widget($show_name = false, $show_groups = true) {
         global $email_newsletter, $current_user;
 
-        $groups = $this->get_groups();
+        $groups = $this->get_groups(1);
 
         if ( $current_user->data && 0 < $current_user->data->ID ) {
             $member_id      = $this->get_members_by_wp_user_id( $current_user->data->ID );
@@ -2103,12 +2095,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
     }
 
     function email_newsletter_widgets_scripts() {
-        wp_register_script( 'email-newsletter-widget-scripts', plugins_url( '/email-newsletter-files/js/widget_script.js', __FILE__ ), array( 'jquery', 'jquery-form' ) );
+        wp_register_script( 'email-newsletter-widget-scripts', plugins_url( '/email-newsletter-files/js/widget_script.js', __FILE__ ), array( 'jquery' ) );
         wp_enqueue_script( 'email-newsletter-widget-scripts' );
 
         $protocol = isset( $_SERVER["HTTPS"] ) ? 'https://' : 'http://'; //This is used to set correct adress if secure protocol is used so ajax calls are working
         $params = array(
-            'ajax_url' => admin_url( 'admin-ajax.php', $protocol )
+            'ajax_url' => admin_url( 'admin-ajax.php', $protocol ),
+            'empty_email' => __( 'Please write your Email!', 'email-newsletter' ),
+            'saving' => __( 'Saving...', 'email-newsletter' )
         );
         wp_localize_script( 'email-newsletter-widget-scripts', 'email_newsletter_widget_scripts', $params );
     }

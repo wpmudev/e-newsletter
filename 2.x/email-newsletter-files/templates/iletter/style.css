@@ -13,28 +13,18 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 a:link, a, a:visited{color:#LINK_COLOR;}
 a:hover { text-decoration: none !important; color:#eebb00;}
 h2, h3, h4, h5, h6{padding: 0px 0px 10px 0px;margin:0px;}
-.alignleft { display: inline; float: left; margin-right: 1.625em; }
-.alignright { display: inline; float: right; margin-left: 1.625em; }
+.alignleft { display: inline; float: left; }
+.alignright { display: inline; float: right; }
 .aligncenter { clear: both; display: block;	margin-left: auto; margin-right: auto; }
-img.alignleft, img.alignright, img.aligncenter { margin-bottom: 1.625em; }
-.alignleft {
-	float: left;
-}
-.alignright {
-	float: right;
-}
-.aligncenter {
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-}
+img.alignleft, img.alignright, img.aligncenter { padding: 8IMGPX; }
+
+
 .entry-content img,
 .comment-content img,
 .widget img,
 img.header-image,
 .author-avatar img,
 img.wp-post-image {
-	/* Add fancy borders to all WordPress-added images but not things like badges and icons and the like */
 	border-radius: 3px;
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }

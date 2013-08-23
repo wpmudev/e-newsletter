@@ -12,10 +12,12 @@ jQuery( document ).ready( function() {
 
         parent.find("#newsletter_action").val(jQuery(this).attr('id'));
 
+        parent.find("#message").text( email_newsletter_widget_scripts.saving ).slideDown();
+
         if ( jQuery(this).attr('id') == "new_subscribe" ) {
             if ( "" == parent.find("#e_newsletter_email").val() ) {
                 // append a error message
-                parent.find("#message").text( 'Please write your Email!' ).slideDown();
+                parent.find("#message").text( email_newsletter_widget_scripts.empty_email ).slideDown();
                 stop = 1;
             }
         }
@@ -40,7 +42,10 @@ jQuery( document ).ready( function() {
             
             jQuery.post(email_newsletter_widget_scripts.ajax_url, data, function(data){ //post data to specified action trough special WP ajax page
                 data = jQuery.parseJSON(data);
-                parent.find('#message').text(data.message).slideDown('fast');
+
+                parent.find("#message").slideUp('fast', function() {
+                    jQuery(this).text(data.message).slideDown('fast');
+                });
 
                 if(typeof data.unsubscribe_code !== "undefined") {
                     parent.find("#unsubscribe_code").val(data.unsubscribe_code);

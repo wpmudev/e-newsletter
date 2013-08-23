@@ -10,9 +10,9 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
 
 a:link, a, a:visited{color:#LINK_COLOR;}
-a:hover { text-decoration: none !important; color:#bb2219;}
+a:hover { text-decoration: none !important; color:#eebb00;}
 h2, h3, h4, h5, h6{padding: 0px 0px 10px 0px;margin:0px;}
-.alignleft { display: inline; float: left; margin-right: 1.625em; }
-.alignright { display: inline; float: right; margin-left: 1.625em; }
+.alignleft { display: inline; float: left; }
+.alignright { display: inline; float: right; }
 .aligncenter { clear: both; display: block;	margin-left: auto; margin-right: auto; }
-img.alignleft, img.alignright, img.aligncenter { margin-bottom: 1.625em; }
+img.alignleft, img.alignright, img.aligncenter { padding: 8IMGPX; }

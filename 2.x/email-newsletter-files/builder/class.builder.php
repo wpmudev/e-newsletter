@@ -9,7 +9,7 @@ class Email_Newsletter_Builder  {
 	function Email_Newsletter_Builder() {
 		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded'), 999 );
 		add_action( 'wp_ajax_builder_do_shortcodes', array( &$this, 'ajax_do_shortcodes' ) );
-		
+
 		//shorcodes
 		add_shortcode('en-recent-posts', array( &$this, 'recent_posts_shortcode'));
 		add_shortcode( 'en-gallery' , array( &$this,'n_gallery_shortcode') );
@@ -82,12 +82,12 @@ class Email_Newsletter_Builder  {
 	}
 	function plugins_loaded() {
 		global $current_user, $pagenow, $builder_id, $email_newsletter;
-		$email_newsletter->set_current_user();
+
+		//$email_newsletter->register_shortcode_ajax( 'builder_do_shortcodes', array( &$this, 'ajax_do_shortcodes' ) );
 		
 		// Start the id at false for checking
 		$builder_id = false;
 
-		//TODO - Inspect
 		if(isset($_REQUEST['newsletter_id'])) {
 			if(is_numeric($_REQUEST['newsletter_id'])){
 				$builder_id = $_REQUEST['newsletter_id'];
@@ -107,8 +107,8 @@ class Email_Newsletter_Builder  {
 			}
 		}
 		
-		$builder_id = $this->get_builder_email_id();
-		$this->ID = $this->get_builder_email_id();
+		if(!$builder_id) 
+			$builder_id = $this->get_builder_email_id();
 		
 		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $_REQUEST['theme'] === $this->get_builder_theme()  ) {
 			$this->parse_theme_settings();
@@ -296,7 +296,7 @@ class Email_Newsletter_Builder  {
 				display: inline-block;
 				position: absolute;
 				top: 300px;
-				width:100px;
+				width:120px;
 				left:50%;
 				margin-left: -50px;
 			}
@@ -328,6 +328,7 @@ class Email_Newsletter_Builder  {
 		<?php
 		// We need to call this action for the tinyMCE editor to work properly
 		do_action('admin_print_footer_scripts');
+		do_action('admin_footer');
 	}
 
 	function force_default_editor() {
@@ -347,7 +348,17 @@ class Email_Newsletter_Builder  {
 			return $_GET['theme'];
 		} else {
 			$data = $email_newsletter->get_newsletter_data($newsletter_id);
-			return (isset($data['template']) ? $data['template'] : 'iletter');
+			if(isset($data['template']))
+				$theme = $data['template'];
+			else {
+				$arg['limit'] = 'LIMIT 1';
+				$arg['orderby'] = 'create_date';
+				$arg['order'] = 'desc';
+				$latest_newsletter = $email_newsletter->get_newsletters($arg);
+
+				$theme = (isset($latest_newsletter[0]['template']) && !empty($latest_newsletter[0]['template'])) ? $latest_newsletter[0]['template'] : 'iletter';
+			}
+			return $theme;
 		}
 
 	}
@@ -645,7 +656,7 @@ class Email_Newsletter_Builder  {
 	}
 
 	function save_builder($new_values = false) {
-		global $email_newsletter;
+		global $email_newsletter, $builder_id;
 		
 		$data = array();
 		$default = array(
@@ -701,7 +712,7 @@ class Email_Newsletter_Builder  {
 		
 		$data = array_merge($default,$data);
 		
-		return $email_newsletter->save_newsletter($this->ID, false, $data);
+		return $email_newsletter->save_newsletter($builder_id, false, $data);
 	}
 	
 	// Anything that isnt a text input has to have its own function because 
@@ -888,10 +899,7 @@ class Email_Newsletter_Builder  {
 	}
 
 	public function prepare_preview($content = '', $ajax = false) {
-		global $email_newsletter;
-
-        register_theme_directory($email_newsletter->template_custom_directory);
-        register_theme_directory($email_newsletter->template_directory);
+		global $email_newsletter, $builder_id;
 
 		$content = stripcslashes($content);
 		
@@ -901,25 +909,28 @@ class Email_Newsletter_Builder  {
 		
 		$date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
 		$content = str_replace( "{DATE}", date($date_format), $content );
-		
+
 		if($ajax == true) {
-			$content = apply_filters('email_newsletter_make_email_content', $content);
-			
 			$themedata = $this->find_builder_theme();
+
+			$content = apply_filters('email_newsletter_make_email_content', $content);
 			$content = $email_newsletter->do_inline_styles($themedata, $content);
 			
 			// LINK COLOR
-			$link_color = $email_newsletter->get_newsletter_meta($this->ID,'link_color', $email_newsletter->get_default_builder_var('link_color'));
-			$link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$this->ID);
+			$link_color = $this->get_builder_link_color($email_newsletter->get_default_builder_var('link_color'));
+			$link_color = apply_filters('email_newsletter_make_email_link_color',$link_color,$builder_id);
 			$content = str_replace( "{LINK_COLOR}", $link_color, $content);
 			$content = str_replace( "#LINK_COLOR", $link_color, $content);
+
+			//IMGPX fix
+			$content = str_replace( "IMGPX", 'px', $content);
 		}
 			
 		return $content;
 	}
 	
 	public function enable_customizer() {
-		global $wp_customize, $email_newsletter;
+		global $wp_customize, $email_newsletter, $builder_id;
 
 		if(empty($wp_customize) || !$wp_customize->is_preview())
 			die();
@@ -932,9 +943,7 @@ class Email_Newsletter_Builder  {
 		        <?php do_action('builder_head'); ?>
 		    </head>
 			<?php
-			
-			//$email_data = $email_newsletter->get_newsletter_data($this->ID);
-			$content = $email_newsletter->make_email_body($this->ID);
+			$content = $email_newsletter->make_email_body($builder_id, 1);
 			$content = $this->prepare_preview($content);
 			echo $content;
 			

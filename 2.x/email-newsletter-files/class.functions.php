@@ -223,7 +223,7 @@ class Email_Newsletter_functions {
     /**
      * Get member id of wp user
      **/
-    function get_members_by_wp_user_id( $wp_user_id, $blog_id = '' ) {
+    function get_members_by_wp_user_id( $wp_user_id, $blog_id = '', $subscribed = 0 ) {
         global $wpdb;
 
         //Checking DB prefix
@@ -235,7 +235,12 @@ class Email_Newsletter_functions {
             else
                 $tb_prefix = $wpdb->base_prefix;
 
-        $member = $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$tb_prefix}enewsletter_members WHERE wp_user_id = %d", $wp_user_id ), "ARRAY_A" );
+        if($subscribed)
+            $subscribed = " AND unsubscribe_code != ''";
+        else
+            $subscribed = "";
+
+        $member = $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$tb_prefix}enewsletter_members WHERE wp_user_id = %d".$subscribed, $wp_user_id ), "ARRAY_A" );
         return $member['member_id'];
     }
 
@@ -650,9 +655,12 @@ class Email_Newsletter_functions {
     /**
      * Get all data of all groups
      **/
-     function get_groups() {
+     function get_groups($only_public = 0) {
         global $wpdb;
-        $groups = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_groups", "ARRAY_A");
+
+        $public = ($only_public) ? ' WHERE public = 1' : '';
+
+        $groups = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_groups".$public, "ARRAY_A");
         return $groups;
     }
 
@@ -966,7 +974,7 @@ class Email_Newsletter_functions {
                         $count ++;
                 }
             }
-        if(!is_array($wp_only_users_id) && is_numeric($wp_only_users_id))
+        if($wp_only_users_id && !is_array($wp_only_users_id) && is_numeric($wp_only_users_id))
             $wp_only_users_id = array($wp_only_users_id);
         if ( $wp_only_users_id && 0 < count( $wp_only_users_id ) )
             foreach ( $wp_only_users_id as $wp_only_user_id ) {
@@ -1058,14 +1066,15 @@ class Email_Newsletter_functions {
             $this->write_log( 'Send email error: '.$mail->ErrorInfo.'['.$mail->ErrorInfoRaw.']');
             return $mail->ErrorInfoRaw;
         }
-
+        
+        sleep( 1 );
         return true;
     }
 
     /**
      * Make email body
      **/
-    function make_email_body( $newsletter_id ) {
+    function make_email_body( $newsletter_id, $customizer = 0 ) {
         global $email_builder;
 
         //get data of newsletter
@@ -1127,19 +1136,21 @@ class Email_Newsletter_functions {
         //Date
         $date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
         $contents = str_replace( "{DATE}", date($date_format), $contents );
-        
+
+        //Add url to elements
+        $contents = str_replace( "{TEMPLATE_URL}", $template_url, $contents );
+
         //REPLACE THE image LINKS AT THE START
         $contents = str_replace( "'images/", "'".$template_url . "images/", $contents );
         $contents = str_replace( '"images/', '"'.$template_url . 'images/', $contents );
         $contents = str_replace( "'/images/", "'".$template_url . "images/", $contents );
         $contents = str_replace( '"/images/', '"'.$template_url . 'images/', $contents );
 
-        //Add url to elements
-        $contents = str_replace( "{TEMPLATE_URL}", $template_url, $contents );
-
         //do the inline styling
         $themedata = $email_builder->find_builder_theme($newsletter_data['template']);
         $contents = $this->do_inline_styles($themedata, $contents);
+
+        $contents = str_replace( 'padding: 8IMGPX;"', '" hspace="8" vspace="8"', $contents );
 
         // BG COLOR
         $bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color', $this->get_default_builder_var('bg_color'));
@@ -1166,6 +1177,21 @@ class Email_Newsletter_functions {
         $body_color = $this->get_newsletter_meta($newsletter_id,'body_color', $this->get_default_builder_var('body_color'));
         $body_color = apply_filters('email_newsletter_make_email_body_color',$body_color, $newsletter_id);
         $contents = str_replace( "{BODY_COLOR}", $body_color, $contents);
+
+        //dom walker to add classes to ensure compability
+        $dom = new DOMDocument();
+        $dom->loadHTML($contents);
+        $imgs = $dom->getElementsByTagName('img');
+        foreach ($imgs as $img) {
+            $classes_to_aligns = array('left', 'right');
+            foreach ($classes_to_aligns as $class_to_align)
+                if ($img->hasAttribute('class') && strstr($img->getAttribute('class'), 'align'.$class_to_align))
+                    $img->setAttribute('align', $class_to_align);
+
+                $style = $img->getAttribute('style');
+                preg_match('#padding:(.*?)IMGPX#', $style, $matches);
+        }
+        $contents = $dom->saveHTML();
 
         //Adds tracker code
         $contents = $contents.'{OPENED_TRACKER}';
@@ -1203,8 +1229,12 @@ class Email_Newsletter_functions {
         $contents = str_replace( "{OPENED_TRACKER}", '<div style="font-size: 0px; line-height:0px;"><img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id . '&wp_only_user_id=' . $wp_only_user_id) . '" width="1" height="1"/></div>', $contents );
         
         if(get_option('permalink_structure')) {
-            $unsubscribe_url = home_url('/e-newsletter/unsubscribe/' . $code . $id . '/');
-            $view_browser_url = home_url('/e-newsletter/view/' . $code . $send_id . '/');
+            $prefix = '';
+            if ( function_exists('got_mod_rewrite') && !got_mod_rewrite() && function_exists('iis7_supports_permalinks') && !iis7_supports_permalinks() )
+                $prefix = '/index.php';
+
+            $unsubscribe_url = home_url($prefix.'/e-newsletter/unsubscribe/' . $code . $id . '/');
+            $view_browser_url = home_url($prefix.'/e-newsletter/view/' . $code . $send_id . '/');
         }
         else {
             $unsubscribe_url = add_query_arg( array('unsubscribe_page' => '1', 'unsubscribe_code' => $code, 'unsubscribe_member_id' => $id), home_url() );
@@ -1334,23 +1364,6 @@ class Email_Newsletter_functions {
             $user_name = is_a($wp_user,'WP_User') ? $wp_user->display_name : '';
         }
         return $user_name;
-    }
-
-    function import_wpmu_plugins() {
-        if(class_exists('Marketpress')) {
-            register_enewsletter_plugin_template('mp_new_order','MarketPress','New Order');
-            add_filter('mp_order_notification_body',array(&$this,'process_marketpress_body'), 999, 2);
-            add_filter('email_newsletter_marketpress_stop_new_order_email', create_function("", 'return true;') );
-        }
-    }
-    function process_marketpress_body($msg,$order) {
-        global $mp;
-        $newsletters = $this->get_newsletters();
-        foreach($newsletters as $eletter) {
-            $meta = $this->get_newsletter_meta($eletter['newsletter_id'], 'plugin_template_id');
-            if($meta && $meta == 'mp_new_order')
-                return $mp->filter_email($order, $this->make_email_body($eletter['newsletter_id']));
-        }
     }
 
     /**
@@ -2030,6 +2043,17 @@ class Email_Newsletter_functions {
 
         return false;
     }
+
+    /**
+     * Handle shorcodes on our own
+     **/
+    function register_shortcode_ajax( $action, $callable ) {
+
+      if ( empty( $_POST['action'] ) || $_POST['action'] != $action )
+        return;
+
+      call_user_func( $callable );
+    }  
 
     /**
      * Encrypt text (SMTP & POP password)
