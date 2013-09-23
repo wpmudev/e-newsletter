@@ -142,9 +142,9 @@ vertical-align: middle !important;
     margin: 20px 30px 20px 30px;
 }
 
-.contact-information, .view-browser {
-    width: 300px;
-    height: 100px;
+.contact-information, .view-browser, .branding-html {
+    width: 450px;
+    height: 150px;
 }
 #send_list th,
 #send_list td {
@@ -199,10 +199,10 @@ vertical-align: middle !important;
 }
 
 .newsletters_actions {
-    width:170px;
+    width:230px;
 }
 .members-actions {
-    width:220px;
+    width:230px;
 }
 .panel_margin {
     margin: 10px 0;

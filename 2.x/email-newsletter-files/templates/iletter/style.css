@@ -3,79 +3,60 @@ Theme Name: iLetter
 Theme URI: http://premium.wpmudev.org
 Author: Cole (Incsub)
 Author URI: http://premium.wpmudev.org
-Description: iLetter2 is a great theme for sending a simple note to your readers.
-Version: 1
+Description: Responsive theme with: max width 640px, max content width 600px, header image support
+Version: 1.5
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
+body, .body_style, h1, h2, h3, h4, h5, h6, td {
+	font-family:Arial, Helvetica, sans-serif;
+}
+body, .body_style {
+	font-size:12px;
+	color:#ALTERNATIVE_COLOR;
+}
+.body_style {
+	background-color:#BG_COLOR;
+}
 
 
-a:link, a, a:visited{color:#LINK_COLOR;}
-a:hover { text-decoration: none !important; color:#eebb00;}
-h2, h3, h4, h5, h6{padding: 0px 0px 10px 0px;margin:0px;}
-.alignleft { display: inline; float: left; }
-.alignright { display: inline; float: right; }
-.aligncenter { clear: both; display: block;	margin-left: auto; margin-right: auto; }
-img.alignleft, img.alignright, img.aligncenter { padding: 8IMGPX; }
+.holder {
+	padding:1.5%;
+}
+.width {
+	max-width:640px;
+}
+.content_main {
+	background-color:#ffffff;
+	border-radius: 10px;
+}
 
 
-.entry-content img,
-.comment-content img,
-.widget img,
-img.header-image,
-.author-avatar img,
-img.wp-post-image {
-	border-radius: 3px;
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+.title {
+	font-size: 29px;
+	line-height: 29px;
+	margin:0px;
+	padding:15px 20px 15px 20px;
+	font-weight: bold;
 }
-.wp-caption {
-	max-width: 100%; /* Keep wide captions from overflowing their container. */
-	padding: 4px;
-	background: #CCC;
+.email_content, .email_content table, .contact_info, .email_content h1, .email_content h2, .email_content h3, .email_content h4, .email_content h5, .email_content h6 {
+	color: #BODY_COLOR;
 }
-.wp-caption .wp-caption-text,
-.gallery-caption,
-.entry-caption {
-	font-style: italic;
-	font-size: 12px;
-	font-size: 0.857142857rem;
-	line-height: 2;
-	color: #777;
+.email_content, .contact_info {
+	padding:5px 20px;
 }
-img.wp-smiley,
-.rsswidget img {
-	border: 0;
-	border-radius: 0;
-	box-shadow: none;
-	margin-bottom: 0;
-	margin-top: 0;
-	padding: 0;
+p {
+	font-size:12px;
+	line-height:22px;
 }
-.entry-content dl.gallery-item {
-	margin: 0;
+.view_link {
+	text-align: center;
 }
-.gallery-item a,
-.gallery-caption {
-	width: 90%;
+.view_link a {
+	line-height: 25px;
 }
-.gallery-item a {
-	display: block;
-}
-.gallery-caption a {
-	display: inline;
-}
-.gallery-columns-1 .gallery-item a {
-	max-width: 100%;
-	width: auto;
-}
-.gallery .gallery-icon img {
-	height: auto;
-	max-width: 90%;
-	padding: 5%;
-}
-.gallery-columns-1 .gallery-icon img {
-	padding: 3%;
-}
-blockquote {
-	font-family: Georgia;
+.unsubscribe {
+	padding: 10px;
+	text-align: center;
+	font-size: 11px;
 }

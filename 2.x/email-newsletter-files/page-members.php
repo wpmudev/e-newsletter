@@ -11,7 +11,7 @@
     $args = array('order' => $order, 'orderby' => false);
     if(isset($_REQUEST['search_members']))
         $args['search_members'] = $_REQUEST['search_members'];
-    
+
     $url_orginal = add_query_arg( $args );
 
     //Pagination option
@@ -49,7 +49,7 @@
             $arg['where'] = "B.status = 'bounced'";
         }
 
-        
+
     }
 
     $count = $this->get_members( $arg, 1 );
@@ -463,13 +463,13 @@
 
         <form method="post" action="" name="form_members" id="form_members" >
             <p style="float:left;">
-                <?php $url = add_query_arg( array('filter' => false), $url_orginal ); ?> 
+                <?php $url = add_query_arg( array('filter' => false), $url_orginal ); ?>
                 <a class="button button-second" href="<?php echo $url; ?>"><?php _e( 'Show All', 'email-newsletter' ); ?></a>
-                <?php $url = add_query_arg( array('filter' => 'ungrouped'), $url_orginal ); ?> 
+                <?php $url = add_query_arg( array('filter' => 'ungrouped'), $url_orginal ); ?>
                 <a class="button button-second" href="<?php echo $url; ?>"><?php _e( 'Show Ungrouped', 'email-newsletter' ); ?></a>
-                <?php $url = add_query_arg( array('filter' => 'bounced'), $url_orginal ); ?> 
+                <?php $url = add_query_arg( array('filter' => 'bounced'), $url_orginal ); ?>
                 <a class="button button-second" href="<?php echo $url; ?>"><?php _e( 'Show Bounced', 'email-newsletter' ); ?></a>
-                <?php $url = add_query_arg( array('filter' => 'unsubscribed'), $url_orginal ); ?> 
+                <?php $url = add_query_arg( array('filter' => 'unsubscribed'), $url_orginal ); ?>
                 <a class="button button-second" href="<?php echo $url; ?>"><?php _e( 'Show Unsubscribed', 'email-newsletter' ); ?></a>
             </p>
             <p style="float:right;">
@@ -482,7 +482,7 @@
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
             <table id="members_table" class="widefat post">
                 <thead>
-                    <tr> 
+                    <tr>
                         <th class="manage-column column-cb check-column" id="cb" scope="col">
                             <input type="checkbox">
                         </th>
@@ -490,44 +490,44 @@
                             <?php _e( 'WP ID', 'email-newsletter' ) ?>
                         </th>
                         <th class="members-email manage-column column-name <?php echo (isset($arg['orderby']) && "member_email" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
-                            <?php $url = add_query_arg( array('orderby' => 'member_email'), $url_orginal ); ?> 
+                            <?php $url = add_query_arg( array('orderby' => 'member_email'), $url_orginal ); ?>
                             <a href="<?php echo $url; ?>">
                                 <span><?php _e( 'Email Address', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th class="members-name manage-column column-name <?php echo (isset($arg['orderby']) && "member_fname" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
-                            <?php $url = add_query_arg( array('orderby' => 'member_fname'), $url_orginal ); ?> 
+                            <?php $url = add_query_arg( array('orderby' => 'member_fname'), $url_orginal ); ?>
                             <a href="<?php echo $url; ?>">
                                 <span><?php _e( 'Name', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
                         <th class="members-join manage-column column-name <?php echo (isset($arg['orderby']) && "join_date" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
-                            <?php $url = add_query_arg( array('orderby' => 'join_date'), $url_orginal ); ?> 
+                            <?php $url = add_query_arg( array('orderby' => 'join_date'), $url_orginal ); ?>
                             <a href="<?php echo $url; ?>">
                                 <span><?php _e( 'Join Date', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
-                        <th class="members-count manage-column column-name <?php echo (isset($arg['orderby']) && "count_sent" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
-                            <?php $url = add_query_arg( array('orderby' => 'count_sent'), $url_orginal ); ?>
+                        <th class="members-count manage-column column-name <?php echo (isset($arg['orderby']) && "sent" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
+                            <?php $url = add_query_arg( array('orderby' => 'sent'), $url_orginal ); ?>
                             <a href="<?php echo $url; ?>">
-                                <span><?php _e( 'Number Sent', 'email-newsletter' ) ?>   </span>
+                                <span><?php _e( 'Sent', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
-                        <th class="members-count manage-column column-name <?php echo (isset($arg['orderby']) && "count_opened" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
-                            <?php $url = add_query_arg( array('orderby' => 'count_opened'), $url_orginal ); ?>
+                        <th class="members-count manage-column column-name <?php echo (isset($arg['orderby']) && "opened" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
+                            <?php $url = add_query_arg( array('orderby' => 'opened'), $url_orginal ); ?>
                             <a href="<?php echo $url; ?>">
-                                <span><?php _e( 'Number Opened', 'email-newsletter' ) ?>   </span>
+                                <span><?php _e( 'Opened', 'email-newsletter' ) ?>   </span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
-                        <th class="members-count manage-column column-name <?php echo (isset($arg['orderby']) && "count_bounced" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
-                            <?php $url = add_query_arg( array('orderby' => 'count_bounced'), $url_orginal ); ?>
+                        <th class="members-count manage-column column-name <?php echo (isset($arg['orderby']) && "bounced" == $arg['orderby']) ? 'sorted ' . $arg['order'] : 'sortable desc';?>">
+                            <?php $url = add_query_arg( array('orderby' => 'bounced'), $url_orginal ); ?>
                             <a href="<?php echo $url; ?>">
-                                <span><?php _e( 'Number Bounced', 'email-newsletter' ) ?></span>
+                                <span><?php _e( 'Bounced', 'email-newsletter' ) ?></span>
                                 <span class="sorting-indicator"></span>
                             </a>
                         </th>
@@ -558,7 +558,7 @@
                         <input type="checkbox" value="<?php echo $member['member_id'];?>" class="administrator" id="user_<?php echo $member['member_id'];?>" name="members_id[]">
                     </th>
                     <td style="vertical-align: middle;">
-                        <?php 
+                        <?php
                         if(current_user_can('edit_users') && $member['wp_user_id'])
                             echo '<a href="'.admin_url( 'user-edit.php?user_id='.$member['wp_user_id'] ).'">'.$member['wp_user_id'].'</a>';
                         else
@@ -579,13 +579,13 @@
                         <?php echo date( $this->settings['date_format'] . " h:i:s", $member['join_date'] ); ?>
                     </td>
                     <td style="vertical-align: middle;">
-                        <?php echo $member['count_sent']; ?> <?php _e( 'newsletters', 'email-newsletter' ) ?>
+                        <?php echo $member['sent']; ?>
                     </td>
                     <td style="vertical-align: middle;">
-                        <?php echo $member['count_opened']; ?> <?php _e( 'newsletters', 'email-newsletter' ) ?>
+                        <?php echo $member['opened']; ?>
                     </td>
                     <td style="vertical-align: middle;">
-                        <?php echo $member['count_bounced']; ?> <?php _e( 'newsletters', 'email-newsletter' ) ?>
+                        <?php echo $member['bounced']; ?>
                     </td>
                     <td style="vertical-align: middle;">
                     <?php
@@ -614,7 +614,7 @@
                         <span id="close_block_<?php echo $member['member_id'];?>"></span>
                         <div id="change_group_block_<?php echo $member['member_id'];?>"></div>
                         <input class="button button-secondary" type="button" id="change_button_<?php echo $member['member_id'];?>" value="<?php _e( 'Change groups', 'email-newsletter' ) ?>" onclick="jQuery(this).changeGroups( <?php echo $member['member_id'];?> );" />
-                        
+
                         <input class="button button-secondary" type="button" id="edit_button_<?php echo $member['member_id'];?>" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" onclick="jQuery(this).editMember( <?php echo $member['member_id'];?> );" />
                         <span id="save_block_<?php echo $member['member_id'];?>"></span>
                         <input class="button button-secondary" type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" onclick="jQuery(this).deleteMember( <?php echo $member['member_id'];?> );" />

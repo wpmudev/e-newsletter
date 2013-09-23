@@ -1,7 +1,7 @@
 <?php
 class Builder_Preview_Control extends WP_Customize_Control {
 	public $type = 'email_preview';
-	
+
 	public function render_content() {
 		?>
 		<span class="customize-control-title"><?php echo $this->label; ?></span>
@@ -11,8 +11,9 @@ class Builder_Preview_Control extends WP_Customize_Control {
 			jQuery(document).ready( function($) {
 				var previewButton = $('#sendPreview'),
 					originalText = previewButton.text();
-				$('#sendPreview').on('click', function() {
-					
+
+				function sendpreview()
+				{
 					jQuery.ajax({
                         type: "POST",
                         url: ajaxurl,
@@ -33,7 +34,34 @@ class Builder_Preview_Control extends WP_Customize_Control {
                         	alert(data);
                         }
                      });
-					return false;
+				}
+
+				$('#sendPreview').on('click', function() {
+					if($("#save").is(":disabled"))
+						var is_saved = false;
+					else
+						var is_saved = true;
+
+					if(is_saved) {
+						if(confirm("<?php _e('Do you want to save newsletter before sending? It is needed to see latest changes.','email-newsletter'); ?>")) {
+							jQuery("#save").click();
+							var fix = setInterval(function() {
+										if($("#save").is(":disabled")) {
+											sendpreview();
+											clearInterval(fix);
+										}
+									}, 150);
+							return false;
+						}
+						else {
+							sendpreview();
+							return false;
+						}
+					}
+					else {
+						sendpreview();
+						return false;
+					}
 				});
 			});
 		</script>

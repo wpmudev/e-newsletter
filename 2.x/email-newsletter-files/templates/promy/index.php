@@ -1,19 +1,19 @@
 <?php
 /* You can define default values for things like Background Colors and Link Colors */
 
-define('BUILDER_DEFAULT_BG_COLOR','#dedede');
+define('BUILDER_DEFAULT_BG_COLOR','#f9fbff');
 
 define('BUILDER_DEFAULT_BG_IMAGE','');
 
-define('BUILDER_DEFAULT_HEADER_IMAGE','');
+define('BUILDER_DEFAULT_HEADER_IMAGE','images/header_image.jpg');
 
-define('BUILDER_DEFAULT_LINK_COLOR','#999');
+define('BUILDER_DEFAULT_LINK_COLOR','#8fbdd8');
 
-define('BUILDER_DEFAULT_BODY_COLOR', '#333');
+define('BUILDER_DEFAULT_BODY_COLOR', '#ffffff');
 
-define('BUILDER_DEFAULT_ALTERNATIVE_COLOR', '#000');
+define('BUILDER_DEFAULT_ALTERNATIVE_COLOR', '#007491');
 
-define('BUILDER_DEFAULT_TITLE_COLOR', '#000');
+define('BUILDER_DEFAULT_TITLE_COLOR', '#ffffff');
 
 define('BUILDER_DEFAULT_EMAIL_TITLE', 'Default Email Title');
 

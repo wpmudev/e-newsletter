@@ -1,61 +1,61 @@
-<body data-builder="bg" marginheight="0" topmargin="0" marginwidth="0" leftmargin="0" background="{BG_IMAGE}" style="margin: 0; background-color: {BG_COLOR};">
-<div data-builder="bg" style="background-color: {BG_COLOR};">
-<table data-builder="bg" width="100%" border="0" cellspacing="0" cellpadding="0" background="{BG_IMAGE}" data-builder="bg" style="padding: 10px 100px 10px 100px; margin: 0; font-family: Georgia, Arial, Sans-serif; font-size: 12px; line-height: 22px; color: #222222; background-image: url({BG_IMAGE});" >
+<table class="container" border="0" align="center" cellpadding="0" cellspacing="0">
 	<tr>
-		<td>
-			<table width="650" align="center" cellpadding="0" cellspacing="0" style="background-color: #fff; background-image: url('images/middle.jpg'); background-repeat: repeat-y; margin-top: 30px; padding: 0;" >
+		<td valign="middle" align="center">
+			<div class="width">
+
+			<table class="content content_main" align="center" border="0" cellspacing="0" cellpadding="0">
 				<tr>
-					<td valign="middle" style="background-image: url('images/header.jpg'); background-repeat: no-repeat; margin-top: 30px; padding:30px 30px 0px 30px;" >
-						<table width="100%" cellspacing="0" cellpadding="0" >
-							<tr>
-								<td>
-									<h1 data-builder="email_title" style="font-size:40px; margin:0px ;color: #222222 !important; padding-bottom:10px;" >{EMAIL_TITLE}</h1>
-									<h2 style="margin:0px; padding-top:20px; color: #222222 !important;" >From <span data-builder="from_name">{FROM_NAME}</span> (<span data-builder="from_email">{FROM_EMAIL}</span>)</h2>
-								</td>
-								<td width="100" style="color: #bb2219; font-size: 14px; padding-top: 70px; text-align: right;" >
-								</td>
-							</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-			
-			<table width="650" align="center" cellpadding="0" cellspacing="0" style="background-color: #fff; background-image: url('images/middle.jpg'); background-repeat: repeat-y;" >
-				<tr>
-				   <td valign="middle" style="padding: 15px 30px 0px 30px;">
-					   <table width="100%" border="0" cellspacing="0" cellpadding="0" >
-						   <tr>
-							   <td style="font-size: 12px; line-height: 22px;" >
-								<div data-builder="body_color" style="color: {BODY_COLOR}">
-									<div data-builder="email_content">
-										{EMAIL_BODY}
-									</div>
-								</div>
-								<pre data-builder="contact_info">{CONTACT_INFO}</pre>
-								</td>
-							</tr>
-						</table>
+					<td valign="middle" class="view_link">
+						{VIEW_LINK_TEXT}
 					</td>
 				</tr>
 				<tr>
+					<td valign="middle" class="branding_html" data-builder="branding_html">
+						{BRANDING_HTML}
+					</td>
+				</tr>
+				<tr>
+					<td class="title" data-builder="title_color">
+						<div data-builder="email_title">
+							{EMAIL_TITLE}
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td class="from">
+						From <span data-builder="from_name">{FROM_NAME}</span> (<span data-builder="from_email">{FROM_EMAIL}</span>)
+					</td>
+				</tr>
+				<tr>
+					<td valign="middle" class="header_image" data-builder="header_image">
+						{HEADER_IMAGE}
+					</td>
+				</tr>
+				<tr>
+					<td class="email_content" data-builder="body_color">
+						<div data-builder="email_content">
+							{EMAIL_BODY}
+						</div>
+					</td>
+				<tr>
+				<tr>
+					<td class="contact_info">
+						<div data-builder="contact_info">
+							{CONTACT_INFO}
+						</div>
+					</td>
 				</tr>
 			</table>
-			
-			<table width="650" border="0" align="center" cellpadding="0" cellspacing="0" class="content-footer2" style="background-image: url('images/footer.png'); background-repeat: no-repeat;" >
+
+			<table class="content content_footer" border="0" cellspacing="0" cellpadding="0">
 				<tr>
-					<td height="40"></td>
-				</tr>
-			</table>
-			
-			<table width="650" border="0" align="center" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;" >
-				<tr>
-					<td class="footer-text" style="padding-top: 10px; text-align: center; color: #666666; text-shadow: -1px -1px 0px #ffffff; font-weight: bold;" >
+					<td class="unsubscribe">
 						Not interested anymore? <a href="{UNSUBSCRIBE_URL}" style="color:{LINK_COLOR};">Unsubscribe Instantly.</a>
 					</td>
 				 </tr>
 			</table>
+
+			</div>
 		</td>
 	</tr>
 </table>
-</div>
-</body>

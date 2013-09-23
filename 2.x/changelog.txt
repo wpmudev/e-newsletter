@@ -1,15 +1,34 @@
 === e-newsletter ===
 Authors: Cole / Andrey (Incsub), Maniu (Incsub)
-Plugin Page: http://premium.wpmudev.org/project/e-newsletter    
+Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 
- 
+
 == Changelog ==
+
+= 2.5.1 =
+* Moved stats data for members in db to improve performance(stats may disappear for few minutes)
+* Added new responsive theme "Promy"
+* Added ability to clone newsletters
+* Added Branding HTML edit box so it can be viewed on top of every newsletter (same like contact info box)
+* Added color picker for title and alternative texts
+* Added header image support for almost all themes
+* Added reminder to save before sending preview
+* Greatly improved template system 
+* Improvements to all themes so they are responsive and supports as many features of email clients  as possible
+* Improved template selector
+* Improved viewing in browser so email can be viewed after newsletter has been deleted
+* Improved queries for better performance
+* Increased limit of characters for "contact info" field
+* Fixed capability problems with newsletter builder for lower level users 
+* Fixed opt-in error message for subscribe widget
+* Fixed bug that did not allow sending to all site admins
+* Other small improvements
 
 = 2.3.5 =
 * Tweaked behavior so new newsletter starts with last used template
 * Improvements to subscribe widget
 * Improvements to the templates
-* Fixed permlinks with PATH_INFO 
+* Fixed permalinks with PATH_INFO
 * Fixed "Add Media" button
 * Fixed problems with MarketPress
 * Fixed redirecting to incorrect blog after user update
@@ -78,7 +97,7 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 * Fixed CRON limits not working correctly
 * Improved POP3 under the hood settings detection for better compatibility
 * Added test button for SMTP configuration
-* Improved error reporting 
+* Improved error reporting
 * Other small improvements
 
 = 2.0.4 =
@@ -199,7 +218,7 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 * added new bulk option as assign multiple users with group
 
 = 1.0.7.2 =
-* fixed upload file 
+* fixed upload file
 
 = 1.0.7.1 =
 * fixed text of button
@@ -228,9 +247,7 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 * changed logic for MultiSite (separate for sites);
 
 = 1.0.1 =
-* fixed include of JS; 
+* fixed include of JS;
 
 = 1.0.0 =
 * Initial Release;
-
-62863-1331581920

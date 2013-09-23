@@ -6,7 +6,7 @@
     $arg['orderby'] = 'start_time';
     $arg['order'] = 'desc';
     $newsletters_sent = $this->get_newsletters($arg);
-    
+
     $arg = array();
     $arg['limit'] = 'LIMIT 0,5';
     $arg['orderby'] = 'join_date';
@@ -24,8 +24,8 @@
     <div class="wrap">
         <h2><?php _e( 'Newsletters Dashboard', 'email-newsletter' ) ?></h2>
 		<p><?php _e( 'Take a look at newsletter reports.', 'email-newsletter' ) ?></p>
-		
-		<h3><?php _e( 'Statistics:', 'email-newsletter' ) ?></h3>
+
+		<h3><?php _e( 'Statistics for current members:', 'email-newsletter' ) ?></h3>
         <table class="widefat post table_slim table_centered">
             <thead>
                 <tr>
@@ -42,6 +42,12 @@
                         <?php _e( 'Sent', 'email-newsletter' ) ?>
                     </th>
                     <th>
+                        <?php _e( 'Opened', 'email-newsletter' ) ?>
+                    </th>
+                    <th>
+                        <?php _e( 'Bounced', 'email-newsletter' ) ?>
+                    </th>
+                    <th>
                         <?php _e( 'Waiting', 'email-newsletter' ) ?>
                     </th>
                     <th>
@@ -53,6 +59,7 @@
             </thead>
 
             <tr class="alternate">
+                <?php $stats = $this->get_count_stats(); ?>
                 <td>
                     <?php echo $this->get_newsletters("", 1); ?>
                 </td>
@@ -63,7 +70,13 @@
                     <?php echo $this->get_count_groups(); ?>
                 </td>
                 <td>
-                    <?php echo $this->get_count_sent(); ?>
+                    <?php echo $stats['sent']; ?>
+                </td>
+                <td>
+                    <?php echo $stats['opened']; ?>
+                </td>
+                <td>
+                    <?php echo $stats['bounced']; ?>
                 </td>
                 <td>
                     <?php echo $this->get_count_send_members( '', 'waiting_send' ); ?>
@@ -149,83 +162,121 @@
 
         </table>
 		<p class="submit">
-            <a class="button button-primary" href="<?php echo $email_builder->generate_builder_link('new'); ?>"><?php _e( 'Create New Newsletter', 'email-newsletter' ) ?></a>
+            <a class="button button-primary" href="<?php echo admin_url( 'admin.php?page=newsletters&create_newsletter=true' ); ?>"><?php _e( 'Create New Newsletter', 'email-newsletter' ) ?></a>
         </p>
 
         <h3><?php _e( '5 Latest Members:', 'email-newsletter' ) ?></h3>
-        <table class="widefat post newsletter_table_center">
-            <thead>
-                <tr>
-                    <th>
-                        <?php _e( 'Email Address', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
-                        <?php _e( 'Name', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
-                        <?php _e( 'Join Date', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
-                        <?php _e( 'Number Sent', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
-                        <?php _e( 'Number Opened', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
-                        <?php _e( 'Groups', 'email-newsletter' ) ?>
-                    </th>
-                </tr>
-            </thead>
-        <?php        
-        $i = 0;
-        if ( $members )
-            foreach( $members as $member ) {
-                if ( $i % 2 == 0 )
-                    echo "<tr class='alternate'>";
-                else
-                    echo "<tr class='' >";
+           <table id="members_table" class="widefat post">
+                <thead>
+                    <tr>
+                        <th class="members-wp manage-column column-name">
+                            <?php _e( 'WP ID', 'email-newsletter' ) ?>
+                        </th>
+                        <th class="members-email manage-column column-name">
 
-                $i++;
+                                <span><?php _e( 'Email Address', 'email-newsletter' ) ?>   </span>
 
-                $member['member_nicename'] = $member['member_fname'];
-                $member['member_nicename'] .= $member['member_lname'] ? ' ' . $member['member_lname'] : '';
-        ?>
-                <td style="text-align: left;">
-                   <?php echo $member['member_email']; ?>
-                </td>
-                <td style="text-align: left;">
-                    <?php echo $member['member_nicename']; ?>
-                </td>
-                <td>
-                    <?php echo date( $this->settings['date_format'] . " h:i:s", $member['join_date'] ); ?>
-                </td>
-                <td>
-                    <?php echo $member['count_sent']; ?> <?php _e( 'newsletters', 'email-newsletter' ) ?>
-                </td>
-                <td>
-                    <?php echo $member['count_opened']; ?> <?php _e( 'newsletters', 'email-newsletter' ) ?>
-                </td>
-                <td>
-                <?php
-                    if ( "" != $member['unsubscribe_code'] ) {
-                        $groups_id = $this->get_memeber_groups( $member['member_id'] );
-                        if ( $groups_id ) {
-                            $groups = "";
-                            foreach ( $groups_id as $group_id) {
-                                $group = $this->get_group_by_id( $group_id );
-                                $groups .= $group['group_name'] . ", ";
+                        </th>
+                        <th class="members-name manage-column column-name">
+
+                                <span><?php _e( 'Name', 'email-newsletter' ) ?>   </span>
+
+                        </th>
+                        <th class="members-join manage-column column-name">
+
+                                <span><?php _e( 'Join Date', 'email-newsletter' ) ?>   </span>
+
+                        </th>
+                        <th class="members-count manage-column column-name">
+
+                                <span><?php _e( 'Sent', 'email-newsletter' ) ?>   </span>
+
+                        </th>
+                        <th class="members-count manage-column column-name">
+
+                                <span><?php _e( 'Opened', 'email-newsletter' ) ?>   </span>
+
+                        </th>
+                        <th class="members-count manage-column column-name">
+
+                                <span><?php _e( 'Bounced', 'email-newsletter' ) ?></span>
+
+                        </th>
+                        <th class="members-groups manage-column column-name">
+                            <?php _e( 'Groups', 'email-newsletter' ) ?>
+                        </th>
+                    </tr>
+                </thead>
+            <?php
+            $i = 0;
+            if ( $members )
+                foreach( $members as $member ) {
+                    if ( $i % 2 == 0 )
+                        echo "<tr class='alternate'>";
+                    else
+                        echo "<tr class='' >";
+
+                    $i++;
+
+                    $member['member_nicename'] = $member['member_fname'];
+                    $member['member_nicename'] .= $member['member_lname'] ? ' ' . $member['member_lname'] : '';
+
+            ?>
+                    <td style="vertical-align: middle;">
+                        <?php
+                        if(current_user_can('edit_users') && $member['wp_user_id'])
+                            echo '<a href="'.admin_url( 'user-edit.php?user_id='.$member['wp_user_id'] ).'">'.$member['wp_user_id'].'</a>';
+                        else
+                            echo $member['wp_user_id']
+                        ?>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <span id="member_email_block_<?php echo $member['member_id'];?>">
+                            <?php echo $member['member_email']; ?>
+                        </span>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <span id="member_nicename_block_<?php echo $member['member_id'];?>">
+                            <?php echo $member['member_nicename']; ?>
+                        </span>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <?php echo date( $this->settings['date_format'] . " h:i:s", $member['join_date'] ); ?>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <?php echo $member['sent']; ?>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <?php echo $member['opened']; ?>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <?php echo $member['bounced']; ?>
+                    </td>
+                    <td style="vertical-align: middle;">
+                    <?php
+                        if ( "" != $member['unsubscribe_code'] ) {
+                            $groups_id = $this->get_memeber_groups( $member['member_id'] );
+                            if ( $groups_id ) {
+                                $memeber_groups = "";
+                                foreach ( $groups_id as $group_id) {
+                                    $group  = $this->get_group_by_id( $group_id );
+                                    if ( isset( $_REQUEST['group_id'] ) && $group_id == $_REQUEST['group_id'] )
+                                        $memeber_groups .= '<span style="color: green;" >' . $group['group_name'] . '</span>, ';
+                                    else {
+                                        $memeber_groups .= $group['group_name'];
+                                    }
+                                }
+                                echo substr( $memeber_groups, 0, strlen( $memeber_groups )-2 );
                             }
-                            echo substr( $groups, 0, strlen( $groups )-2 );
+                        } else {
+                            echo __( 'Unsubscribed', 'email-newsletter' );
                         }
-                    } else {
-                        echo '<span class="red" >' . __( 'Unsubscribed', 'email-newsletter' ) . '</span>';
-                    }
-                ?>
-                </td>
-            </tr>
-        <?php
-            }
-        ?>
-        </table>
+                    ?>
+                    </td>
+                </tr>
+            <?php
+                }
+            ?>
+            </table>
 
     </div><!--/wrap-->

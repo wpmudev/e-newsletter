@@ -264,7 +264,7 @@
 					<tr>
 						<td>
                             <p>
-                                <input class="button button-primary" type="submit" name="send" value="<?php echo _e( 'Send newsletter now', 'email-newsletter' ) ?>" /> 
+                                <input class="button button-primary" type="submit" name="send" value="<?php echo _e( 'Send newsletter now', 'email-newsletter' ) ?>" />
                                 <input class="button button-secondary" type="button" name="send" id="add_cron" value="<?php echo _e( 'Send in background (by CRON)', 'email-newsletter' ) ?>" />
                                 <span id="timestamp">
                                     <?php _e( "Send(UTC):", 'email-newsletter' ); ?> <b><?php _e( "As fast as possible.", 'email-newsletter' ); ?></b>
@@ -296,9 +296,9 @@
                                         <select id="mm" name="mm">
                                             <?php echo $month; ?>
                                         </select>
-                                        <input type="text" id="jj" name="jj" value="<?php echo $cur_jj; ?>" size="2" maxlength="2" autocomplete="off">, 
-                                        <input type="text" id="aa" name="aa" value="<?php echo $cur_aa; ?>" size="4" maxlength="4" autocomplete="off"> @ 
-                                        <input type="text" id="hh" name="hh" value="<?php echo $cur_hh; ?>" size="2" maxlength="2" autocomplete="off"> : 
+                                        <input type="text" id="jj" name="jj" value="<?php echo $cur_jj; ?>" size="2" maxlength="2" autocomplete="off">,
+                                        <input type="text" id="aa" name="aa" value="<?php echo $cur_aa; ?>" size="4" maxlength="4" autocomplete="off"> @
+                                        <input type="text" id="hh" name="hh" value="<?php echo $cur_hh; ?>" size="2" maxlength="2" autocomplete="off"> :
                                         <input type="text" id="mn" name="mn" value="<?php echo $cur_mn; ?>" size="2" maxlength="2" autocomplete="off">
                                     </div>
                                     <p>

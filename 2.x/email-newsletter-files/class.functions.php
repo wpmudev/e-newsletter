@@ -33,7 +33,7 @@ class Email_Newsletter_functions {
                 return 0;
         }
     }
-	
+
 	function get_default_builder_var($type='') {
 		switch($type) {
 			case 'bg_color':
@@ -54,6 +54,12 @@ class Email_Newsletter_functions {
 			case 'body_color':
 				$return = (defined('BUILDER_DEFAULT_BODY_COLOR') ? BUILDER_DEFAULT_BODY_COLOR : '' );
 				break;
+            case 'title_color':
+                $return = (defined('BUILDER_DEFAULT_TITLE_COLOR') ? BUILDER_DEFAULT_TITLE_COLOR : '' );
+                break;
+            case 'alternative_color':
+                $return = (defined('BUILDER_DEFAULT_ALTERNATIVE_COLOR') ? BUILDER_DEFAULT_ALTERNATIVE_COLOR : '' );
+                break;
 			default:
 				$return = '';
 				break;
@@ -98,9 +104,19 @@ class Email_Newsletter_functions {
     /**
      * Checking of duplicate send
      **/
-    function check_duplicate_send( $newsletter_id, $member_id, $return_results = 0 ) {
+    function check_duplicate_send( $newsletter_id, $member_id = 0, $wp_only_user_id = 0, $return_results = 0 ) {
         global $wpdb;
-        $result = $wpdb->get_row( $wpdb->prepare( "SELECT b.send_id FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b WHERE a.newsletter_id = %d AND a.send_id = b.send_id AND b.member_id = %d ", $newsletter_id, $member_id ), "ARRAY_A");
+
+        if(empty($member_id) && is_numeric($wp_only_user_id) && $wp_only_user_id > 0) {
+            $type = 'wp_only_user_id';
+            $id = $wp_only_user_id;
+        }
+        else {
+            $type = 'member_id';
+            $id = $member_id;
+        }
+
+        $result = $wpdb->get_row( $wpdb->prepare( "SELECT b.send_id FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b WHERE a.newsletter_id = %d AND a.send_id = b.send_id AND b.{$type} = %d ", $newsletter_id, $id ), "ARRAY_A");
         if ( 0 < $result )
             if ( $return_results == 0 )
                 return true;
@@ -128,13 +144,10 @@ class Email_Newsletter_functions {
     /**
      * Get count of sent email by newsletter_id or for all newsletters
      **/
-     function get_count_sent( $newsletter_id = '' ) {
+     function get_count_stats( $newsletter_id = '' ) {
         global $wpdb;
-        if ( '' === $newsletter_id )
-            $count = $wpdb->get_row( "SELECT Count(b.member_id) FROM {$this->tb_prefix}enewsletter_send_members b  WHERE b.status = 'sent'", "ARRAY_A");
-        else
-            $count = $wpdb->get_row( $wpdb->prepare( "SELECT Count(b.member_id) FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b  WHERE a.newsletter_id = %d AND a.send_id = b.send_id AND b.status = 'sent'", $newsletter_id ), "ARRAY_A");
-        return $count['Count(b.member_id)'];
+        $stats = $wpdb->get_row( "SELECT SUM(sent) AS sent, SUM(bounced) AS bounced, SUM(opened) AS opened FROM {$this->tb_prefix}enewsletter_members", "ARRAY_A");
+        return $stats;
     }
 
     /**
@@ -174,20 +187,29 @@ class Email_Newsletter_functions {
      * Get All Sends
      **/
     function get_sends( $newsletter_id ) {
-        
         global $wpdb;
-        $sends = NULL;
-        $results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE newsletter_id = %d ORDER BY start_time DESC", $newsletter_id ), "ARRAY_A");
+        $query = $wpdb->prepare(
+                    "SELECT
+                    A.*,
+                    SUM(if(B.status = 'bounced', 1, 0)) AS 'count_bounced',
+                    SUM(if(B.status = 'sent', 1, 0)) AS 'count_sent',
+                    SUM(if(B.status = 'waiting_send', 1, 0)) AS 'count_send_members',
+                    SUM(if(B.status = 'by_cron', 1, 0)) AS 'count_send_cron',
+                    SUM(if(B.opened_time > 0, 1, 0)) AS 'count_opened'
+                    FROM {$this->tb_prefix}enewsletter_send A
+                    LEFT JOIN {$this->tb_prefix}enewsletter_send_members B
+                    ON (A.send_id = B.send_id)
+                    WHERE A.newsletter_id = %d
+                    GROUP BY A.send_id
+                    ORDER BY start_time DESC
+                    ", $newsletter_id );
+        $results = $wpdb->get_results($query, "ARRAY_A");
 
-        foreach( $results as $result ){
-            $result['count_send_members']   = $this->get_count_send_members( $result['send_id'], 'waiting_send' );
-            $result['count_send_cron']      = $this->get_count_send_members( $result['send_id'], 'by_cron' );
-            $result['count_sent']           = $this->get_count_send_members( $result['send_id'], 'sent' );
-            $result['count_bounced']        = $this->get_count_send_members( $result['send_id'], 'bounced' );
+        foreach ($results as $key => $result)
+            if($result['send_id'] === NULL)
+                unset($results[$key]);
 
-            $sends[] = $result;
-        }
-        return $sends;
+        return $results;
     }
 
     /**
@@ -205,7 +227,7 @@ class Email_Newsletter_functions {
         }
         else {
             $is_wp = false;
-            $result = $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE unsubscribe_code = '%s'", $code ), "ARRAY_A" );
+            $result = $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE unsubscribe_code = %s", $code ), "ARRAY_A" );
             $member_id = $result['member_id'];
         }
 
@@ -218,6 +240,14 @@ class Email_Newsletter_functions {
     function get_member_by_email( $email ) {
         global $wpdb;
         return  $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members WHERE member_email = '%s'", $email ), "ARRAY_A" );
+    }
+
+    /**
+     * get member id by unsubscribe code
+     **/
+    function get_member_by_join_date( $time ) {
+        global $wpdb;
+        return  $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members WHERE join_date = '%d'", $time ), "ARRAY_A" );
     }
 
     /**
@@ -301,8 +331,10 @@ class Email_Newsletter_functions {
     /**
      * Get all members
      **/
-    function get_members( $arg = "", $count = 0, $details = 1) {
+    function get_members( $arg = "", $count = 0, $details = 0, $tb_prefix = '') {
         global $wpdb;
+        if(empty($tb_prefix))
+            $tb_prefix = $this->tb_prefix;
 
         $where      = "";
         $orderby    = "";
@@ -326,31 +358,31 @@ class Email_Newsletter_functions {
             $limit = $arg['limit'];
         }
 
-        $allowed_order_by = array('member_email', 'member_fname', 'join_date', 'count_sent', 'count_bounced', 'count_sent', 'count_opened');
+        $allowed_order_by = array('member_email', 'member_fname', 'join_date', 'count_sent', 'count_bounced', 'count_opened', 'sent', 'bounced', 'opened');
         if ( isset( $arg['orderby'] ) && in_array($arg['orderby'], $allowed_order_by) ) {
             $orderby = "ORDER BY ". $arg['orderby'];
             if ( $arg['order'] == 'asc' || $arg['order'] == 'desc' )
                 $orderby .= " ". $arg['order'];
         }
         if($count == 1)
-            $select = 
+            $select =
             "SELECT COUNT(*)";
         else
-            $select = 
+            $select =
             "SELECT A.*";
 
         if($details == 1) {
             $details = ",
-            SUM(if(B.status = 'bounced', 1, 0)) AS 'count_bounced', 
-            SUM(if(B.status = 'sent', 1, 0)) AS 'count_sent', 
-            SUM(if(B.opened_time < 0, 1, 0)) AS 'count_opened'
+            SUM(if(B.status = 'bounced', 1, 0)) AS 'count_bounced',
+            SUM(if(B.status = 'sent', 1, 0)) AS 'count_sent',
+            SUM(if(B.opened_time > 0, 1, 0)) AS 'count_opened'
             ";
-            $left_join = "LEFT JOIN {$this->tb_prefix}enewsletter_send_members B ON (A.member_id = B.member_id)";
+            $left_join = "LEFT JOIN {$tb_prefix}enewsletter_send_members B ON (A.member_id = B.member_id)";
         }
         else
             $details = "";
 
-        $query = $select." ".$details." FROM {$this->tb_prefix}enewsletter_members A ".$left_join." ".$inner_join." " .$where." GROUP BY A.member_id ".$orderby." " .$limit;
+        $query = $select." ".$details." FROM {$tb_prefix}enewsletter_members A ".$left_join." ".$inner_join." " .$where." GROUP BY A.member_id ".$orderby." " .$limit;
         $results = $wpdb->get_results($query, "ARRAY_A");
 
         if($count == 1)
@@ -371,7 +403,7 @@ class Email_Newsletter_functions {
             foreach ($member_possible_data as $data)
                 if(!isset($member_data[$data]))
                     $member_data[$data] = '';
-           
+
             if(is_numeric($wp_user_id)) {
                 $user = get_userdata( $wp_user_id );
                 $member_id = $this->get_members_by_wp_user_id( $wp_user_id );
@@ -407,7 +439,7 @@ class Email_Newsletter_functions {
                     $member_data['member_email'] = $member['member_email'];
                 if(empty($member_data['member_info']) && !empty($member['member_info']))
                     $member_data['member_info'] = $member['member_info'];
-                
+
                 if(!empty($member['unsubscribe_code']))
                     $member_data['unsubscribe_code'] = $member['unsubscribe_code'];
 
@@ -439,15 +471,15 @@ class Email_Newsletter_functions {
 
             if($subscribe == 1 && $member_data['unsubscribe_code'] == '')
                 $member_data['unsubscribe_code'] = $this->gen_unsubscribe_code();
-            elseif($subscribe === 0) 
+            elseif($subscribe === 0)
                 $member_data['unsubscribe_code'] = '';
 
             //remove spaces and tabs from email
             $member_data['member_email'] = str_replace(' ', '', $member_data['member_email']);
             $member_data['member_email'] = str_replace("\t", '', $member_data['member_email']);
-           
+
             //if email - do the magic!
-            if(is_email($member_data['member_email'])) {  
+            if(is_email($member_data['member_email'])) {
                 if ( is_numeric($member_data['member_id']) ) {
                     $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET
                     wp_user_id = %d,
@@ -457,8 +489,8 @@ class Email_Newsletter_functions {
                     member_info = '%s',
                     unsubscribe_code = %s
                     WHERE member_id = %d
-                    ", $member_data['wp_user_id'], $member_data['member_fname'], $member_data['member_lname'], $member_data['member_email'], $member_data['member_info'], $member_data['unsubscribe_code'], $member_data['member_id'] ) );           
-                
+                    ", $member_data['wp_user_id'], $member_data['member_fname'], $member_data['member_lname'], $member_data['member_email'], $member_data['member_info'], $member_data['unsubscribe_code'], $member_data['member_id'] ) );
+
                     if($result)
                         $member_results[] = 'member_updated';
                     else
@@ -471,6 +503,9 @@ class Email_Newsletter_functions {
                         member_lname = %s,
                         member_email = %s,
                         join_date = %d,
+                        sent = 0,
+                        opened = 0,
+                        bounced = 0,
                         member_info = '%s',
                         unsubscribe_code = %s
                      ", $member_data['wp_user_id'], $member_data['member_fname'], $member_data['member_lname'], $member_data['member_email'], time(), $member_data['member_info'], $member_data['unsubscribe_code'] ) );
@@ -491,6 +526,21 @@ class Email_Newsletter_functions {
         }
         else
             return 0;
+    }
+
+    function plus_one_member_stats($member_id, $type) {
+        global $wpdb;
+
+        $allowed_types = array('sent', 'bounced', 'opened');
+        if(in_array($type, $allowed_types)){
+            $query = $wpdb->prepare(
+                "UPDATE {$this->tb_prefix}enewsletter_members SET
+                {$type} = {$type} + 1
+                WHERE member_id = %d",
+                $member_id
+            );
+            $result = $wpdb->query($query);
+        }
     }
 
     function get_global_wp_user_ids() {
@@ -546,7 +596,7 @@ class Email_Newsletter_functions {
 
         if($groups) {
             $groups = $this->get_groups();
-                
+
             foreach ($groups as $group) {
                 $count = count( $this->get_members_of_group( $group['group_id'] ) );
                 if($count) {
@@ -601,7 +651,7 @@ class Email_Newsletter_functions {
 
             echo implode('<br/><br/>', $targets_echo);
         }
-        else 
+        else
             return $targets;
     }
 
@@ -776,7 +826,7 @@ class Email_Newsletter_functions {
         $newsletter = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_newsletters WHERE newsletter_id = %d", $newsletter_id ), "ARRAY_A");
         return $newsletter;
     }
-	
+
 	/**
      * Get a single email metakey value of a single newsletter
 	 * Similar to get_post_meta()
@@ -784,16 +834,16 @@ class Email_Newsletter_functions {
      function get_newsletter_meta( $id, $meta_key, $default=false ) {
      	global $wpdb;
         $result = $wpdb->get_row($wpdb->prepare( "SELECT meta_value FROM {$this->tb_prefix}enewsletter_meta WHERE email_id = %d AND meta_key = %s", $id, $meta_key ), "ARRAY_A");
-                
+
         if( is_array($result) && $result != false )
         	return $result['meta_value'];
 		else if($default !== false)
 			return $default;
 		else
-			return false;       
-        
+			return false;
+
 	 }
-	 
+
 	 /**
      * Get all email meta data of a single newsletter
 	 * Similar to get_post_custom()
@@ -801,7 +851,7 @@ class Email_Newsletter_functions {
      function get_newsletter_custom( $newsletter_id ) {
      	global $wpdb;
         $newsletter = $wpdb->get_row( $wpdb->prepare( "SELECT meta_value FROM {$this->tb_prefix}enewsletter_meta WHERE email_id = %d", $newsletter_id ), "ARRAY_A");
-        
+
         if(!empty($newsletter) && $newsletter != false)
         	return $newsletter;
 		else
@@ -813,7 +863,7 @@ class Email_Newsletter_functions {
      **/
      function update_newsletter_meta( $newsletter_id, $key, $value ) {
      	global $wpdb;
-		
+
 		$where = array(
 			'email_id' => $newsletter_id,
 			'meta_key' => $key,
@@ -823,7 +873,7 @@ class Email_Newsletter_functions {
 			'meta_value' => $value,
 			'meta_key' => $key
 		);
-		
+
 		if( $this->get_newsletter_meta($newsletter_id,$key) !== false) {
 			$wpdb->update( "{$this->tb_prefix}enewsletter_meta", $data, $where);
 		} else {
@@ -833,43 +883,59 @@ class Email_Newsletter_functions {
 	 /**
      * Delete email meta data of a single newsletter
 	 * Similar to update_post_meta()
-     **/	 
-     function delete_newsletter_meta( $newsletter_id, $key = false, $exclude = 0 ) {
+     **/
+     function delete_newsletter_meta( $newsletter_id, $keys = array(), $exclude = 0 ) {
 		global $wpdb;
-		
-     	if($key !== false) {
-			
-			if($exclude == 1)
-				$query = $wpdb->prepare( 
+
+     	if(!empty($keys)) {
+
+			if($exclude == 1) {
+				$query = $wpdb->prepare(
 					"
 					DELETE FROM {$this->tb_prefix}enewsletter_meta
 					WHERE email_id = %d
-					AND meta_key != %s
 					",
-					$newsletter_id, $key 
+					$newsletter_id
 					);
-			else
-				$query = $wpdb->prepare( 
+                foreach ($keys as $key) {
+                    $query .= $wpdb->prepare(
+                        "
+                        AND meta_key != %s
+                        ",
+                        $key
+                        );
+                }
+            }
+			else {
+				$query = $wpdb->prepare(
 					"
 					DELETE FROM {$this->tb_prefix}enewsletter_meta
 					WHERE email_id = %d
-					AND meta_key == %s
-					",
-					$newsletter_id, $key 
-					);
+                    ",
+                    $newsletter_id
+                    );
+                foreach ($keys as $key) {
+                    $query .= $wpdb->prepare(
+                        "
+                        AND meta_key == %s
+                        ",
+                        $key
+                        );
+                }
+            }
 		}
 		else
-			$query = $wpdb->prepare( 
+			$query = $wpdb->prepare(
 				"
 				DELETE FROM {$this->tb_prefix}enewsletter_meta
 				WHERE email_id = %d
 				",
-				$newsletter_id 
+				$newsletter_id
 				);
-			
+
 		$wpdb->query($query);
 	 }
-	
+
     /**
      * Get all data of all newsletters
      **/
@@ -905,23 +971,23 @@ class Email_Newsletter_functions {
                 $orderby .= " ". $arg['order'];
         }
         if($count == 1)
-            $select = 
+            $select =
             "SELECT COUNT(*)";
         else
-            $select = 
+            $select =
             "SELECT A.*";
 
         if($details == 1) {
-            $select .= 
+            $select .=
             ", S.start_time AS 'last_sent_time'";
 
             $details = ",
-            SUM(if(SM.status = 'bounced', 1, 0)) AS 'count_bounced', 
-            SUM(if(SM.status = 'sent', 1, 0)) AS 'count_sent', 
+            SUM(if(SM.status = 'bounced', 1, 0)) AS 'count_bounced',
+            SUM(if(SM.status = 'sent', 1, 0)) AS 'count_sent',
             SUM(if(SM.opened_time > 0, 1, 0)) AS 'count_opened'
             ";
             $left_join = "
-            LEFT JOIN {$this->tb_prefix}enewsletter_send S ON (A.newsletter_id = S.newsletter_id) 
+            LEFT JOIN {$this->tb_prefix}enewsletter_send S ON (A.newsletter_id = S.newsletter_id)
             LEFT JOIN {$this->tb_prefix}enewsletter_send_members SM ON (S.send_id = SM.send_id)";
         }
         else
@@ -991,8 +1057,17 @@ class Email_Newsletter_functions {
 
     function set_send_email_status($status, $send_id, $member_id = 0, $wp_only_user_id = 0) {
         global $wpdb;
+        $extra = '';
 
-        return $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = %s WHERE send_id = %d AND member_id = %d AND wp_only_user_id = %d", $status, $send_id, $member_id, $wp_only_user_id ) );     
+        if($status == 'sent')
+            $extra = $wpdb->prepare(", sent_time = %d", time());
+        elseif($status == 'bounced')
+            $extra = $wpdb->prepare(", bounce_time = %d", time());
+
+        if($member_id)
+            $this->plus_one_member_stats($member_id, $status);
+
+        return $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = %s".$extra." WHERE send_id = %d AND member_id = %d AND wp_only_user_id = %d", $status, $send_id, $member_id, $wp_only_user_id ) );
     }
 
     /**
@@ -1000,11 +1075,16 @@ class Email_Newsletter_functions {
      **/
     function get_sent_email( $send_id, $member_id = 0, $wp_only_user_id = 0 ) {
         global $wpdb;
-        $result = $wpdb->get_row( $wpdb->prepare( "SELECT a.email_body FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b WHERE a.send_id = b.send_id AND b.send_id = %d AND b.member_id = %d AND b.wp_only_user_id = %d ", $send_id, $member_id, $wp_only_user_id ), "ARRAY_A");
+        $result = $wpdb->get_row( $wpdb->prepare( "SELECT email_body FROM {$this->tb_prefix}enewsletter_send WHERE start_time = %d", $send_id ), "ARRAY_A");
         if ( 0 < $result )
             return $result;
-        else
-            return false;
+        else {
+            $result = $wpdb->get_row( $wpdb->prepare( "SELECT a.email_body FROM {$this->tb_prefix}enewsletter_send a, {$this->tb_prefix}enewsletter_send_members b WHERE a.send_id = b.send_id AND b.send_id = %d AND b.member_id = %d AND b.wp_only_user_id = %d ", $send_id, $member_id, $wp_only_user_id ), "ARRAY_A");
+            if ( 0 < $result )
+                return $result;
+            else
+                return false;
+        }
     }
 
     /**
@@ -1022,14 +1102,14 @@ class Email_Newsletter_functions {
             case 'smtp':
                 $mail->IsSMTP();
                 $mail->Host = $this->settings['smtp_host'];
-                
+
                 if($this->settings['smtp_secure_method'] == 'tls' || $this->settings['smtp_secure_method'] == 'ssl')
                     $mail->SMTPSecure = $this->settings['smtp_secure_method'];
                 if(!empty($this->settings['smtp_port']))
                     $mail->Port = $this->settings['smtp_port'];
-                
+
                 $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
-                
+
                 if( $mail->SMTPAuth ){
                     $mail->Username = esc_attr($this->settings['smtp_user']);
                     $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
@@ -1053,9 +1133,11 @@ class Email_Newsletter_functions {
         $mail->MsgHTML( $email_contents );
         $mail->AddAddress( $email_to );
 
-        if( isset($options['bounce_email']) ){
+        if( isset($options['bounce_email']) )
             $mail->Sender = $options['bounce_email'];
-        }
+        else
+            $mail->Sender = $email_from;
+
         if( isset($options['message_id']) ) {
             $mail->XMailer = $options['message_id'];
             $mail->MessageID = $options['message_id'];
@@ -1066,7 +1148,7 @@ class Email_Newsletter_functions {
             $this->write_log( 'Send email error: '.$mail->ErrorInfo.'['.$mail->ErrorInfoRaw.']');
             return $mail->ErrorInfoRaw;
         }
-        
+
         sleep( 1 );
         return true;
     }
@@ -1076,126 +1158,164 @@ class Email_Newsletter_functions {
      **/
     function make_email_body( $newsletter_id, $customizer = 0 ) {
         global $email_builder;
-
-        //get data of newsletter
+        $settings = $this->get_settings();
         $newsletter_data = $this->get_newsletter_data( $newsletter_id );
-        
+
         if(!$newsletter_data || empty($newsletter_data))
             return false;
-    
+
         //open template file
         $theme = $this->get_selected_theme($newsletter_data['template']);
 
         $template_path  = $theme['dir'];
         $template_url  = $theme['url'];
-        $filename   = $template_path . "template.html";
 
-        if(file_exists($filename)) {
-            $handle     = fopen( $filename, "r" );
-            $contents   = fread( $handle, filesize( $filename ) );
-            fclose( $handle );      
-        } else
+        $contents_parts = $this->get_contents_elements($template_path);
+        if($contents_parts['content'])
+            $contents = $contents_parts['header'].$contents_parts['content'].$contents_parts['footer'];
+        else
             return false;
-        
-        // Extra Meta Replacements
-        // Use the "email_newsletter_make_email_body" filter below to filter your own custom data
-        
-        // We check for meta-data then look for a defined default coming from
-        // the newsletter template then we pick something anyways using the
-        // get_default_builder_var() located in class.functions.php
 
         //Translate template default elements
-        $contents = str_replace( "From", __( 'From', 'email-newsletter' ), $contents );
-        $contents = str_replace( "Not interested anymore?", __( 'Not interested anymore?', 'email-newsletter' ), $contents );
-        $contents = str_replace( "Unsubscribe Instantly.", __( 'Unsubscribe Instantly.', 'email-newsletter' ), $contents );
-        
-        //Take care of all text, replace body, title, subject... stuff like this:)
-        $contents = str_replace( "{EMAIL_BODY}", $newsletter_data['content'], $contents );
-        $contents = apply_filters('email_newsletter_make_email_content', $contents, $newsletter_id);   
+        $default_texts = array(
+            'From' => __( 'From', 'email-newsletter' ),
+            'Not interested anymore?' => __( 'Not interested anymore?', 'email-newsletter' ),
+            'Unsubscribe Instantly.' => __( 'Unsubscribe Instantly.', 'email-newsletter' )
+        );
+        foreach ($default_texts as $text => $translation) {
+            $contents = str_replace( $text, $translation, $contents );
+        }
 
-        //Email Title
-        $email_title = $this->get_newsletter_meta($newsletter_id,'email_title', $this->get_default_builder_var('email_title') );
-        $email_title = apply_filters('email_newsletter_make_email_title', $email_title, $newsletter_id);
-        $contents = str_replace( "{EMAIL_TITLE}", $email_title, $contents);
-        
-        $email_subject = apply_filters('email_newsletter_make_email_subject', $newsletter_data['subject'], $newsletter_id);
-        $contents = str_replace( "{EMAIL_SUBJECT}", $email_subject, $contents );
+        if(strpos($contents,'{VIEW_LINK_TEXT}') === false)
+            add_filter( 'email_newsletter_make_email_content_header', create_function('$a, $b', 'return "{VIEW_LINK_TEXT}".$a;'), 10, 2 );
 
-        $email_from_name = (isset($newsletter_data['from_name']) ? $newsletter_data['from_name'] : $this->settings['from_name']);
-        $email_from_name = apply_filters('email_newsletter_make_email_from_name', $email_from_name, $newsletter_id);
-        $contents = str_replace( "{FROM_NAME}", $email_from_name, $contents );
+        //Prepare newsletter body
+        $body_prepare =
+        array(
+            'standard' => array(
+                'header' => $contents_parts['default_style_header'].$contents_parts['style_header'],
+                'content_header' => '',
+                'footer' => '',
+                'content_footer' => '',
+                'content=email_body' => $newsletter_data['content'],
+                'title=email_title' => $this->get_newsletter_meta($newsletter_id,'email_title', $this->get_default_builder_var('email_title') ),
+                'subject=email_subject' => $newsletter_data['subject'],
+                'from_name' => (isset($newsletter_data['from_name']) ? $newsletter_data['from_name'] : $this->settings['from_name']),
+                'from_email' => (isset($newsletter_data['from_email']) ? $newsletter_data['from_email'] : $this->settings['from_email']),
+                'branding_html' => $this->get_newsletter_meta($newsletter_id,'branding_html', $this->get_default_builder_var('branding_html') ),
+                'contact_info' => (isset($newsletter_data['contact_info']) ? $newsletter_data['contact_info'] : $this->settings['contact_info']),
+                'date' => (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y"),
+                'view_link_text' => $settings['view_browser']
+            )
+        );
+        if($customizer)
+            $body_prepare['standard']['header'] .= '<style type="text/css">'.$contents_parts['default_style'].$contents_parts['style'].'</style>';
 
-        $email_from_email = (isset($newsletter_data['from_email']) ? $newsletter_data['from_email'] : $this->settings['from_email']);
-        $email_from_email = apply_filters('email_newsletter_make_email_from_email', $email_from_email, $newsletter_id);
-        $contents = str_replace( "{FROM_EMAIL}", $email_from_email, $contents );
+        $contents = $this->make_email_values($body_prepare, $contents, $newsletter_id);
 
-        $email_contact_info = (isset($newsletter_data['contact_info']) ? $newsletter_data['contact_info'] : $this->settings['contact_info']);
-        $email_contact_info = apply_filters('email_newsletter_make_email_contact_info', $email_contact_info, $newsletter_id);
-        $contents = str_replace( "{CONTACT_INFO}", $email_contact_info, $contents );
-        
-        //Date
-        $date_format = (isset($this->settings['date_format']) ? $this->settings['date_format'] : "F j, Y");
-        $contents = str_replace( "{DATE}", date($date_format), $contents );
+        //Open tracker code
+        if(strpos($contents,'</body>') !== false)
+            $contents = str_replace( "</body>", "{OPENED_TRACKER}</body>", $contents );
+        else
+            $contents = $contents.'{OPENED_TRACKER}';
+
+        //do the inline styling
+        $contents = $this->do_inline_styles($contents, $contents_parts['default_style'].$contents_parts['style']);
 
         //Add url to elements
         $contents = str_replace( "{TEMPLATE_URL}", $template_url, $contents );
+        $contents = str_replace( "%7BTEMPLATE_URL%7D", $template_url, $contents );
 
-        //REPLACE THE image LINKS AT THE START
+        //replace image links
         $contents = str_replace( "'images/", "'".$template_url . "images/", $contents );
         $contents = str_replace( '"images/', '"'.$template_url . 'images/', $contents );
         $contents = str_replace( "'/images/", "'".$template_url . "images/", $contents );
         $contents = str_replace( '"/images/', '"'.$template_url . 'images/', $contents );
 
-        //do the inline styling
-        $themedata = $email_builder->find_builder_theme($newsletter_data['template']);
-        $contents = $this->do_inline_styles($themedata, $contents);
-
-        $contents = str_replace( 'padding: 8IMGPX;"', '" hspace="8" vspace="8"', $contents );
-
-        // BG COLOR
-        $bg_color = $this->get_newsletter_meta($newsletter_id,'bg_color', $this->get_default_builder_var('bg_color'));
-        $bg_color = apply_filters('email_newsletter_make_email_bg_color',$bg_color, $newsletter_id);
-        $contents = str_replace( "{BG_COLOR}", $bg_color, $contents);
-        
-        // BG IMAGE         
+        //set up visual stuff
         $default_bg = $this->get_default_builder_var('bg_image');
-        if(!empty($default_bg))
-            $default_bg = $template_url.$default_bg;
-        else 
-            $default_bg = '';
-        $bg_image = $this->get_newsletter_meta($newsletter_id,'bg_image', $default_bg);
-        $bg_image = apply_filters('email_newsletter_make_email_bg_image',$bg_image, $newsletter_id);
-        $contents = str_replace( "{BG_IMAGE}", $bg_image, $contents);
-        
-        // LINK COLOR
-        $link_color = $this->get_newsletter_meta($newsletter_id,'link_color', $this->get_default_builder_var('link_color'));
-        $link_color = apply_filters('email_newsletter_make_email_link_color',$link_color ,$newsletter_id);
-        $contents = str_replace( "{LINK_COLOR}", $link_color, $contents);
-        $contents = str_replace( "#LINK_COLOR", $link_color, $contents);
-        
-        // BODY COLOR
-        $body_color = $this->get_newsletter_meta($newsletter_id,'body_color', $this->get_default_builder_var('body_color'));
-        $body_color = apply_filters('email_newsletter_make_email_body_color',$body_color, $newsletter_id);
-        $contents = str_replace( "{BODY_COLOR}", $body_color, $contents);
+        $default_bg = (!empty($default_bg)) ? $template_url.$default_bg : '';
+
+        $default_header = $this->get_default_builder_var('header_image');
+        $default_header = (!empty($default_header)) ? $template_url.$default_header : '';
+
+        $visuals_prepare =
+        array(
+            'standard' => array(
+                'bg_image' => $this->get_newsletter_meta($newsletter_id,'bg_image', $default_bg)
+            ),
+            'images' => array(
+                'header_image' => $this->get_newsletter_meta($newsletter_id,'header_image', $default_header)
+            ),
+            'colors' => array(
+                'link_color' => $this->get_newsletter_meta($newsletter_id, 'link_color', $this->get_default_builder_var('link_color')),
+                'body_color' => $this->get_newsletter_meta($newsletter_id, 'body_color', $this->get_default_builder_var('body_color')),
+                'title_color' => $this->get_newsletter_meta($newsletter_id, 'title_color', $this->get_default_builder_var('title_color')),
+                'alternative_color' => $this->get_newsletter_meta($newsletter_id, 'alternative_color', $this->get_default_builder_var('alternative_color')),
+                'bg_color' => $this->get_newsletter_meta($newsletter_id, 'bg_color', $this->get_default_builder_var('bg_color'))
+            )
+        );
+        $contents = $this->make_email_values($visuals_prepare, $contents, $newsletter_id);
 
         //dom walker to add classes to ensure compability
         $dom = new DOMDocument();
         $dom->loadHTML($contents);
         $imgs = $dom->getElementsByTagName('img');
+        $ps = $dom->getElementsByTagName('p');
+        foreach ($ps as $p) {
+            $p_style = $p->getAttribute('style');
+            if(!empty($p_style))
+                break;
+        }
         foreach ($imgs as $img) {
             $classes_to_aligns = array('left', 'right');
             foreach ($classes_to_aligns as $class_to_align)
                 if ($img->hasAttribute('class') && strstr($img->getAttribute('class'), 'align'.$class_to_align))
                     $img->setAttribute('align', $class_to_align);
 
-                $style = $img->getAttribute('style');
-                preg_match('#padding:(.*?)IMGPX#', $style, $matches);
+            if ($img->hasAttribute('class') && strstr($img->getAttribute('class'), 'aligncenter')) {
+                $img_style = $img->getAttribute('style');
+                $img_style = preg_replace('#display:(.*?);#', '', $img_style);
+                $img->setAttribute('style',$img_style);
+
+                $parent = $img->parentNode;
+                if($parent->nodeName == 'a')
+                    $parent = $parent->parentNode;
+
+                if($parent->nodeName != 'div')
+                    $parent->setAttribute('style','text-align:center;'.$parent->getAttribute('style'));
+                else {
+                    $element = $dom->createElement('p');
+                    $element->setAttribute('style','text-align:center;'.$p_style);
+
+                    $img->parentNode->replaceChild($element, $img);
+                    $element->appendChild($img);
+                }
+            }
+
+            $style = $img->getAttribute('style');
+            preg_match('#margin:(.*?);#', $style, $matches);
+            if($matches) {
+                $space_px = explode('px',$matches[1]);
+                $space_procent = explode('%',$matches[1]);
+                $space = ($space_procent > $space_px) ? $space_procent : $space_px;
+                $space_unit = ($space_procent > $space_px) ? '%' : '';
+                if($space) {
+                    $hspace = trim($space[0]);
+                    $vspace = (isset($space[1])) ? $hspace : trim($space[0]);
+
+                    $img->setAttribute('hspace', $hspace.$space_unit);
+                    $img->setAttribute('vspace', $vspace.$space_unit);
+                }
+                $style = preg_replace('#margin:(.*?);#', '', $style);
+                if($style)
+                    $img->setAttribute('style', $style);
+                else
+                    $img->removeAttribute('style');
+            }
         }
         $contents = $dom->saveHTML();
 
-        //Adds tracker code
-        $contents = $contents.'{OPENED_TRACKER}';
-        
         return apply_filters('email_newsletter_make_email_body', $contents, $newsletter_id);
     }
 
@@ -1207,13 +1327,6 @@ class Email_Newsletter_functions {
             $id = $member_id;
         elseif($wp_only_user_id)
             $id = $wp_only_user_id;
-
-        //adds view in browser message
-        if(!isset($changes['disable_view_link'])) {
-            $settings = $this->get_settings();
-            if(!empty($settings['view_browser']))
-                $contents = $settings['view_browser'].$contents;
-        }
 
         if(!empty($changes['user_name']))
             $contents = str_replace( "{USER_NAME}", $changes['user_name'], $contents );
@@ -1227,26 +1340,227 @@ class Email_Newsletter_functions {
 
         //Set up permalinks
         $contents = str_replace( "{OPENED_TRACKER}", '<div style="font-size: 0px; line-height:0px;"><img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id . '&wp_only_user_id=' . $wp_only_user_id) . '" width="1" height="1"/></div>', $contents );
-        
-        if(get_option('permalink_structure')) {
-            $prefix = '';
-            if ( function_exists('got_mod_rewrite') && !got_mod_rewrite() && function_exists('iis7_supports_permalinks') && !iis7_supports_permalinks() )
-                $prefix = '/index.php';
 
-            $unsubscribe_url = home_url($prefix.'/e-newsletter/unsubscribe/' . $code . $id . '/');
-            $view_browser_url = home_url($prefix.'/e-newsletter/view/' . $code . $send_id . '/');
-        }
-        else {
-            $unsubscribe_url = add_query_arg( array('unsubscribe_page' => '1', 'unsubscribe_code' => $code, 'unsubscribe_member_id' => $id), home_url() );
-            $view_browser_url = add_query_arg( array('view_newsletter' => '1', 'view_newsletter_code' => $code, 'view_newsletter_send_id' => $send_id), home_url() );
-        }
-
+        $unsubscribe_url = add_query_arg( array('unsubscribe_page' => '1', 'unsubscribe_code' => $code, 'unsubscribe_member_id' => $id), home_url() );
         $contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", $unsubscribe_url, $contents );
-        
+
+        $view_browser_url = add_query_arg( array('view_newsletter' => '1', 'view_newsletter_code' => $code, 'view_newsletter_send_id' => $send_id), home_url() );
         $contents = str_replace( "{VIEW_LINK}", $view_browser_url, $contents );
         $contents = str_replace( "%7BVIEW_LINK%7D", $view_browser_url, $contents );
-        
+
         return $contents;
+    }
+
+    /**
+     * Get custom theme details
+     **/
+    function get_selected_theme($theme_name) {
+        global $wp_theme_directories;
+
+        $added = 0;
+        if(!in_array($this->template_custom_directory, $wp_theme_directories)) {
+            $added = 1;
+            register_theme_directory($this->template_custom_directory);
+        }
+        if(!in_array($this->template_directory, $wp_theme_directories)) {
+            $added = 1;
+            register_theme_directory($this->template_directory);
+        }
+
+        //cheating message fix
+        if($added)
+            wp_clean_themes_cache();
+
+        $theme = wp_get_theme($theme_name);
+        if($theme) {
+            $theme_root_dir = $theme->theme_root.'/';
+
+            if(strpos($theme_root_dir, 'enewsletter-custom-themes') !== FALSE) {
+                $upload_dir = wp_upload_dir();
+                $theme_root_url = $upload_dir['baseurl'].'/enewsletter-custom-themes/';
+            }
+            else
+                $theme_root_url = $this->plugin_url . "email-newsletter-files/templates/";
+
+            $template_dir  = $theme_root_dir.$theme_name.'/';
+            $template_url  = $theme_root_url.$theme_name.'/';
+
+            $this->load_theme_options($template_dir);
+
+            $styles = $this->get_contents_elements($template_dir, 0);
+
+            $return = array('url' => $template_url, 'dir' => $template_dir, 'Stylesheet' => $theme['Stylesheet'], 'Template' => $theme['Template'], 'Status' => $theme['Status'], 'Style' => $styles['default_style'].$styles['style']);
+            return $return;
+        }
+        else
+            return false;
+    }
+
+    /**
+     * Prepare inline styles
+     **/
+    function do_inline_styles($contents, $styles) {
+        if($contents && $styles) {
+            if(!class_exists('CssToInlineStyles'))
+                require_once($this->plugin_dir.'email-newsletter-files/builder/lib/css-inline.php');
+
+            $css_inline = new CssToInlineStyles($contents,$styles);
+            $contents = $css_inline->convert();
+        }
+        return $contents;
+    }
+
+    /**
+     * Converts themes pseudo variables
+     **/
+    function make_email_values($prepare, $contents, $newsletter_id) {
+        foreach ($prepare as $type => $values) {
+            foreach ($values as $name => $value) {
+                $name = explode('=', $name);
+                $name_big = (isset($name[1])) ? strtoupper($name[1]) : strtoupper($name[0]);
+                $name = $name[0];
+                $value = apply_filters('email_newsletter_make_email_'.$name, $value, $newsletter_id);
+
+                if($type == 'images' && !empty($value))
+                    $value = '<img src="'.$value.'"/>';
+
+                $contents = str_replace( "{".$name_big."}", $value, $contents );
+                if($type == 'colors')
+                    $contents = str_replace( "#".$name_big, $value, $contents);
+            }
+        }
+
+        return $contents;
+    }
+
+    /**
+     * Gets correct parts of newsletter
+     **/
+    function get_contents_elements($template_path, $get_html = 1, $get_styles = 1) {
+        if($template_path) {
+            $contents_parts = $build_htmls = $build_styles = array();
+
+            if($get_html) {
+                $build_htmls['header'][] = $template_path . "header.html";
+                $build_htmls['content'][] = $template_path . "template.html";
+                $build_htmls['footer'][] = $template_path . "footer.html";
+
+                if(defined('BUILDER_SETTING_USE_DEFAULT_HEADER_FOOTER')) {
+                    $build_htmls['header'][] = $this->template_custom_directory . "/default_header.html";
+                    $build_htmls['header'][] = $this->template_directory . "/default_header.html";
+
+                    $build_htmls['footer'][] = $this->template_custom_directory . "/default_footer.html";
+                    $build_htmls['footer'][] = $this->template_directory . "/default_footer.html";
+                }
+            }
+            if($get_styles) {
+                $build_styles['style'][] = $template_path . "style.css";
+                $build_styles['style_header'][] = $template_path . "style_header.css";
+
+                if(defined('BUILDER_SETTING_USE_DEFAULT_STYLES')) {
+                    $build_styles['default_style'][] = $this->template_custom_directory . "/default_style.css";
+                    $build_styles['default_style'][] = $this->template_directory . "/default_style.css";
+
+                    $build_styles['default_style_header'][] = $this->template_custom_directory . "/default_style_header.css";
+                    $build_styles['default_style_header'][] = $this->template_directory . "/default_style_header.css";
+                }
+            }
+            $build_theme = array_merge($build_htmls, $build_styles);
+
+            foreach ($build_theme as $type => $possible_files)
+                foreach ($possible_files as $possible_file) {
+                    if(isset($contents_parts[$type]) && !empty($contents_parts[$type]))
+                        continue;
+                    if(file_exists($possible_file)) {
+                        $handle = fopen( $possible_file, "r" );
+                        $contents_parts[$type] = fread( $handle, filesize( $possible_file ) );
+                        fclose( $handle );
+                    }
+                    if(!isset($contents_parts[$type]))
+                        $contents_parts[$type] = '';
+                }
+
+            //if head missing - fix it!
+            if($get_html) {
+                if(strpos($contents_parts['header'].$contents_parts['content'],'<html') === false && strpos($contents_parts['content'].$contents_parts['footer'],'</html>') === false) {
+                    if(strpos($contents_parts['header'].$contents_parts['content'],'<body') === false && strpos($contents_parts['content'].$contents_parts['footer'],'</body>') === false) {
+                        $body_header = '<body>';
+                        $body_footer = '</body>';
+                    }
+                    else
+                        $body_header = $body_footer = '';
+
+                    $contents_parts['header'] = '
+                        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+                        <head>
+                            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                            <title>{EMAIL_TITLE}</title>
+                            <style type="text/css">
+                                {DEFAULT_STYLE_HEADER}
+                                {STYLE_HEADER}
+                            </style>
+
+                            {HEADER}
+                        </head>'.$body_header.$contents_parts['header'];
+
+                    $contents_parts['footer'] = $contents_parts['footer'].$body_footer.'
+                        </html>';
+                }
+
+                //adds content header tag if missing on top
+                if(strpos($contents_parts['header'].$contents_parts['content'],'{CONTENT_HEADER}') === false) {
+                    if(strpos($contents_parts['content'],'<body') !== false)
+                        $has_body = 'content';
+                    elseif(strpos($contents_parts['header'],'<body') !== false)
+                        $has_body = 'header';
+                    else
+                        $has_body = '';
+
+                    if($has_body) {
+                        $start = stripos($contents_parts[$has_body], '<body');
+                        $end = stripos($contents_parts[$has_body], '>', $start);
+                        $contents_parts[$has_body] = substr_replace($contents_parts[$has_body], "{CONTENT_HEADER}", $end+1, 0);
+                    }
+                }
+                //adds content footer tag if missing on bottom
+                if(strpos($contents_parts['content'].$contents_parts['footer'],'{CONTENT_FOOTER}') === false) {
+                    if(strpos($contents_parts['content'],'</body>') !== false)
+                        $has_body = 'content';
+                    elseif(strpos($contents_parts['footer'],'</body>') !== false)
+                        $has_body = 'footer';
+                    else
+                        $has_body = '';
+
+                    if($has_body)
+                        $contents_parts[$has_body] = str_replace( "</body>", "{CONTENT_FOOTER}{FOOTER}</body>", $contents_parts[$has_body]);
+                }
+            }
+
+            return $contents_parts;
+        }
+
+        return array();
+    }
+
+    function load_theme_options($template_dir) {
+        if(file_exists($template_dir . 'functions.php'))
+            include($template_dir . 'functions.php');
+        elseif(file_exists($template_dir . 'index.php'))
+            include($template_dir . 'index.php');
+    }
+
+    /**
+     * Choose nicename
+     **/
+    function get_nicename($wp_user_id, $user_nicename) {
+        if($wp_user_id == 0 ) {
+            $user_name = $user_nicename;
+        }
+        else {
+            $wp_user = ($wp_user_id == 0 ? false : get_user_by('id', $wp_user_id));
+            $user_name = is_a($wp_user,'WP_User') ? $wp_user->display_name : '';
+        }
+        return $user_name;
     }
 
     function pop3_connet($email_host, $email_port = 110, $email_security = '', $email_username = '', $email_password = '' ) {
@@ -1255,7 +1569,7 @@ class Email_Newsletter_functions {
         if(!empty($options)) {
             $connection = imap_open( '{'.$email_host.':'.$email_port.'/pop3'.$options.$email_security.'}INBOX', $email_username, $email_password );
             $this->write_log( "Bounce: 1 connection: ".$connection );
-        }    
+        }
 
         if(!$connection) {
             $combinations = array(
@@ -1285,85 +1599,6 @@ class Email_Newsletter_functions {
 
         $this->write_log( "Bounce: settings incorrect: ".$connection );
         return 0;
-    }
-
-    /**
-     * Get custom theme details
-     **/
-    function get_selected_theme($theme_name) {
-        global $wp_theme_directories;
-
-        $added = 0;
-        if(!in_array($this->template_custom_directory, $wp_theme_directories)) {
-            $added = 1;
-            register_theme_directory($this->template_custom_directory);
-        }
-        if(!in_array($this->template_directory, $wp_theme_directories)) {
-            $added = 1;
-            register_theme_directory($this->template_directory);
-        }
-        
-        //cheating message fix
-        if($added)
-            wp_clean_themes_cache();
-
-        $theme = wp_get_theme($theme_name);
-        if($theme) {
-            $theme_root_dir = $theme->theme_root.'/';
-
-            if(strpos($theme_root_dir, 'enewsletter-custom-themes') !== FALSE) {
-                $upload_dir = wp_upload_dir();
-                $theme_root_url = $upload_dir['baseurl'].'/enewsletter-custom-themes/';
-            }
-            else
-                $theme_root_url = $this->plugin_url . "email-newsletter-files/templates/";
-
-            $template_dir  = $theme_root_dir.$theme_name.'/';
-            $template_url  = $theme_root_url.$theme_name.'/';
-
-            $return = array('url' => $template_url, 'dir' => $template_dir, 'Stylesheet' => $theme['Stylesheet'], 'Template' => $theme['Template'], 'Status' => $theme['Status']);
-            return $return;
-        }
-        else
-            return false;
-    }
-
-    /**
-     * Prepare inline styles
-     **/
-    function do_inline_styles($themedata, $contents) {
-        if($themedata) {
-            
-            if(!class_exists('CssToInlineStyles'))
-                require_once($this->plugin_dir.'email-newsletter-files/builder/lib/css-inline.php');
-                
-            $style_path = $themedata['dir'] . 'style.css';
-            if(file_exists($style_path)) {
-                $handle = fopen( $style_path, "r" );
-                $style_content = fread( $handle, filesize( $style_path ) );
-                
-                $css_inline = new CssToInlineStyles("<head><meta http-equiv='Content-type' content='text/html; charset=UTF-8' /></head>".$contents,'<style type="text/css">'.$style_content.'</style>');
-                $contents = $css_inline->convert();
-                
-                $contents = str_replace("<head><meta http-equiv='Content-type' content='text/html; charset=UTF-8' /></head>", '', $contents) ;
-                
-                return $contents;
-            }
-        }   
-    }
-
-    /**
-     * Choose nicename
-     **/
-    function get_nicename($wp_user_id, $user_nicename) {
-        if($wp_user_id == 0 ) {
-            $user_name = $user_nicename;
-        }
-        else {
-            $wp_user = ($wp_user_id == 0 ? false : get_user_by('id', $wp_user_id));
-            $user_name = is_a($wp_user,'WP_User') ? $wp_user->display_name : '';
-        }
-        return $user_name;
     }
 
     /**
@@ -1423,10 +1658,10 @@ class Email_Newsletter_functions {
                                 $member_data_ready = array(
                                         'member_fname' => $fname,
                                         'member_lname' => $lname,
-                                        'member_email' => $email  
+                                        'member_email' => $email
                                     );
                                 $result = $this->create_update_member_user('', $member_data_ready, 1);
-                                
+
                                 $member_id = $result['member_id'];
 
                                 if($result) {
@@ -1462,7 +1697,7 @@ class Email_Newsletter_functions {
                     foreach($incorrect_members as $incorrect_member )
                         $message .= $incorrect_member . '<br />';
                 }
-                
+
                 if(empty($message)) {
                     $message .= 'Import ERROR: Nothing to import';
                 }
@@ -1495,11 +1730,11 @@ class Email_Newsletter_functions {
         $groups_filename = implode('-', $groups_filename);
 
         $filename = $sitename . 'wp.enewsletter.members.'.$groups_filename.'.'.date( 'Y-m-d' ) . '.csv';
-    
+
         header( 'Content-Description: File Transfer' );
         header( 'Content-Disposition: attachment; filename=' . $filename );
         header( 'Content-Type: text/plain; charset=' . get_option( 'blog_charset' ), true );
-        
+
         if(count($groups) > 0) {
             foreach ($groups as $key => $group)
                 if(!is_numeric($group))
@@ -1523,7 +1758,7 @@ class Email_Newsletter_functions {
                 echo $member['member_email'].$separate_by.$member['member_fname'].$separate_by.$member['member_lname']."\r\n";
             }
 
-        die();        
+        die();
     }
 
     /**
@@ -1556,17 +1791,17 @@ class Email_Newsletter_functions {
      **/
     function save_settings( $settings, $tb_prefix = '', $redirect = 1 ) {
         global $wpdb, $wp_roles;
-        
+
         if(empty($tb_prefix))
             $tb_prefix = $this->tb_prefix;
 
         if( ! is_array( $settings ) )
             $settings = array();
-        
+
         if(isset($settings['email_caps'])) {
             $caps = $settings['email_caps'];
             unset($settings['email_caps']);
-            
+
             foreach($wp_roles->get_names() as $name => $obj) {
                 if($name == 'administrator') continue;
                 $role_obj = get_role($name);
@@ -1581,12 +1816,12 @@ class Email_Newsletter_functions {
                 }
             }
         }
-        
+
         //change time for CRON
         if ( isset($settings['cron_enable']) && 1 == $settings['cron_enable'] ) {
             if ( wp_next_scheduled( $this->cron_send_name ) )
                 wp_clear_scheduled_hook( $this->cron_send_name );
-                
+
             wp_schedule_event( time(), '2mins', $this->cron_send_name );
         }
         else {
@@ -1604,7 +1839,7 @@ class Email_Newsletter_functions {
             $settings['smtp_pass'] = $this->_encrypt( $settings['smtp_pass'] );
         else
             $settings['smtp_pass'] = '';
-            
+
         //Encrypt POP3 password
         if ( isset( $settings['bounce_password'] ) && '********' == $settings['bounce_password'] )
             unset( $settings['bounce_password'] );
@@ -1612,7 +1847,7 @@ class Email_Newsletter_functions {
             $settings['bounce_password'] = $this->_encrypt( $settings['bounce_password'] );
         else
             $settings['bounce_password'] = '';
-        
+
         if (isset( $settings['subscribe_groups']))
             $settings['subscribe_groups'] = implode(',', $settings['subscribe_groups']);
 
@@ -1635,7 +1870,7 @@ class Email_Newsletter_functions {
      **/
     function save_settings_array( $settings, $tb_prefix = '' ) {
        global $wpdb;
-        
+
         if(empty($tb_prefix))
             $tb_prefix = $this->tb_prefix;
 
@@ -1644,7 +1879,7 @@ class Email_Newsletter_functions {
 
         foreach( $settings as $key => $item )
              $result = $wpdb->query( $wpdb->prepare( "REPLACE INTO {$tb_prefix}enewsletter_settings SET `key` = '%s', `value` = '%s'", $key, stripslashes( $item ) ) );
-        
+
         return $result;
     }
 
@@ -1653,10 +1888,10 @@ class Email_Newsletter_functions {
      **/
     function get_settings($tb_prefix = '') {
         global $wpdb;
-        
+
         if(empty($tb_prefix))
             $tb_prefix = $this->tb_prefix;
-        
+
         if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_settings'" ) == "{$tb_prefix}enewsletter_settings" ) {
             $results = $wpdb->get_results( "SELECT * FROM {$tb_prefix}enewsletter_settings ORDER BY `key`", "ARRAY_A" );
 
@@ -1778,6 +2013,9 @@ class Email_Newsletter_functions {
                     `member_email` varchar(255) NOT NULL,
                     `join_date` int(11) NOT NULL,
                     `member_info` text,
+                    `sent` int(11) DEFAULT '0',
+                    `opened` int(11) DEFAULT '0',
+                    `bounced` int(11) DEFAULT '0',
                     `unsubscribe_code` varchar(20),
                     PRIMARY KEY (`member_id`)
                 ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
@@ -1806,13 +2044,13 @@ class Email_Newsletter_functions {
 
                 $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_settings` (
                     `key` varchar(255) NOT NULL,
-                    `value` varchar(255) NOT NULL,
+                    `value` text NOT NULL,
                     PRIMARY KEY (`key`)
                 ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
 
                 $result = $wpdb->query( $enewsletter_table );
             }
-			
+
 			// Added in v2.0
 			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_meta'" ) != "{$tb_prefix}enewsletter_meta" ) {
 
@@ -1826,39 +2064,21 @@ class Email_Newsletter_functions {
 
                 $result = $wpdb->query( $enewsletter_table );
             }
-			
+
 			//create folder for custom themes
 			$custom_theme_dir = $this->get_custom_theme_dir();
-			
+
 			if (!is_dir($custom_theme_dir)) {
 				mkdir($custom_theme_dir);
 			}
 
         }
     }
-	
+
 	function upgrade( $blog_id = '', $prev ) {
 		global $wpdb;
 
-        if($prev < 2.01) {
-            //Set value for CRON (transition from old version)
-            if ( ! isset( $this->settings['cron_enable'] ) && isset( $this->settings['cron_time'] ) ) {
-                if ( 1 < $this->settings['cron_time'] ) {
-                    $result = $wpdb->query( "INSERT INTO {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_enable', `value` = '1'" );
-                    if ( 7 >  $this->settings['cron_time'] )
-                        $result = $wpdb->query( "UPDATE {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_time', `value` = '1' WHERE `key` = 'cron_time'" );
-                    else
-                        $result = $wpdb->query( "UPDATE {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_time', `value` = '2' WHERE `key` = 'cron_time'" );
-                } else {
-                    $result = $wpdb->query( "INSERT INTO {$this->tb_prefix}enewsletter_settings SET `key` = 'cron_enable', `value` = '2'" );
-                    if ( wp_next_scheduled( $this->cron_send_name ) )
-                        wp_clear_scheduled_hook( $this->cron_send_name );
-                }
-                $this->settings = $this->get_settings();
-            }
-        }
-		
-		if ( $this->is_plugin_active_for_network(plugin_basename(__FILE__)) ) {
+		if ( $this->is_plugin_active_for_network(plugin_basename($this->plugin_main_file)) ) {
                 $blogids = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
         } else {
             if ( 0 !== $blog_id )
@@ -1873,9 +2093,9 @@ class Email_Newsletter_functions {
                 $tb_prefix = $wpdb->base_prefix . $blog_id . '_';
             else
                 $tb_prefix = $wpdb->base_prefix;
-            
-            if($prev < 2.01) {    
-                if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_meta'" ) != "{$tb_prefix}enewsletter_meta" ) {
+
+            if($prev < 2.01) {
+                if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_meta'" ) != $tb_prefix.'enewsletter_meta' ) {
 
                     $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_meta` (
                         `meta_id` int(11) NOT NULL auto_increment,
@@ -1887,7 +2107,7 @@ class Email_Newsletter_functions {
 
                     $result = $wpdb->query( $enewsletter_table );
                 }
-    			
+
     			//Take care of pop3 encryption
     			$settings = $this->get_settings($tb_prefix);
     			if(isset($settings['bounce_password']) && strlen($settings['bounce_password']) != 44) {
@@ -1897,13 +2117,109 @@ class Email_Newsletter_functions {
             }
 
             if($prev < 2.3) {
-                 if ( !$wpdb->get_var( "SHOW COLUMNS FROM `{$tb_prefix}enewsletter_send_members` LIKE 'wp_only_user_id'" )) {
-                    $enewsletter_table = "ALTER TABLE  `{$tb_prefix}enewsletter_send_members` ADD  `wp_only_user_id` INT( 11 ) NOT NULL DEFAULT  '0' AFTER  `member_id`";
-                    $result = $wpdb->query( $enewsletter_table );
-                }  
-            }            
+                if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_send_members'" ) == $tb_prefix.'enewsletter_send_members' ) {
+                    if ( !$wpdb->get_var( "SHOW COLUMNS FROM `{$tb_prefix}enewsletter_send_members` LIKE 'wp_only_user_id'" )) {
+                        $enewsletter_table = "ALTER TABLE  `{$tb_prefix}enewsletter_send_members` ADD  `wp_only_user_id` INT( 11 ) NOT NULL DEFAULT  '0' AFTER  `member_id`";
+                        $result = $wpdb->query( $enewsletter_table );
+                    }
+                }
+            }
+            if($prev < 2.5) {
+                if($wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_settings'" ) == $tb_prefix.'enewsletter_settings') {
+                    //allow for longer texts
+                    $result = $wpdb->query("ALTER TABLE {$tb_prefix}enewsletter_settings MODIFY value text");
+                }
+                if($wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_meta'" ) == $tb_prefix.'enewsletter_meta') {
+                    $result = $wpdb->query("DELETE a FROM {$tb_prefix}enewsletter_meta a LEFT JOIN {$tb_prefix}enewsletter_newsletters b ON a.email_id = b.newsletter_id WHERE b.newsletter_id IS NULL");
+                }
+            }
+            if($prev < 2.51) {
+                if($wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_members'" ) == $tb_prefix.'enewsletter_members') {
+                    if ( !$wpdb->get_var( "SHOW COLUMNS FROM `{$tb_prefix}enewsletter_members` LIKE 'bounced'" ))
+                        $result = $wpdb->query( "ALTER TABLE  `{$tb_prefix}enewsletter_members` ADD  `bounced` INT( 11 ) NULL AFTER `join_date`" );
+                    if ( !$wpdb->get_var( "SHOW COLUMNS FROM `{$tb_prefix}enewsletter_members` LIKE 'opened'" ))
+                        $result = $wpdb->query( "ALTER TABLE  `{$tb_prefix}enewsletter_members` ADD  `opened` INT( 11 ) NULL AFTER `join_date`" );
+                    if ( !$wpdb->get_var( "SHOW COLUMNS FROM `{$tb_prefix}enewsletter_members` LIKE 'sent'" ))
+                        $result = $wpdb->query( "ALTER TABLE  `{$tb_prefix}enewsletter_members` ADD  `sent` INT( 11 ) NULL AFTER `join_date`" );
+                }
+            }
 		}
+
+        if($prev < 2.51) {
+            //turns on stats migration
+            if($this->is_plugin_active_for_network(plugin_basename($this->plugin_main_file))) {
+                update_site_option('email_newsletter_upgraded_cron', 0);
+                update_site_option('email_newsletter_upgraded_cron_migrate_stats', 0);
+            }
+            else {
+                update_option('email_newsletter_upgraded_cron', 0);
+                update_option('email_newsletter_upgraded_cron_migrate_stats', 0);
+            }
+        }
 	}
+
+    function upgrade_cron() {
+        global $wpdb;
+        @set_time_limit( 0 );
+
+        if ( $this->is_plugin_active_for_network(plugin_basename($this->plugin_main_file)) ) {
+            $blogids = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
+        } else
+            $blogids[] = $wpdb->blogid;
+
+        if($this->is_plugin_active_for_network(plugin_basename($this->plugin_main_file)))
+            $upgraded_cron_migrate_stats = get_site_option('email_newsletter_upgraded_cron_migrate_stats', 1);
+        else
+            $upgraded_cron_migrate_stats = get_option('email_newsletter_upgraded_cron_migrate_stats', 1);
+
+        $total = $count = $count_all = $count_blogs = 0;
+        foreach ( $blogids as $blog_id ) {
+            $count_blogs ++;
+            //Checking DB prefix
+            if ( 1 < $blog_id )
+                $tb_prefix = $wpdb->base_prefix . $blog_id . '_';
+            else
+                $tb_prefix = $wpdb->base_prefix;
+
+            if(!$upgraded_cron_migrate_stats && $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_members'" ) == $tb_prefix.'enewsletter_members' && $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_send_members'" ) == $tb_prefix.'enewsletter_send_members') {
+                $arg['where'] = 'sent IS NULL';
+                $members = $this->get_members( $arg, 0, 1, $tb_prefix );
+
+                $total = $total + count($members);
+                $count = 0;
+                foreach ($members as $member) {
+                    $count_all ++;
+                    $count ++;
+                    if(empty($member['count_sent']))
+                        $member['count_sent'] = 0;
+                    if(empty($member['count_opened']))
+                        $member['count_opened'] = 0;
+                    if(empty($member['count_bounced']))
+                        $member['count_bounced'] = 0;
+
+                    $result = $wpdb->query( $wpdb->prepare( "UPDATE {$tb_prefix}enewsletter_members SET sent = %d WHERE member_id = %d", $member['count_sent'], $member['member_id'] ) );
+                    $result = $wpdb->query( $wpdb->prepare( "UPDATE {$tb_prefix}enewsletter_members SET opened = %d WHERE member_id = %d", $member['count_opened'], $member['member_id'] ) );
+                    $result = $wpdb->query( $wpdb->prepare( "UPDATE {$tb_prefix}enewsletter_members SET bounced = %d WHERE member_id = %d", $member['count_bounced'], $member['member_id'] ) );
+                }
+                if($count == count($members)) {
+                    $result = $wpdb->query("DELETE a FROM {$tb_prefix}enewsletter_send_members a LEFT JOIN {$tb_prefix}enewsletter_send b ON a.send_id = b.send_id WHERE b.send_id IS NULL");
+                }
+            }
+        }
+
+        if(!$upgraded_cron_migrate_stats && $total == $count_all && count($blogids) == $count_blogs) {
+            if($this->is_plugin_active_for_network(plugin_basename($this->plugin_main_file))) {
+                update_site_option('email_newsletter_upgraded_cron', 1);
+                update_site_option('email_newsletter_upgraded_cron_migrate_stats', 1);
+            }
+            else {
+                update_option('email_newsletter_upgraded_cron', 1);
+                update_option('email_newsletter_upgraded_cron_migrate_stats', 1);
+            }
+        }
+
+        die();
+    }
 
     /**
      * Deleting tables from DB
@@ -1911,7 +2227,7 @@ class Email_Newsletter_functions {
     function uninstall( $blog_id = '' ) {
         global $wpdb;
 
-        if ( $this->is_plugin_active_for_network(plugin_basename(__FILE__)) ) {
+        if ( $this->is_plugin_active_for_network(plugin_basename($this->plugin_main_file)) ) {
                 $blogids = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
         } else {
             if ( 0 !== $blog_id )
@@ -1966,7 +2282,7 @@ class Email_Newsletter_functions {
 
             delete_option('email_newsletter_version');
         }
-		
+
 		//remove folder for custom themes
 		$custom_theme_dir = $this->get_custom_theme_dir();
 		if (is_dir($custom_theme_dir)) {
@@ -1974,7 +2290,7 @@ class Email_Newsletter_functions {
 		}
 
         //remove data about site options
-        if($this->is_plugin_active_for_network(plugin_basename(__FILE__)))
+        if($this->is_plugin_active_for_network(plugin_basename($this->plugin_main_file)))
             delete_site_option('email_newsletter_version');
         else
             delete_option('email_newsletter_version');
@@ -1994,7 +2310,7 @@ class Email_Newsletter_functions {
         fwrite($handle, $data);
         fclose($handle);
     }
-	
+
     /**
      * Get path to custom theme directory
      **/
@@ -2002,32 +2318,32 @@ class Email_Newsletter_functions {
 		$enewsletter_themes_dir = wp_upload_dir();
 		$enewsletter_themes_dir = $enewsletter_themes_dir['basedir'];
 		//$enewsletter_themes_dir = substr($enewsletter_themes_dir, 0, strpos($enewsletter_themes_dir, '/uploads'));
-		
+
 		if(!empty($enewsletter_themes_dir)) {
 			$enewsletter_themes_dir = $enewsletter_themes_dir.'/enewsletter-custom-themes';
 			return $enewsletter_themes_dir;
 		}
-		
+
 		return false;
     }
-	
+
     /**
      * Deletes whole dir
      **/
     function delete_dir($src) {
 		$dir = opendir($src);
-		while(false !== ( $file = readdir($dir)) ) { 
-			if (( $file != '.' ) && ( $file != '..' )) { 
-				if ( is_dir($src . '/' . $file) ) { 
-					delete_dir($src . '/' . $file); 
-				} 
-				else { 
-					unlink($src . '/' . $file); 
-				} 
-			} 
-		} 
+		while(false !== ( $file = readdir($dir)) ) {
+			if (( $file != '.' ) && ( $file != '..' )) {
+				if ( is_dir($src . '/' . $file) ) {
+					delete_dir($src . '/' . $file);
+				}
+				else {
+					unlink($src . '/' . $file);
+				}
+			}
+		}
 		rmdir($src);
-		closedir($dir); 
+		closedir($dir);
     }
 
     /**
@@ -2053,7 +2369,7 @@ class Email_Newsletter_functions {
         return;
 
       call_user_func( $callable );
-    }  
+    }
 
     /**
      * Encrypt text (SMTP & POP password)
@@ -2076,7 +2392,5 @@ class Email_Newsletter_functions {
             return $text;
         }
     }
-
-
 }
 ?>

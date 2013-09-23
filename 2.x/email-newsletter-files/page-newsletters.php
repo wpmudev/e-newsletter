@@ -44,7 +44,7 @@
     <div class="wrap">
         <h2>
         	<?php _e( 'Newsletters', 'email-newsletter' ) ?>
-        	<a href="<?php echo $email_builder->generate_builder_link('new'); ?>" class="add-new-h2"><?php _e('Create New','email-newsletter'); ?></a>
+        	<a href="<?php echo admin_url( 'admin.php?page=newsletters&create_newsletter=true' ); ?>" class="add-new-h2"><?php _e('Create New','email-newsletter'); ?></a>
         </h2>
         <p><?php _e( 'This page contains the list of all Newsletters.', 'email-newsletter' ) ?></p>
         <p class="description"><?php _e( 'Note: please store your custom themes in enewsletter-custom-themes folder located in wp-content/uploads(+/siteID/ if activated on a single blog of a multi-site install).', 'email-newsletter' ) ?></p>
@@ -53,28 +53,28 @@
             <thead>
                 <tr>
                     <th <?php echo (isset($arg['orderby']) && "newsletter_id" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
-                        <?php $url = add_query_arg( array('orderby' => 'newsletter_id'), $url_orginal ); ?> 
+                        <?php $url = add_query_arg( array('orderby' => 'newsletter_id'), $url_orginal ); ?>
                         <a href="<?php echo $url; ?>">
                             <span><?php _e( 'ID', 'email-newsletter' ) ?></span>
                             <span class="sorting-indicator"></span>
                         </a>
                     </th>
                     <th <?php echo (isset($arg['orderby']) && "create_date" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
-                        <?php $url = add_query_arg( array('orderby' => 'create_date'), $url_orginal ); ?> 
+                        <?php $url = add_query_arg( array('orderby' => 'create_date'), $url_orginal ); ?>
                         <a href="<?php echo $url; ?>">
                             <span><?php _e( 'Create Date', 'email-newsletter' ) ?></span>
                             <span class="sorting-indicator"></span>
                         </a>
                     </th>
                     <th <?php echo (isset($arg['orderby']) && "subject" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
-                        <?php $url = add_query_arg( array('orderby' => 'subject'), $url_orginal ); ?> 
+                        <?php $url = add_query_arg( array('orderby' => 'subject'), $url_orginal ); ?>
                         <a href="<?php echo $url; ?>">
                             <span><?php _e( 'Email Subject', 'email-newsletter' ) ?></span>
                             <span class="sorting-indicator"></span>
                         </a>
                     </th>
                     <th <?php echo (isset($arg['orderby']) && "template" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
-                        <?php $url = add_query_arg( array('orderby' => 'template'), $url_orginal ); ?> 
+                        <?php $url = add_query_arg( array('orderby' => 'template'), $url_orginal ); ?>
                         <a href="<?php echo $url; ?>">
                             <span><?php _e( 'Template', 'email-newsletter' ) ?></span>
                             <span class="sorting-indicator"></span>
@@ -101,13 +101,13 @@
         if ( $newsletters )
             foreach( $newsletters as $key => $newsletter ) {
             	$template_id = $this->get_newsletter_meta($newsletter['newsletter_id'],'plugin_template_id');
-				
+
 				if($template_id != false) {
 					$template_query[$template_id] = $newsletter;
 					unset($newsletters[$key]);
 					continue;
 				}
-				
+
                 if ( $i % 2 == 0 )
                     echo "<tr class='alternate'>";
                 else
@@ -140,7 +140,10 @@
                     <a class="deleteNewsletter button button-secondary" href="?page=newsletters&amp;newsletter_action=delete_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
                         <?php _e( 'Delete', 'email-newsletter' ) ?>
                     </a>
-                    <a class="button button-secondary" href="<?php echo $email_builder->generate_builder_link($newsletter['newsletter_id'],'admin.php?page=newsletters') ?>">
+                    <a class="cloneNewsletter button button-secondary" href="?page=newsletters&amp;newsletter_action=clone_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
+                        <?php _e( 'Clone', 'email-newsletter' ) ?>
+                    </a>
+                    <a class="button button-secondary" href="<?php echo $email_builder->generate_builder_link($newsletter['newsletter_id'], $newsletter['template']) ?>">
                         <?php _e( 'Edit', 'email-newsletter' ) ?>
                     </a>
                     <a class="button button-primary"  href="?page=newsletters&amp;newsletter_action=send_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
@@ -152,7 +155,7 @@
             }
         ?>
         </table>
-		
+
     </div><!--/wrap-->
     <style type="text/css">
     	#newsletterList tbody td {
@@ -168,7 +171,7 @@
     	}
     	#newsletterList thead th.actionCol {
     		text-align: center;
-    	} 
+    	}
     </style>
     <script type="text/javascript">
     	jQuery(document).ready( function($) {

@@ -1,46 +1,61 @@
-<body data-builder="bg" marginheight="0" topmargin="0" marginwidth="0" leftmargin="0" background="{BG_IMAGE}" style="margin: 0; background-color: {BG_COLOR};">
-<div data-builder="bg" style="background-color: {BG_COLOR};">
-<table data-builder="bg" width="100%" border="0" background="{BG_IMAGE}" cellspacing="0" cellpadding="0" style="background-image: url({BG_IMAGE}); margin: 0; padding: 10px 100px 10px 100px; font-family:Georgia, Arial, Sans-serif; line-height:22px; font-size:12px;" >
+<table class="container" border="0" align="center" cellpadding="0" cellspacing="0">
 	<tr>
-		<td>
-			<table width="700" border="0" align="center" cellpadding="0" cellspacing="0" style="margin-top:30px; margin-bottom:10px; padding:15px; border:1px solid #cccccc; background-color:#ffffff;">
+		<td valign="middle" align="center">
+			<div class="width">
+
+			<table class="content content_main" align="center" border="0" cellspacing="0" cellpadding="0">
 				<tr>
-					<td valign="middle" style="border: 0; padding: 20px;">
-						<table width="100%" border="0" cellspacing="0" cellpadding="0" >
-							<tr>
-								<td style="padding-bottom:10px; color:#aaaaaa; font-family:Georgia, Arial, Sans-serif; font-size:14px;">
-									From <span data-builder="from_name">{FROM_NAME}</span> (<span data-builder="from_email">{FROM_EMAIL}</span>)
-								</td>
-							</tr>
-							<tr>
-								<td style="border-bottom:1px solid #cccccc; padding-bottom: 10px;">
-									<h1 data-builder="email_title" style="font-size:50px; line-height:50px; font-family:Georgia, Arial, Sans-serif; margin:0px; padding-bottom:10px; color:#33333; text-shadow:-1px -1px 0px #000000;">{EMAIL_TITLE}</h1>
-								</td>
-							</tr>
-							<tr>
-								<td style="border: 0; font-size:12px; line-height:22px; color:#111111; padding-bottom:10px; padding-top: 15px;">
-									<div data-builder="body_color" style="color: {BODY_COLOR}">
-										<div data-builder="email_content">
-											{EMAIL_BODY}
-										</div>
-									</div>
-									<pre data-builder="contact_info">{CONTACT_INFO}</pre>
-								</td>
-							</tr>
-						</table>
+					<td valign="middle" class="view_link">
+						{VIEW_LINK_TEXT}
+					</td>
+				</tr>
+				<tr>
+					<td valign="middle" class="branding_html" data-builder="branding_html">
+						{BRANDING_HTML}
+					</td>
+				</tr>
+				<tr>
+					<td class="from">
+						From <span data-builder="from_name">{FROM_NAME}</span> (<span data-builder="from_email">{FROM_EMAIL}</span>)
+					</td>
+				</tr>
+				<tr>
+					<td class="title" data-builder="title_color">
+						<div data-builder="email_title">
+							{EMAIL_TITLE}
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td class="separator_holder">
+						<table align="center" border="0" cellspacing="0" cellpadding="0"><tr><td class="separator"></td></tr></table>
+					</td>
+				</tr>
+				<tr>
+					<td class="email_content" data-builder="body_color">
+						<div data-builder="email_content">
+							{EMAIL_BODY}
+						</div>
+					</td>
+				<tr>
+				<tr>
+					<td class="contact_info">
+						<div data-builder="contact_info">
+							{CONTACT_INFO}
+						</div>
 					</td>
 				</tr>
 			</table>
-			
-			<table width="700" border="0" align="center" cellpadding="0" cellspacing="0" style="margin-bottom:30px;">
+
+			<table class="content content_unsubscribe" border="0" cellspacing="0" cellpadding="0">
 				<tr>
-					<td style="padding-top:10px; font-family:Georgia, Arial, Sans-serif; text-align:center; color:#666666; font-weight:bold; text-transform:uppercase;">
+					<td class="unsubscribe">
 						Not interested anymore? <a href="{UNSUBSCRIBE_URL}" style="color:{LINK_COLOR};">Unsubscribe Instantly.</a>
 					</td>
 				 </tr>
 			</table>
+
+			</div>
 		</td>
 	</tr>
 </table>
-</div>
-</body>

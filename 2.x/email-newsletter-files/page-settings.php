@@ -217,12 +217,22 @@
                             </tr>
                             <tr valign="top">
                                 <th scope="row">
+                                    <?php _e( 'Branding:', 'email-newsletter' ) ?>
+                                </th>
+                                <td>
+                                    <textarea name="settings[branding_html]" class="branding-html" ><?php echo isset($settings['branding_html']) ? esc_textarea($settings['branding_html']) : "";?></textarea>
+                                    <br />
+                                    <span class="description"><?php _e( 'Default branding html/text will be added to the top of each email.', 'email-newsletter' ) ?> <?php _e( 'It can be easily changed for each newsletter', 'email-newsletter' ) ?></span>
+                                </td>
+                            </tr>
+                            <tr valign="top">
+                                <th scope="row">
                                     <?php _e( 'Contact information:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
                                     <textarea name="settings[contact_info]" class="contact-information" ><?php echo isset($settings['contact_info']) ? esc_textarea($settings['contact_info']) : "";?></textarea>
                                     <br />
-                                    <span class="description"><?php _e( 'Default contact information will be added to the bottom of each email', 'email-newsletter' ) ?></span>
+                                    <span class="description"><?php _e( 'Default contact information will be added to the bottom of each email.', 'email-newsletter' ) ?> <?php _e( 'It can be easily changed for each newsletter', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
                             <tr valign="top">
@@ -230,7 +240,7 @@
                                     <?php _e( 'View email in browser:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
-                                    <textarea name="settings[view_browser]" class="view-browser" ><?php echo isset($settings['view_browser']) ? esc_textarea($settings['view_browser']) : __( '<a href="{VIEW_LINK}" title="View e-mail in browser">View e-mail in browser</a><br/>', 'email-newsletter' ); ?></textarea>
+                                    <textarea name="settings[view_browser]" class="view-browser" ><?php echo isset($settings['view_browser']) ? esc_textarea($settings['view_browser']) : __( '<a href="{VIEW_LINK}" title="View e-mail in browser">View e-mail in browser</a><br/><br/>', 'email-newsletter' ); ?></textarea>
                                     <br />
                                     <span class="description"><?php _e( 'This HTML message will be visible before newsletter starts so user have ability to display email in browser. Use "{VIEW_LINK}" as link. Leave blank to disable.', 'email-newsletter' ) ?></span>
                                 </td>
