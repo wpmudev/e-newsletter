@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.5.1
+Version: 2.5.2
 Text Domain: email-newsletter
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
@@ -58,7 +58,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.51;
+        $this->plugin_ver = 2.52;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -1915,7 +1915,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             $sent_status = $this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents );
             $this->write_log('double opt in send status:'.$sent_status);
-            return $send_status;
+            return $sent_status;
         }
 
     }
@@ -2039,7 +2039,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $return = '
         <div class="e-newsletter-widget">
-            <div id="message" style="display:none; background-color: #FFFFE0;border-color: #E6DB55;margin: 5px 0 15px;-moz-border-radius: 3px 3px 3px 3px;border-style: solid;border-width: 1px;padding: 5px;"></div>
+            <div id="message" style="color:#000000; display:none; background-color: #FFFFE0;border-color: #E6DB55;margin: 5px 0 15px;-moz-border-radius: 3px 3px 3px 3px;border-style: solid;border-width: 1px;padding: 5px;"></div>
 
             <form action="" method="post" name="subscribes_form" id="subscribes_form">
                 <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />';

@@ -5,6 +5,10 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 
 == Changelog ==
 
+= 2.5.2 =
+* Fixed problem with messages in subscribe widget
+* Removed </br>'s from default "View email in browser" HTML
+
 = 2.5.1 =
 * Moved stats data for members in db to improve performance(stats may disappear for few minutes)
 * Added new responsive theme "Promy"

@@ -16,7 +16,7 @@
 	if (!class_exists('WpmuDev_HelpTooltips')) require_once $email_newsletter->plugin_dir . '/email-newsletter-files/class_wd_help_tooltips.php';
 	$tips = new WpmuDev_HelpTooltips();
 	$tips->set_icon_url($email_newsletter->plugin_url.'/email-newsletter-files/images/information.png');
-	
+
 
     //Display status message
     if ( isset( $_GET['updated'] ) ) {
@@ -26,9 +26,9 @@
 ?>
 
     <script type="text/javascript">
-	
+
         jQuery( document ).ready( function($) {
-			
+
 			$('.newsletter-settings-tabs > div').not('.active').hide();
 			$('#newsletter-tabs a').click(function(e) {
 				var tab = $(this).attr('href');
@@ -37,7 +37,7 @@
 				$(tab).addClass('nav-tab-active');
 				return false;
 			});
-			
+
             $( "input[type=button][name='save']" ).click( function() {
                 if ( "" == $( "#smtp_host" ).val() && $( "#smtp_method" ).attr( 'checked' ) ) {
                     alert("<?php _e( 'Please write SMTP Outgoing Server, or select another Sending Method!', 'email-newsletter' ); ?>");
@@ -129,7 +129,7 @@
                     }
                  });
             });
-            
+
             function set_out_option() {
 	            $('.email_out_type' ).each( function() {
 	                if( $( this )[0].checked ){
@@ -138,7 +138,7 @@
 	                }
 	            });
 	        }
-            
+
             set_out_option();
             $( '.email_out_type' ).change( function() {
                 set_out_option();
@@ -147,7 +147,7 @@
                     $( '.email_out_' + $( this ).val() ).show();
                 }
             });
-            
+
             $('table.permissionTable thead .check-column input:checkbox').change(function() {
             	if($(this).is(':checked')) {
             		$(this).parents('table').find('.check-column input:checkbox').not($(this)).attr('checked','checked');
@@ -167,9 +167,9 @@
         <form method="post" name="settings_form" id="settings_form" >
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
             <?php if(isset($mode)) echo '<input type="hidden" name="mode"  value="'.$mode.'" />'; ?>
-			
+
             <div class="newsletter-settings-tabs">
-               
+
 					<h3 id="newsletter-tabs" class="nav-tab-wrapper">
 						<a href="#tabs-1" class="nav-tab nav-tab-active"><?php _e( 'General Settings', 'email-newsletter' ) ?></a>
 						<a href="#tabs-2" class="nav-tab"><?php _e( 'Outgoing Email Settings', 'email-newsletter' ) ?></a>
@@ -181,7 +181,7 @@
 					</h3>
                     <div class="active" id="tabs-1">
                         <h3><?php _e( 'Double Opt In Settings', 'email-newsletter' ) ?></h3>
-						
+
                         <table class="settings-form form-table">
                             <tr valign="top">
                                 <th scope="row">
@@ -202,9 +202,9 @@
                                 </td>
                             </tr>
 						</table>
-						
+
 						<h3><?php _e( 'Default Info Settings', 'email-newsletter' ) ?></h3>
-						
+
 						<table class="settings-form form-table">
                             <tr valign="top">
                                 <th scope="row">
@@ -240,7 +240,7 @@
                                     <?php _e( 'View email in browser:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
-                                    <textarea name="settings[view_browser]" class="view-browser" ><?php echo isset($settings['view_browser']) ? esc_textarea($settings['view_browser']) : __( '<a href="{VIEW_LINK}" title="View e-mail in browser">View e-mail in browser</a><br/><br/>', 'email-newsletter' ); ?></textarea>
+                                    <textarea name="settings[view_browser]" class="view-browser" ><?php echo isset($settings['view_browser']) ? esc_textarea($settings['view_browser']) : __( '<a href="{VIEW_LINK}" title="View e-mail in browser">View e-mail in browser</a>', 'email-newsletter' ); ?></textarea>
                                     <br />
                                     <span class="description"><?php _e( 'This HTML message will be visible before newsletter starts so user have ability to display email in browser. Use "{VIEW_LINK}" as link. Leave blank to disable.', 'email-newsletter' ) ?></span>
                                 </td>
@@ -277,7 +277,7 @@
                                             </label>
                                             <br />
                                         <?php endforeach; ?>
-                                    <?php 
+                                    <?php
                                     }
                                     else {
                                     ?>
@@ -325,7 +325,7 @@
                                         <label id="tip_smtp">
                                             <input type="radio" name="settings[outbound_type]" id="smtp_method" value="smtp" class="email_out_type" <?php echo ( $settings['outbound_type'] == 'smtp' || ! $settings['outbound_type']) ? 'checked="checked"' : '';?> /><?php echo _e( 'SMTP (recommended)', 'email-newsletter' );?>
                                         </label>
-											
+
 										<?php $tips->bind_tip(__("The SMTP method allows you to use your SMTP server (or Gmail, Yahoo, Hotmail etc. ) for sending newsletters and emails. It's usually the best choice, especially if your host has restrictions on sending email and to help you to avoid being blacklisted as a SPAM sender",'email-newsletter'), '#tip_smtp'); ?>
 
                                         <label id="tip_php">
@@ -350,7 +350,7 @@
                                     <th scope="row">
                                     </th>
                                     <td>
-                                        <span class="red description"><?php _e( 'Note: for SMTP method - in "From email" you should use only emails which related with your SMTP server!', 'email-newsletter' ) ?></span>                                        
+                                        <span class="red description"><?php _e( 'Note: for SMTP method - in "From email" you should use only emails which related with your SMTP server!', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr valign="top">
@@ -449,9 +449,9 @@
 						<?php
 						if(!function_exists('imap_open')) {
 						?>
-						
+
 	                    <p><?php _e( 'Please enable "IMAP" PHP extension for bounce to work.', 'email-newsletter' ) ?></p>
-						
+
 						<?php
 						}
 						else {
@@ -574,7 +574,7 @@
                     <?php endif; ?>
 
             </div><!--/.newsletter-tabs-settings-->
-		
+
             <p class="submit">
             <?php if ( isset( $mode ) && "install" == $mode ) { ?>
                 <input class="button button-primary" type="button" name="install" id="install" value="<?php _e( 'Install', 'email-newsletter' ) ?>" />
