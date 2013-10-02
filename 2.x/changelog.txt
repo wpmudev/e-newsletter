@@ -5,6 +5,12 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 
 == Changelog ==
 
+= 2.5.3 =
+* Fixed permission problems for lower level users
+* Fixed problems with unsubscribe link
+* Improvements to handling WP only users
+* Other small improvements
+
 = 2.5.2 =
 * Fixed problem with messages in subscribe widget
 * Removed </br>'s from default "View email in browser" HTML

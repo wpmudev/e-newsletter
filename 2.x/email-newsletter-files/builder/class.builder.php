@@ -15,7 +15,7 @@ class Email_Newsletter_Builder  {
 		add_shortcode( 'en-gallery' , array( &$this,'n_gallery_shortcode') );
 
 		//Capability fix
-		add_action( 'admin_init', array( &$this, 'builder_capability_fix') );
+		add_action( 'admin_init', array( &$this, 'admin_init') );
 	}
 	function plugins_loaded() {
 		global $current_user, $pagenow, $builder_id, $email_newsletter;
@@ -87,16 +87,14 @@ class Email_Newsletter_Builder  {
 			$final .= '&url='.$url;
 		return admin_url($final);
 	}
-	function builder_capability_fix() {
-		global $current_user, $pagenow, $email_newsletter;
-		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 0;
-		$create_newsletter = isset($_REQUEST['create_newsletter']) ? $_REQUEST['create_newsletter'] : false;
+	function admin_init() {
+		global $current_user, $email_newsletter;
 
-		$user = new WP_User( $current_user->ID );
 		$remove = get_user_meta($current_user->ID, '_enewsletter_remove_capability', true);
+		if ( isset( $_REQUEST['newsletter_builder_action'] ) ) {
+			$user = new WP_User( $current_user->ID );
 
-		if ( $page == 'newsletters' && $pagenow == 'admin.php') {
-			if(current_user_can('save_newsletter'))
+			if(current_user_can('create_newsletter') || current_user_can('save_newsletter'))
 				if(!current_user_can( 'edit_theme_options' )) {
 					$user->add_cap( 'edit_theme_options');
 					remove_menu_page('themes.php');
@@ -105,14 +103,28 @@ class Email_Newsletter_Builder  {
 			if(!empty($remove))
 				remove_menu_page('themes.php');
 
-			if($create_newsletter == 'true') {
-				if(current_user_can('create_newsletter'))
-					wp_redirect( $this->generate_builder_link('new') );
+			$mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
 
-				exit();
+			switch( $_REQUEST[ 'newsletter_builder_action' ] ) {
+				case "create_newsletter":
+					if(!(current_user_can('create_newsletter') || current_user_can($mu_cap)))
+						wp_die('You do not have permission to do that');
+
+					wp_redirect( $this->generate_builder_link('new') );
+					exit();
+				break;
+				case "edit_newsletter":
+					if(!(current_user_can('save_newsletter') || current_user_can($mu_cap)) && isset($_REQUEST['newsletter_id']))
+						wp_die('You do not have permission to do that');
+
+					$template = (isset($_REQUEST['template'])) ? $_REQUEST['template'] : false;
+					wp_redirect( $this->generate_builder_link($_REQUEST['newsletter_id'], $template) );
+					exit();
+				break;
 			}
 		}
-		else {
+		elseif(!isset( $_REQUEST['wp_customize'] ) && !defined('DOING_AJAX')) {
+			$user = new WP_User( $current_user->ID );
 			if(!empty($remove)) {
 				remove_menu_page('themes.php');
 				$user->remove_cap( 'edit_theme_options');
@@ -944,7 +956,7 @@ class Email_Newsletter_Builder  {
 			die();
 
 		$content = $email_newsletter->make_email_body($builder_id, 1);
-		$content = $email_newsletter->personalise_email_body($content, 0, 0, 0, 0, $changes = array('user_name' => '{USER_NAME}', 'member_email'=> '{TO_EMAIL}'));
+		$content = $email_newsletter->personalise_email_body($content, 0, 0, 0, 0, 0, $changes = array('user_name' => '{USER_NAME}', 'member_email'=> '{TO_EMAIL}'));
 
 		echo $content;
 

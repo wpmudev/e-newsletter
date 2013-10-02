@@ -11,7 +11,7 @@ else {
 		$ok = 1;
 }
 
-if($ok) {
+if(isset($ok)) {
 	$member_id = $wp_only_user_id = 0;
 	if($result['member_id'] > 0) {
 		$member_id = $result['member_id'];
@@ -29,7 +29,7 @@ if($ok) {
 
 		$user_name = $this->get_nicename($member_data['wp_user_id'], $member_data['member_nicename']);
 
-		$content = $this->personalise_email_body($content, $member_id, $wp_only_user_id, $view_newsletter_code, $view_newsletter_send_id, array('user_name' => $user_name, 'member_email' => $member_data["member_email"], 'disable_view_link' => 1));
+		$content = $this->personalise_email_body($content, $member_id, $wp_only_user_id, $view_newsletter_code, $member_data['unsubscribe_code'], $view_newsletter_send_id, array('user_name' => $user_name, 'member_email' => $member_data["member_email"]));
 		echo $content;
 	}
 }

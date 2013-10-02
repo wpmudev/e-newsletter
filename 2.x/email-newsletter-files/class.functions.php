@@ -237,17 +237,30 @@ class Email_Newsletter_functions {
     /**
      * get member id by unsubscribe code
      **/
-    function get_member_by_email( $email ) {
+    function get_member_by_join_date( $time ) {
         global $wpdb;
-        return  $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members WHERE member_email = '%s'", $email ), "ARRAY_A" );
+        $member_id = $wp_only_user_id = 0;
+
+        $result = $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE join_date = '%d'", $time ), "ARRAY_A" );
+        if(isset($result['member_id']) && $result['member_id'] > 0)
+            $member_id = $result['member_id'];
+
+        if($member_id == 0) {
+            $time = date("Y-m-d H:i:s", $time);
+            $result = $wpdb->get_row( $wpdb->prepare( "SELECT ID FROM $wpdb->users WHERE user_registered = %s", $time ), "ARRAY_A" );
+            if(isset($result['ID']) && $result['ID'] > 0)
+            $wp_only_user_id = $result['ID'];
+        }
+
+        return array('member_id' => $member_id, 'wp_only_user_id' => $wp_only_user_id);
     }
 
     /**
      * get member id by unsubscribe code
      **/
-    function get_member_by_join_date( $time ) {
+    function get_member_by_email( $email ) {
         global $wpdb;
-        return  $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members WHERE join_date = '%d'", $time ), "ARRAY_A" );
+        return  $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_members WHERE member_email = '%s'", $email ), "ARRAY_A" );
     }
 
     /**
@@ -256,21 +269,12 @@ class Email_Newsletter_functions {
     function get_members_by_wp_user_id( $wp_user_id, $blog_id = '', $subscribed = 0 ) {
         global $wpdb;
 
-        //Checking DB prefix
-        if ( 0 !== $blog_id && 1 < $blog_id )
-            $tb_prefix = $wpdb->base_prefix . $blog_id . '_';
-        else
-            if ( 1 < $wpdb->blogid )
-                $tb_prefix = $wpdb->base_prefix . $wpdb->blogid . '_';
-            else
-                $tb_prefix = $wpdb->base_prefix;
-
         if($subscribed)
             $subscribed = " AND unsubscribe_code != ''";
         else
             $subscribed = "";
 
-        $member = $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$tb_prefix}enewsletter_members WHERE wp_user_id = %d".$subscribed, $wp_user_id ), "ARRAY_A" );
+        $member = $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE wp_user_id = %d".$subscribed, $wp_user_id ), "ARRAY_A" );
         return $member['member_id'];
     }
 
@@ -572,6 +576,7 @@ class Email_Newsletter_functions {
             $return['member_email'] = $user_info->user_email;
             $return['wp_user_id'] = 0;
             $return['wp_only_user_id'] = $user_info->ID;
+            $return['join_date'] = strtotime($user_info->user_registered);
 
             if(!empty($user_info->user_firstname)) {
                 $return['member_nicename'] = $user_info->user_firstname;
@@ -1322,11 +1327,13 @@ class Email_Newsletter_functions {
     /**
      * Personalize email
      **/
-    function personalise_email_body($contents, $member_id, $wp_only_user_id, $code, $send_id, $changes = array()) {
+    function personalise_email_body($contents, $member_id, $wp_only_user_id, $join_date, $unsubscribe_code, $send_id, $changes = array()) {
         if($member_id)
             $id = $member_id;
         elseif($wp_only_user_id)
             $id = $wp_only_user_id;
+        else
+            $id = 0;
 
         if(!empty($changes['user_name']))
             $contents = str_replace( "{USER_NAME}", $changes['user_name'], $contents );
@@ -1341,10 +1348,10 @@ class Email_Newsletter_functions {
         //Set up permalinks
         $contents = str_replace( "{OPENED_TRACKER}", '<div style="font-size: 0px; line-height:0px;"><img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id . '&wp_only_user_id=' . $wp_only_user_id) . '" width="1" height="1"/></div>', $contents );
 
-        $unsubscribe_url = add_query_arg( array('unsubscribe_page' => '1', 'unsubscribe_code' => $code, 'unsubscribe_member_id' => $id), home_url() );
+        $unsubscribe_url = add_query_arg( array('unsubscribe_page' => '1', 'unsubscribe_code' => $unsubscribe_code, 'unsubscribe_member_id' => $id), home_url() );
         $contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", $unsubscribe_url, $contents );
 
-        $view_browser_url = add_query_arg( array('view_newsletter' => '1', 'view_newsletter_code' => $code, 'view_newsletter_send_id' => $send_id), home_url() );
+        $view_browser_url = add_query_arg( array('view_newsletter' => '1', 'view_newsletter_code' => $join_date, 'view_newsletter_send_id' => $send_id), home_url() );
         $contents = str_replace( "{VIEW_LINK}", $view_browser_url, $contents );
         $contents = str_replace( "%7BVIEW_LINK%7D", $view_browser_url, $contents );
 
@@ -1543,10 +1550,13 @@ class Email_Newsletter_functions {
     }
 
     function load_theme_options($template_dir) {
-        if(file_exists($template_dir . 'functions.php'))
-            include($template_dir . 'functions.php');
-        elseif(file_exists($template_dir . 'index.php'))
-            include($template_dir . 'index.php');
+        if($this->loaded_theme_options != $template_dir) {
+            $this->loaded_theme_options = $template_dir;
+            if(file_exists($template_dir . 'functions.php'))
+                include($template_dir . 'functions.php');
+            elseif(file_exists($template_dir . 'index.php'))
+                include($template_dir . 'index.php');
+        }
     }
 
     /**

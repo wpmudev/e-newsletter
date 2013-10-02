@@ -44,7 +44,9 @@
     <div class="wrap">
         <h2>
         	<?php _e( 'Newsletters', 'email-newsletter' ) ?>
-        	<a href="<?php echo admin_url( 'admin.php?page=newsletters&create_newsletter=true' ); ?>" class="add-new-h2"><?php _e('Create New','email-newsletter'); ?></a>
+            <?php if(current_user_can('create_newsletter')) { ?>
+        	<a href="<?php echo admin_url( 'admin.php?newsletter_builder_action=create_newsletter' ); ?>" class="add-new-h2"><?php _e('Create New','email-newsletter'); ?></a>
+            <?php } ?>
         </h2>
         <p><?php _e( 'This page contains the list of all Newsletters.', 'email-newsletter' ) ?></p>
         <p class="description"><?php _e( 'Note: please store your custom themes in enewsletter-custom-themes folder located in wp-content/uploads(+/siteID/ if activated on a single blog of a multi-site install).', 'email-newsletter' ) ?></p>
@@ -137,18 +139,26 @@
                     <?php echo $newsletter['count_opened']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
                 <td>
+                    <?php if(current_user_can('delete_newsletter')) { ?>
                     <a class="deleteNewsletter button button-secondary" href="?page=newsletters&amp;newsletter_action=delete_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
                         <?php _e( 'Delete', 'email-newsletter' ) ?>
                     </a>
+                    <?php } ?>
+                    <?php if(current_user_can('create_newsletter')) { ?>
                     <a class="cloneNewsletter button button-secondary" href="?page=newsletters&amp;newsletter_action=clone_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
                         <?php _e( 'Clone', 'email-newsletter' ) ?>
                     </a>
-                    <a class="button button-secondary" href="<?php echo $email_builder->generate_builder_link($newsletter['newsletter_id'], $newsletter['template']) ?>">
+                    <?php } ?>
+                    <?php if(current_user_can('save_newsletter')) { ?>
+                    <a class="button button-secondary" href="?page=newsletters&amp;newsletter_builder_action=edit_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>&amp;template=<?php echo $newsletter['template'];?>">
                         <?php _e( 'Edit', 'email-newsletter' ) ?>
                     </a>
+                    <?php } ?>
+                    <?php if(current_user_can('send_newsletter')) { ?>
                     <a class="button button-primary"  href="?page=newsletters&amp;newsletter_action=send_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
                         <?php _e( 'Send', 'email-newsletter' ) ?>
                     </a>
+                    <?php } ?>
                 </td>
             </tr>
         <?php

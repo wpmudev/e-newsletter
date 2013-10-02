@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.5.2
+Version: 2.5.3
 Text Domain: email-newsletter
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
@@ -45,6 +45,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     var $cron_bounce_name;
     var $plugin_templates = array();
     var $capabilities = array();
+    var $loaded_theme_options = '';
 
     var $debug;
 
@@ -58,7 +59,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.52;
+        $this->plugin_ver = 2.53;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -359,14 +360,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         //private actions of the plugin
         if ( isset( $_REQUEST['newsletter_action'] ) ) {
             switch( $_REQUEST[ 'newsletter_action' ] ) {
-
-                //action for save Newsletter
-                case "save_newsletter":
-                    if(! (current_user_can('save_newsletter') || current_user_can($mu_cap)) )
-                        wp_die('You do not have permission to do that');
-
-                    $this->save_newsletter( $_REQUEST['newsletter_id'], $_REQUEST['page'] );
-                break;
 
                 //action for save Newsletter
                 case "clone_newsletter":
@@ -967,6 +960,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
             if(isset($_POST['email_newsletter_unsubscribe_code'])) {
                 if($_POST['email_newsletter_unsubscribe_code'] == 'unsubscribed')
                     update_user_meta( $user_id, 'email_newsletter_unsubscribe_code', 'unsubscribed' );
+                elseif($_POST['email_newsletter_unsubscribe_code'] == 'yes')
+                    update_user_meta( $user_id, 'email_newsletter_unsubscribe_code', $this->gen_unsubscribe_code(1) );
             }
         }
     }
@@ -1416,7 +1411,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             //Replace some content inside the email body
             $user_name = $this->get_nicename($member_data['wp_user_id'], $member_data['member_nicename']);
-            $contents = $this->personalise_email_body($contents, $send_member['member_id'], $send_member['wp_only_user_id'], $member_data['join_date'], $send_data['start_time'], array('user_name' => $user_name, 'member_email' => $member_data["member_email"]));
+            $contents = $this->personalise_email_body($contents, $send_member['member_id'], $send_member['wp_only_user_id'], $member_data['join_date'], $member_data['unsubscribe_code'], $send_data['start_time'], array('user_name' => $user_name, 'member_email' => $member_data["member_email"]));
 
             if( $this->settings['bounce_email'] ) {
                 $options['bounce_email'] = $this->settings['bounce_email'];
@@ -1566,7 +1561,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                             //Replace some content inside the email body
                             $user_name = $this->get_nicename($member_data['wp_user_id'], $member_data['member_nicename']);
-                            $contents = $this->personalise_email_body($contents, $send_member['member_id'], $send_member['wp_only_user_id'], $member_data['join_date'], $send_data['start_time'], array('user_name' => $user_name, 'member_email' => $member_data["member_email"]));
+                            $contents = $this->personalise_email_body($contents, $send_member['member_id'], $send_member['wp_only_user_id'], $member_data['join_date'], $member_data['unsubscribe_code'], $send_data['start_time'], array('user_name' => $user_name, 'member_email' => $member_data["member_email"]));
 
                             $options['message_id'] = 'Newsletters-' . $bounce_id . '-' . $send_member['send_id'] . '-'. md5( 'Hash of bounce member_id='. $bounce_id . ', send_id='. $send_member['send_id'] );
 
@@ -1932,7 +1927,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 add_menu_page( __( 'eNewsletter', 'email-newsletter' ), __( 'eNewsletter', 'email-newsletter' ), 'view_newsletter_dashboard', 'newsletters-dashboard', null, $this->plugin_url . 'email-newsletter-files/images/icon.png');
                 add_submenu_page( 'newsletters-dashboard', __( 'Reports', 'email-newsletter' ), __( 'Reports', 'email-newsletter' ), 'view_newsletter_dashboard', 'newsletters-dashboard', array( &$this, 'newsletters_dashboard_page' ) );
                 add_submenu_page( 'newsletters-dashboard', __( 'Newsletters', 'email-newsletter' ), __( 'Newsletters', 'email-newsletter' ), 'save_newsletter', 'newsletters', array( &$this, 'newsletters_page' ) );
-                add_submenu_page( 'newsletters-dashboard', __( 'Create Newsletter', 'email-newsletter' ), __( 'Create Newsletter', 'email-newsletter' ), 'create_newsletter', 'admin.php?page=newsletters&create_newsletter=true' );
+                add_submenu_page( 'newsletters-dashboard', __( 'Create Newsletter', 'email-newsletter' ), __( 'Create Newsletter', 'email-newsletter' ), 'create_newsletter', 'admin.php?newsletter_builder_action=create_newsletter' );
                 add_submenu_page( 'newsletters-dashboard', __( 'Member Groups', 'email-newsletter' ), __( 'Member Groups', 'email-newsletter' ), 'edit_newsletter_group', 'newsletters-groups', array( &$this, 'member_groups_page' ) );
                 add_submenu_page( 'newsletters-dashboard', __( 'Members', 'email-newsletter' ), __( 'Members', 'email-newsletter' ), 'view_newsletter_members', 'newsletters-members',  array( &$this, 'members_page' ) );
                 add_submenu_page( 'newsletters-dashboard', __( 'Settings', 'email-newsletter' ), __( 'Settings', 'email-newsletter' ), 'save_newsletter_settings', 'newsletters-settings', array( &$this, 'settings_page' ) );

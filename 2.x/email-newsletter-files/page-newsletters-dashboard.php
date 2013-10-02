@@ -162,7 +162,7 @@
 
         </table>
 		<p class="submit">
-            <a class="button button-primary" href="<?php echo admin_url( 'admin.php?page=newsletters&create_newsletter=true' ); ?>"><?php _e( 'Create New Newsletter', 'email-newsletter' ) ?></a>
+            <a class="button button-primary" href="<?php echo admin_url( 'admin.php?newsletter_builder_action=create_newsletter' ); ?>"><?php _e( 'Create New Newsletter', 'email-newsletter' ) ?></a>
         </p>
 
         <h3><?php _e( '5 Latest Members:', 'email-newsletter' ) ?></h3>
