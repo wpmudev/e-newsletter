@@ -46,7 +46,7 @@
             $arg['where'] = "unsubscribe_code = ''";
         }
         elseif("bounced" == $_REQUEST['filter']) {
-            $arg['where'] = "B.status = 'bounced'";
+            $arg['where'] = "A.bounced > 0";
         }
 
 

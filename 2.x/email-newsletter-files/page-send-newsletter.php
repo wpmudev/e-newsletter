@@ -100,7 +100,8 @@
 
 
     <div class="wrap">
-        <h2><?php _e( 'Send Newsletter:', 'email-newsletter' ) ?> "<?php echo htmlspecialchars( $newsletter_data['subject'] );?>"</h2>
+        <h2><?php _e( 'Send Newsletter:', 'email-newsletter' ) ?> "<?php echo htmlspecialchars( $newsletter_data['subject'] );?>" <a href="?page=newsletters&amp;newsletter_builder_action=edit_newsletter&amp;newsletter_id=<?php echo $newsletter_data['newsletter_id'];?>&amp;template=<?php echo $newsletter_data['template'];?>&amp;return=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>" class="add-new-h2"><?php _e( 'Edit', 'email-newsletter' ) ?></a></h2>
+
         <p><?php _e( 'At this page you can send newsletter to the selected groups.', 'email-newsletter' ) ?></p>
 
         <?php
@@ -336,7 +337,10 @@
                         <?php _e( 'Bounced', 'email-newsletter' ) ?>
                     </th>
                     <th>
-                        <?php _e( 'Sent', 'email-newsletter' ) ?>
+                        <?php _e( 'Sent To', 'email-newsletter' ) ?>
+                    </th>
+                    <th>
+                        <?php _e( 'Opened', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Actions', 'email-newsletter' ) ?>
@@ -384,6 +388,12 @@
                         $total['sent'] += $send['count_sent'];
                     ?>
                 </td>
+                <td style="vertical-align: middle;">
+                    <?php
+                        echo $send['count_opened'];
+                        $total['opened'] += $send['count_opened'];
+                    ?>
+                </td>
                 <td style="vertical-align: middle; width: 250px;">
                 <?php
                     if ( 0 < $send['count_send_members'] ) :
@@ -422,6 +432,9 @@
                     </th>
                     <th>
                         <?php echo $total['sent']; ?>
+                    </th>
+                    <th>
+                        <?php echo $total['opened']; ?>
                     </th>
                     <th>
                     </th>

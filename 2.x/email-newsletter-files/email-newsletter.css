@@ -201,6 +201,9 @@ vertical-align: middle !important;
 .newsletters_actions {
     width:230px;
 }
+.newsletter-subject {
+    width:150px;
+}
 .members-actions {
     width:230px;
 }

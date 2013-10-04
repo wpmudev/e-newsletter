@@ -110,7 +110,8 @@ class Email_Newsletter_Builder  {
 					if(!(current_user_can('create_newsletter') || current_user_can($mu_cap)))
 						wp_die('You do not have permission to do that');
 
-					wp_redirect( $this->generate_builder_link('new') );
+					$return = ($_REQUEST['return']) ? $_GET['return'] : '';
+					wp_redirect( $this->generate_builder_link('new', false, $return) );
 					exit();
 				break;
 				case "edit_newsletter":
@@ -118,7 +119,8 @@ class Email_Newsletter_Builder  {
 						wp_die('You do not have permission to do that');
 
 					$template = (isset($_REQUEST['template'])) ? $_REQUEST['template'] : false;
-					wp_redirect( $this->generate_builder_link($_REQUEST['newsletter_id'], $template) );
+					$return = (isset($_REQUEST['return'])) ? $_GET['return'] : false;
+					wp_redirect( $this->generate_builder_link($_REQUEST['newsletter_id'], $template, $return) );
 					exit();
 				break;
 			}

@@ -68,7 +68,7 @@
                             <span class="sorting-indicator"></span>
                         </a>
                     </th>
-                    <th <?php echo (isset($arg['orderby']) && "subject" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
+                    <th <?php echo (isset($arg['orderby']) && "subject" == $arg['orderby']) ? 'class="newsletter-subject sorted '. $arg['order'].'"' : 'class="newsletter-subject sortable desc"';?>>
                         <?php $url = add_query_arg( array('orderby' => 'subject'), $url_orginal ); ?>
                         <a href="<?php echo $url; ?>">
                             <span><?php _e( 'Email Subject', 'email-newsletter' ) ?></span>

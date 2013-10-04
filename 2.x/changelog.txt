@@ -5,6 +5,10 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 
 == Changelog ==
 
+= 2.5.4 =
+* Fixed problems with showing bounced members
+* Small visual improvements
+
 = 2.5.3 =
 * Fixed permission problems for lower level users
 * Fixed problems with unsubscribe link
