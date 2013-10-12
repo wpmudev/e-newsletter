@@ -316,7 +316,7 @@
 
         <?php
             $sends = $this->get_sends( $_REQUEST['newsletter_id'] );
-            $total = array ( 'send' => 0, 'cron' => 0, 'sent' => 0, 'bounced' => 0 );
+            $total = array ( 'send' => 0, 'cron' => 0, 'sent' => 0, 'bounced' => 0, 'opened' => 0 );
         ?>
 
         <h2><?php _e( 'Previous sending:', 'email-newsletter' ) ?></h2>

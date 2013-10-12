@@ -13,9 +13,6 @@ class Email_Newsletter_Builder  {
 		//shorcodes
 		add_shortcode('en-recent-posts', array( &$this, 'recent_posts_shortcode'));
 		add_shortcode( 'en-gallery' , array( &$this,'n_gallery_shortcode') );
-
-		//Capability fix
-		add_action( 'admin_init', array( &$this, 'admin_init') );
 	}
 	function plugins_loaded() {
 		global $current_user, $pagenow, $builder_id, $email_newsletter;
@@ -35,10 +32,6 @@ class Email_Newsletter_Builder  {
 				$builder_id = $this->save_builder(array('template' => $_REQUEST['theme']));
 				delete_transient('builder_email_id_'.$current_user->ID);
 				set_transient('builder_email_id_'.$current_user->ID, $builder_id);
-
-				// Now redirect to our new newsletter builder
-				wp_redirect($this->generate_builder_link($builder_id));
-				exit;
 			} else {
 				die(__('Something is wrong, we can not determine what your trying to do.','email-newsletter'));
 			}
@@ -47,7 +40,32 @@ class Email_Newsletter_Builder  {
 		if(!$builder_id)
 			$builder_id = $this->get_builder_email_id();
 
-		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $_REQUEST['theme'] === $this->get_builder_theme() ) {
+		if ( isset( $_REQUEST['newsletter_builder_action'] ) ) {
+			$user = new WP_User( $current_user->ID );
+			$mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
+
+			switch( $_REQUEST[ 'newsletter_builder_action' ] ) {
+				case "create_newsletter":
+					if(!(current_user_can('create_newsletter') || current_user_can($mu_cap)))
+						wp_die('You do not have permission to do that');
+
+					$return = (isset($_REQUEST['return'])) ? $_GET['return'] : false;
+					wp_redirect( $this->generate_builder_link('new', false, $return) );
+					exit();
+				break;
+				case "edit_newsletter":
+					if(!(current_user_can('save_newsletter') || current_user_can($mu_cap)) && isset($_REQUEST['newsletter_id']))
+						wp_die('You do not have permission to do that');
+
+					$template = (isset($_REQUEST['template'])) ? $_REQUEST['template'] : false;
+					$return = (isset($_REQUEST['return'])) ? $_GET['return'] : false;
+					wp_redirect( $this->generate_builder_link($_REQUEST['newsletter_id'], $template, $return) );
+					exit();
+				break;
+			}
+		}
+
+		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $_REQUEST['theme'] === $this->get_builder_theme() && $builder_id ) {
 			$this->parse_theme_settings();
 
 			add_filter( 'template', array( &$this, 'inject_builder_template'), 999 );
@@ -57,20 +75,16 @@ class Email_Newsletter_Builder  {
 			add_filter( 'wp_default_editor', array( &$this, 'force_default_editor' ) );
 
 			add_action( 'template_redirect', array( &$this, 'enable_customizer') );
+
+			if(!current_user_can( 'edit_theme_options' )) {
+				add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 10, 1);
+			}
 		}
 	}
-	function parse_theme_settings() {
-		global $email_newsletter;
+	function fix_capabilities($allcaps) {
+		$allcaps['edit_theme_options'] = true;
 
-		$theme = $email_newsletter->get_selected_theme($this->get_builder_theme());
-
-		$match = array();
-		$possible_settings = array('BG_COLOR', 'BG_IMAGE', 'HEADER_IMAGE', 'LINK_COLOR', 'BODY_COLOR', 'ALTERNATIVE_COLOR', 'TITLE_COLOR', 'EMAIL_TITLE' );
-		foreach ($possible_settings as $possible_setting)
-			if(defined('BUILDER_DEFAULT_'.$possible_setting))
-				$match[] = $possible_setting;
-
-		$this->settings = $match;
+		return $allcaps;
 	}
 	function generate_builder_link($id=false, $theme=false, $return_url=NULL, $url=false) {
 		if(!$id)
@@ -87,52 +101,18 @@ class Email_Newsletter_Builder  {
 			$final .= '&url='.$url;
 		return admin_url($final);
 	}
-	function admin_init() {
-		global $current_user, $email_newsletter;
+	function parse_theme_settings() {
+		global $email_newsletter;
 
-		$remove = get_user_meta($current_user->ID, '_enewsletter_remove_capability', true);
-		if ( isset( $_REQUEST['newsletter_builder_action'] ) ) {
-			$user = new WP_User( $current_user->ID );
+		$theme = $email_newsletter->get_selected_theme($this->get_builder_theme());
 
-			if(current_user_can('create_newsletter') || current_user_can('save_newsletter'))
-				if(!current_user_can( 'edit_theme_options' )) {
-					$user->add_cap( 'edit_theme_options');
-					remove_menu_page('themes.php');
-					update_user_meta($current_user->ID, '_enewsletter_remove_capability', 1);
-				}
-			if(!empty($remove))
-				remove_menu_page('themes.php');
+		$match = array();
+		$possible_settings = array('BG_COLOR', 'BG_IMAGE', 'HEADER_IMAGE', 'LINK_COLOR', 'BODY_COLOR', 'ALTERNATIVE_COLOR', 'TITLE_COLOR', 'EMAIL_TITLE' );
+		foreach ($possible_settings as $possible_setting)
+			if(defined('BUILDER_DEFAULT_'.$possible_setting))
+				$match[] = $possible_setting;
 
-			$mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
-
-			switch( $_REQUEST[ 'newsletter_builder_action' ] ) {
-				case "create_newsletter":
-					if(!(current_user_can('create_newsletter') || current_user_can($mu_cap)))
-						wp_die('You do not have permission to do that');
-
-					$return = ($_REQUEST['return']) ? $_GET['return'] : '';
-					wp_redirect( $this->generate_builder_link('new', false, $return) );
-					exit();
-				break;
-				case "edit_newsletter":
-					if(!(current_user_can('save_newsletter') || current_user_can($mu_cap)) && isset($_REQUEST['newsletter_id']))
-						wp_die('You do not have permission to do that');
-
-					$template = (isset($_REQUEST['template'])) ? $_REQUEST['template'] : false;
-					$return = (isset($_REQUEST['return'])) ? $_GET['return'] : false;
-					wp_redirect( $this->generate_builder_link($_REQUEST['newsletter_id'], $template, $return) );
-					exit();
-				break;
-			}
-		}
-		elseif(!isset( $_REQUEST['wp_customize'] ) && !defined('DOING_AJAX')) {
-			$user = new WP_User( $current_user->ID );
-			if(!empty($remove)) {
-				remove_menu_page('themes.php');
-				$user->remove_cap( 'edit_theme_options');
-				delete_user_meta( $current_user->ID, '_enewsletter_remove_capability' );
-			}
-		}
+		$this->settings = $match;
 	}
 	function setup_builder_header_footer() {
 		add_action( 'customize_controls_print_scripts', array( &$this, 'customize_controls_print_scripts') );

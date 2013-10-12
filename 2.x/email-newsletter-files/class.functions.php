@@ -748,9 +748,9 @@ class Email_Newsletter_functions {
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
 
         $member_data = $this->get_member( $member_id );
-        if ( "" == $member_data['unsubscribe_code'] ) {
-            $this->subscribe( $member_id, false );
-        }
+        //if ( "" == $member_data['unsubscribe_code'] ) {
+        //    $this->subscribe( $member_id, false );
+        //}
 
         //creating new list of groups for user
         if ( $groups_id )
@@ -1038,7 +1038,6 @@ class Email_Newsletter_functions {
             $members_id = array($members_id);
         if ( 0 < count( $members_id ) )
             foreach ( $members_id as $member_id ) {
-
                 if ( !( "1" == $dont_send_duplicate && $this->check_duplicate_send($newsletter_id, $member_id) ) || ( "1" == $send_to_bounced && $this->check_bounced_send($newsletter_id, $member_id) ) ) {
                     $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send_members SET send_id = %d, member_id = %d, status = '%s' ", $send_id, $member_id, $status ) );
                     if($result)
@@ -1471,6 +1470,13 @@ class Email_Newsletter_functions {
                     $build_styles['default_style_header'][] = $this->template_custom_directory . "/default_style_header.css";
                     $build_styles['default_style_header'][] = $this->template_directory . "/default_style_header.css";
                 }
+                else {
+                    $build_styles['default_style'][] = '';
+                    $build_styles['default_style'][] = '';
+
+                    $build_styles['default_style_header'][] = '';
+                    $build_styles['default_style_header'][] = '';
+                }
             }
             $build_theme = array_merge($build_htmls, $build_styles);
 
@@ -1482,6 +1488,9 @@ class Email_Newsletter_functions {
                         $handle = fopen( $possible_file, "r" );
                         $contents_parts[$type] = fread( $handle, filesize( $possible_file ) );
                         fclose( $handle );
+
+                        if (strpos($type, 'style') !== FALSE)
+                            $contents_parts[$type] = preg_replace("/^\s*\/\*[^(\*\/)]*\*\//m","",$contents_parts[$type]);
                     }
                     if(!isset($contents_parts[$type]))
                         $contents_parts[$type] = '';

@@ -271,8 +271,8 @@
                                     if ( $groups ) {
                                     ?>
                                         <?php foreach( $groups as $group ) : ?>
-                                            <input type="checkbox" name="settings[subscribe_groups][<?php echo $group['group_id'];?>]" value="<?php echo $group['group_id'];?>" <?php if(in_array($group['group_id'], $settings['subscribe_groups'])) echo 'checked'; ?>/>
                                             <label for="member[groups_id][]">
+                                                <input type="checkbox" name="settings[subscribe_groups][<?php echo $group['group_id'];?>]" value="<?php echo $group['group_id'];?>" <?php if(in_array($group['group_id'], $settings['subscribe_groups'])) echo 'checked'; ?>/>
                                                 <?php echo ( $group['public'] ) ? $group['group_name'] .' (public)' : $group['group_name']; ?>
                                             </label>
                                             <br />
@@ -307,6 +307,19 @@
                                         ?>
                                     </select>
                                     <span class="description"><?php _e( 'Default newsletter that will be sent on user subscription. Keep in mind that cron email sending must be enabled.', 'email-newsletter' ) ?></span>
+                                </td>
+                            </tr>
+
+                           <tr valign="top">
+                                <th scope="row">
+                                    <?php _e( 'WordPress User registration:', 'email-newsletter' ) ?>
+                                </th>
+                                <td>
+                                    <select name="settings[wp_user_register_subscribe]">
+                                        <option value="1"><?php _e( 'Subscribe', 'email-newsletter' ) ?></option>
+                                        <option value="0"><?php _e( 'Disable', 'email-newsletter' ) ?></option>
+                                    </select>
+                                    <span class="description"><?php _e( 'Choose if user registering(with WordPress) to your site is automatically subscribed to newsletter.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
                         </table>

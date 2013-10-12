@@ -54,7 +54,7 @@
         <table id="newsletter_list" class="widefat post">
             <thead>
                 <tr>
-                    <th <?php echo (isset($arg['orderby']) && "newsletter_id" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
+                    <th <?php echo (isset($arg['orderby']) && "newsletter_id" == $arg['orderby']) ? 'class="newsletter-id sorted '. $arg['order'].'"' : 'class="newsletter-id sortable desc"';?>>
                         <?php $url = add_query_arg( array('orderby' => 'newsletter_id'), $url_orginal ); ?>
                         <a href="<?php echo $url; ?>">
                             <span><?php _e( 'ID', 'email-newsletter' ) ?></span>

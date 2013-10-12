@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.5.4
+Version: 2.5.5
 Text Domain: email-newsletter
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
@@ -59,7 +59,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.54;
+        $this->plugin_ver = 2.55;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -565,7 +565,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
             switch( $_REQUEST['newsletter_action'] ) {
                 //action for save selected groups of subscribe
                 case "save_subscribes":
-                    $this->save_subscribes( $_REQUEST['e_newsletter_groups_id'] );
+                    $groups_id = (isset($_REQUEST['e_newsletter_groups_id'])) ? $_REQUEST['e_newsletter_groups_id'] : array();
+                    $this->save_subscribes( $groups_id );
                 break;
 
                 //action for subscribe
@@ -575,7 +576,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 //action for Unsubscribe
                 case "unsubscribe":
-                    $this->unsubscribe( $_REQUEST['unsubscribe_code'] );
+                    $unsubscribe_code = (isset($_REQUEST['unsubscribe_code'])) ? $_REQUEST['unsubscribe_code'] : '';
+                    $this->unsubscribe( $unsubscribe_code );
                 break;
             }
         }
@@ -586,7 +588,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
             switch( $_REQUEST['newsletter_action'] ) {
                 //action for save selected groups of subscribe
                 case "save_subscribes":
-                    $this->save_subscribes( $_REQUEST['e_newsletter_groups_id'], false, 1 );
+                    $groups_id = (isset($_REQUEST['e_newsletter_groups_id'])) ? $_REQUEST['e_newsletter_groups_id'] : array();
+                    $this->save_subscribes( $groups_id, false, 1 );
                 break;
 
                 //action for subscribe
@@ -596,7 +599,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 //action for Unsubscribe
                 case "unsubscribe":
-                    $this->unsubscribe( $_REQUEST['unsubscribe_code'], false, 1 );
+                    $unsubscribe_code = (isset($_REQUEST['unsubscribe_code'])) ? $_REQUEST['unsubscribe_code'] : '';
+                    $this->unsubscribe( $unsubscribe_code, false, 1 );
                 break;
 
                 //action for Subscribe of public member (not user of site)
@@ -673,11 +677,22 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function subscribe( $member_id = "", $redirect_to = true, $ajax = 0 ) {
         global $wpdb, $current_user;
 
-        $user_id = $current_user->data->ID;
+        if(empty($member_id)) {
+            $user_id = $current_user->data->ID;
+            $member_data = array();
+        }
+        else {
+            $member_data = array('member_id' => $member_id);
+            $user_id = '';
+        }
+
+        $result = $this->create_update_member_user($user_id, $member_data, 1);
+        $member_id = $result['member_id'];
 
         do_action( 'enewsletter_user_subscribe', $member_id );
 
-        $result = $this->create_update_member_user($user_id, array(), 1);
+        if($this->settings['subscribe_newsletter'])
+            $this->add_send_email_info( $this->settings['subscribe_newsletter'], $member_id, 0, 'by_cron' );
 
         if ( $redirect_to )
             if ( true === $redirect_to ) {
@@ -702,6 +717,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             }
 
             echo json_encode($data);
+            die();
         }
     }
 
@@ -713,9 +729,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ($unsubscribe_code) {
             $member =  $this->get_member_id_by_code($unsubscribe_code);
             if ( 0 < $member['member_id'] ) {
-                //delete all groups of member
-                $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member['member_id'] ) );
-
                 //delete unsubscribe_code of member
                 $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '' WHERE unsubscribe_code = '%s'", $unsubscribe_code ) );
 
@@ -733,6 +746,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $data['view'] = 'subscribe';
                     $data['hide'] = 'manage_subscriptions';
                     echo json_encode($data);
+                    die();
                 }
 
                 return true;
@@ -798,6 +812,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             $member_id = $result['member_id'];
 
+            do_action( 'enewsletter_after_user_add', $member_id );
+
             if ( isset( $member_data['double_opt_in'] ) && 1 == $member_data['double_opt_in'] ) {
                 $status = $this->do_double_opt_in( $member_id );
                 if($status)
@@ -810,9 +826,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     foreach( $member_data['groups_id'] as $group_id )
                         $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
 
-                $settings = $this->get_settings();
-                if($settings['subscribe_newsletter'])
-                    $this->add_send_email_info( $settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
+                if($this->settings['subscribe_newsletter'])
+                    $this->add_send_email_info( $this->settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
             }
 
             if(!$message)
@@ -834,9 +849,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ( 1 == $ajax ) {
             $data['message'] = $message;
             echo json_encode($data);
+            die();
         }
-
-        do_action( 'enewsletter_after_user_add', $member_id );
     }
 
     /**
@@ -899,22 +913,26 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * Adding new member when create new user
      **/
     function user_create( $userID ) {
-        $result = $this->create_update_member_user($userID, array(), 1);
+        if( !isset( $this->settings['wp_user_register_subscribe'] ) || ( isset( $this->settings['wp_user_register_subscribe'] ) && $this->settings['wp_user_register_subscribe'] ))
+            $subscribe = 1;
+        else
+            $subscribe = 0;
+
+        $result = $this->create_update_member_user($userID, array(), $subscribe);
 
         $member_id = $result['member_id'];
 
         if($member_id) {
             global $wpdb;
-            $settings = $this->get_settings();
+
+            if($this->settings['subscribe_newsletter'] && $subscribe)
+                $this->add_send_email_info( $this->settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
 
             //creating new list of groups for user
-            $subscribe_groups = explode(',', $settings['subscribe_groups']);
+            $subscribe_groups = explode(',', $this->settings['subscribe_groups']);
             if ( isset( $subscribe_groups ) && is_array( $subscribe_groups ) )
                 foreach( $subscribe_groups as $group_id )
                     $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
-
-            if($settings['subscribe_newsletter'])
-                $this->add_send_email_info( $settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
         }
     }
 
@@ -927,7 +945,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $blogs = get_blogs_of_user( $user_id );
                 foreach ($blogs as $blog) {
                     if(is_multisite()) {
-                        if(!$current_blog)
+                        if(!isset($current_blog) || !$current_blog)
                             $current_blog = get_current_blog_id();
                         switch_to_blog( $blog->userblog_id  );
                     }
@@ -1225,9 +1243,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
             foreach( ( array ) $member_data['future_groups_id'] as $group_id )
                 $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
 
-        $settings = $this->get_settings();
-        if($settings['subscribe_newsletter'])
-            $this->add_send_email_info( $settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
+        if($this->settings['subscribe_newsletter'])
+            $this->add_send_email_info( $this->settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
 
 
         die( __( 'Successful subscription!', 'email-newsletter' ) );

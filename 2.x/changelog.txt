@@ -5,6 +5,12 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 
 == Changelog ==
 
+= 2.5.5 =
+* Added ability to disable automatic newsletter subscription on user registration with WordPress
+* Fixed unnecessary string problem
+* Removed PHP warnings
+* Other small improvements
+
 = 2.5.4 =
 * Fixed problems with showing bounced members
 * Small visual improvements
