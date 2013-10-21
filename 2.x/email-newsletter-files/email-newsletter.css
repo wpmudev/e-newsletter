@@ -213,3 +213,12 @@ vertical-align: middle !important;
 .newsletter-id {
     width: 50px;
 }
+.wpmudev-help {
+    margin:10px 0;
+}
+#tip_smtp {
+    margin-right: 10px;
+}
+.newsletter-settings-tabs {
+    display: none;
+}

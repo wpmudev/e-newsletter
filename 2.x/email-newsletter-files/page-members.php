@@ -262,7 +262,9 @@
         <p><?php _e( 'Note: edits made to members will not sync to wordpress user but they will the other way around.', 'email-newsletter' ) ?></p>
 
         <p class="slide">
-            <input type="button" class="button-secondary action" id="show_add_form" value="<?php _e( 'Show the New Member / Import forms', 'email-newsletter' ) ?>" />
+            <?php if(current_user_can('add_newsletter_member') || current_user_can('import_newsletter_members')) { ?>
+                <input type="button" class="button-secondary action" id="show_add_form" value="<?php _e( 'Show the New Member / Import forms', 'email-newsletter' ) ?>" />
+            <?php } ?>
             <input type="button" class="button-secondary action" id="show_add_form2" value="<?php _e( 'Show the export Members form', 'email-newsletter' ) ?>" />
         </p>
 
@@ -272,6 +274,7 @@
                 <input type="hidden" name="members_import" id="members_import" value="" />
                 <table cellspacing="10">
                     <tr>
+                        <?php if(current_user_can('add_newsletter_member')) { ?>
                         <td valign="top">
                             <table class="create_member">
                                 <tr>
@@ -330,6 +333,8 @@
                                 </tr>
                             </table>
                        </td>
+                       <?php } ?>
+                       <?php if(current_user_can('import_newsletter_members')) { ?>
                        <td valign="top">
                             <table class="import_members">
                                 <tr>
@@ -391,6 +396,7 @@
                                 </tr>
                             </table>
                         </td>
+                        <?php } ?>
                     </tr>
                 </table>
             </form>
@@ -612,12 +618,20 @@
                     </td>
                     <td style="vertical-align: middle;">
                         <span id="close_block_<?php echo $member['member_id'];?>"></span>
-                        <div id="change_group_block_<?php echo $member['member_id'];?>"></div>
-                        <input class="button button-secondary" type="button" id="change_button_<?php echo $member['member_id'];?>" value="<?php _e( 'Change groups', 'email-newsletter' ) ?>" onclick="jQuery(this).changeGroups( <?php echo $member['member_id'];?> );" />
 
-                        <input class="button button-secondary" type="button" id="edit_button_<?php echo $member['member_id'];?>" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" onclick="jQuery(this).editMember( <?php echo $member['member_id'];?> );" />
+                        <div id="change_group_block_<?php echo $member['member_id'];?>"></div>
+                        <?php if(current_user_can('add_members_group')) { ?>
+                            <input class="button button-secondary" type="button" id="change_button_<?php echo $member['member_id'];?>" value="<?php _e( 'Change groups', 'email-newsletter' ) ?>" onclick="jQuery(this).changeGroups( <?php echo $member['member_id'];?> );" />
+                        <?php } ?>
+
+                        <?php if(current_user_can('edit_newsletter_member')) { ?>
+                            <input class="button button-secondary" type="button" id="edit_button_<?php echo $member['member_id'];?>" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" onclick="jQuery(this).editMember( <?php echo $member['member_id'];?> );" />
+                        <?php } ?>
                         <span id="save_block_<?php echo $member['member_id'];?>"></span>
-                        <input class="button button-secondary" type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" onclick="jQuery(this).deleteMember( <?php echo $member['member_id'];?> );" />
+
+                        <?php if(current_user_can('delete_newsletter_member')) { ?>
+                            <input class="button button-secondary" type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" onclick="jQuery(this).deleteMember( <?php echo $member['member_id'];?> );" />
+                        <?php } ?>
                     </td>
                 </tr>
             <?php

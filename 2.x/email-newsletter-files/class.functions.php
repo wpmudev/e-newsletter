@@ -716,6 +716,8 @@ class Email_Newsletter_functions {
         $public = ($only_public) ? ' WHERE public = 1' : '';
 
         $groups = $wpdb->get_results( "SELECT * FROM {$this->tb_prefix}enewsletter_groups".$public, "ARRAY_A");
+        $groups = apply_filters( 'email_newsletter_get_groups', $groups );
+
         return $groups;
     }
 
@@ -725,6 +727,7 @@ class Email_Newsletter_functions {
      function get_group_by_id( $group_id ) {
         global $wpdb;
         $result =  $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_groups WHERE group_id = %d", $group_id ), "ARRAY_A" );
+        $result = apply_filters( 'get_group_by_id', $result );
         return $result;
     }
 
@@ -1817,6 +1820,10 @@ class Email_Newsletter_functions {
         if( ! is_array( $settings ) )
             $settings = array();
 
+        if( ! isset( $settings['double_opt_in'] ) ) {
+            $settings['double_opt_in'] = 0;
+        }
+
         if(isset($settings['email_caps'])) {
             $caps = $settings['email_caps'];
             unset($settings['email_caps']);
@@ -1879,7 +1886,8 @@ class Email_Newsletter_functions {
             wp_redirect( add_query_arg( array( 'page' => 'newsletters-dashboard', 'updated' => 'true', 'message' => urlencode( __( 'The Plugin is installed!', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         } elseif($redirect == 1) {
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-settings', 'updated' => 'true', 'message' => urlencode( __( 'The Settings are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
+            $newsletter_setting_page = (isset($_REQUEST['newsletter_setting_page']) && $_REQUEST['newsletter_setting_page'] != 'tabs-1') ? $_REQUEST['newsletter_setting_page'] : '';
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-settings', 'tab' => $newsletter_setting_page, 'updated' => 'true', 'message' => urlencode( __( 'The Settings are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         }
     }
@@ -2244,7 +2252,7 @@ class Email_Newsletter_functions {
      * Deleting tables from DB
      **/
     function uninstall( $blog_id = '' ) {
-        global $wpdb;
+        global $wpdb, $wp_roles;
 
         if ( $this->is_plugin_active_for_network(plugin_basename($this->plugin_main_file)) ) {
                 $blogids = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
@@ -2299,6 +2307,17 @@ class Email_Newsletter_functions {
             if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_meta'" ) == "{$tb_prefix}enewsletter_meta" )
                 $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_meta" );
 
+            foreach($wp_roles->get_names() as $name => $obj) {
+                if($name == 'administrator') continue;
+                $role_obj = get_role($name);
+                if($role_obj) {
+                    foreach($this->capabilities as $cap => $label) {
+                        $role_obj->remove_cap($cap);
+                    }
+                }
+            }
+
+            delete_option('email_newsletter_install_dismissed');
             delete_option('email_newsletter_version');
         }
 
@@ -2354,7 +2373,7 @@ class Email_Newsletter_functions {
 		while(false !== ( $file = readdir($dir)) ) {
 			if (( $file != '.' ) && ( $file != '..' )) {
 				if ( is_dir($src . '/' . $file) ) {
-					delete_dir($src . '/' . $file);
+					$this->delete_dir($src . '/' . $file);
 				}
 				else {
 					unlink($src . '/' . $file);

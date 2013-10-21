@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.5.5
+Version: 2.5.6
 Text Domain: email-newsletter
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
@@ -59,7 +59,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.55;
+        $this->plugin_ver = 2.56;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -495,9 +495,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     if(! (current_user_can('save_newsletter_settings') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
-                    if( ! isset( $_REQUEST['settings']['double_opt_in'] ) ) {
-                        $_REQUEST['settings']['double_opt_in'] = 0;
-                    }
                     $this->save_settings( $_REQUEST['settings'] );
                 break;
 
@@ -531,9 +528,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
                         wp_die('You do not have permission to do that');
 
                     $this->install();
-                    if( ! isset( $_REQUEST['settings']['double_opt_in'] ) ) {
-                        $_REQUEST['settings']['double_opt_in'] = 0;
-                    }
                     $this->save_settings( $_REQUEST['settings'] );
                 break;
 
@@ -548,8 +542,22 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     exit;
                 break;
 
+                case "dismiss_install":
+
+                    if(!current_user_can($mu_cap))
+                        wp_die('You do not have permission to do that');
+
+                    update_option('email_newsletter_install_dismissed', 1);
+                break;
+
             }
         }
+        if(!$this->settings && get_option('email_newsletter_install_dismissed', 0) == 0 && current_user_can($mu_cap))
+            add_action( 'all_admin_notices', array( &$this, 'install_notice' ), 5 );
+    }
+
+    function install_notice() {
+        echo '<div class="updated fade"><p>' . sprintf(__('Please <strong><a href="%s" title="Install Now &raquo;">configure and install eNewsletter</a></strong> to use all available features. <small><a style="color:red;" href="%s">(dismiss)</a></small>', 'email-newsletter'), admin_url('admin.php?page=newsletters-settings'), add_query_arg('newsletter_action', 'dismiss_install')) . '</a></p></div>';
     }
 
     /**
@@ -1941,26 +1949,32 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         if ( $this->settings ) {
             global $email_builder, $submenu;
-                add_menu_page( __( 'eNewsletter', 'email-newsletter' ), __( 'eNewsletter', 'email-newsletter' ), 'view_newsletter_dashboard', 'newsletters-dashboard', null, $this->plugin_url . 'email-newsletter-files/images/icon.png');
-                add_submenu_page( 'newsletters-dashboard', __( 'Reports', 'email-newsletter' ), __( 'Reports', 'email-newsletter' ), 'view_newsletter_dashboard', 'newsletters-dashboard', array( &$this, 'newsletters_dashboard_page' ) );
-                add_submenu_page( 'newsletters-dashboard', __( 'Newsletters', 'email-newsletter' ), __( 'Newsletters', 'email-newsletter' ), 'save_newsletter', 'newsletters', array( &$this, 'newsletters_page' ) );
-                add_submenu_page( 'newsletters-dashboard', __( 'Create Newsletter', 'email-newsletter' ), __( 'Create Newsletter', 'email-newsletter' ), 'create_newsletter', 'admin.php?newsletter_builder_action=create_newsletter' );
-                add_submenu_page( 'newsletters-dashboard', __( 'Member Groups', 'email-newsletter' ), __( 'Member Groups', 'email-newsletter' ), 'edit_newsletter_group', 'newsletters-groups', array( &$this, 'member_groups_page' ) );
-                add_submenu_page( 'newsletters-dashboard', __( 'Members', 'email-newsletter' ), __( 'Members', 'email-newsletter' ), 'view_newsletter_members', 'newsletters-members',  array( &$this, 'members_page' ) );
-                add_submenu_page( 'newsletters-dashboard', __( 'Settings', 'email-newsletter' ), __( 'Settings', 'email-newsletter' ), 'save_newsletter_settings', 'newsletters-settings', array( &$this, 'settings_page' ) );
-
-                //menu for lowest level users
-                add_submenu_page( 'newsletters-dashboard', __( 'My Subscriptions', 'email-newsletter' ), __( 'My Subscriptions', 'email-newsletter' ), 'read', 'newsletters-subscribes', array( &$this, 'newsletters_subscribe_page' ) );
-
-                if(isset($submenu['newsletters-dashboard'])) {
-                    foreach($submenu['newsletters-dashboard'] as $k => $v) {
-                        if(isset($v[2]) && $v[2] == 'newsletters-create') {
-                            $submenu['newsletters-dashboard'][$k][2] = $email_builder->generate_builder_link('new');
-                        }
-                    }
+            $possible_menu_parent = array(
+                'view_newsletter_dashboard' => 'newsletters-dashboard',
+                'save_newsletter' => 'newsletters',
+                'edit_newsletter_group' => 'newsletters-groups',
+                'view_newsletter_members' => 'newsletters-members',
+                'save_newsletter_settings' => 'newsletters-settings'
+                );
+            $capability = 'read';
+            $slug = 'newsletters-subscribes';
+            foreach ($possible_menu_parent as $possible_capability => $possible_slug)
+                if(current_user_can($possible_capability)) {
+                    $capability = $possible_capability;
+                    $slug = $possible_slug;
+                    break;
                 }
 
+            add_menu_page( __( 'eNewsletter', 'email-newsletter' ), __( 'eNewsletter', 'email-newsletter' ), $capability, $slug, '', $this->plugin_url . 'email-newsletter-files/images/icon.png');
+            add_submenu_page( $slug, __( 'Reports', 'email-newsletter' ), __( 'Reports', 'email-newsletter' ), 'view_newsletter_dashboard', 'newsletters-dashboard', array( &$this, 'newsletters_dashboard_page' ) );
+            add_submenu_page( $slug, __( 'Newsletters', 'email-newsletter' ), __( 'Newsletters', 'email-newsletter' ), 'save_newsletter', 'newsletters', array( &$this, 'newsletters_page' ) );
+            add_submenu_page( $slug, __( 'Create Newsletter', 'email-newsletter' ), __( 'Create Newsletter', 'email-newsletter' ), 'create_newsletter', 'admin.php?newsletter_builder_action=create_newsletter' );
+            add_submenu_page( $slug, __( 'Member Groups', 'email-newsletter' ), __( 'Member Groups', 'email-newsletter' ), 'edit_newsletter_group', 'newsletters-groups', array( &$this, 'member_groups_page' ) );
+            add_submenu_page( $slug, __( 'Members', 'email-newsletter' ), __( 'Members', 'email-newsletter' ), 'view_newsletter_members', 'newsletters-members',  array( &$this, 'members_page' ) );
+            add_submenu_page( $slug, __( 'Settings', 'email-newsletter' ), __( 'Settings', 'email-newsletter' ), 'save_newsletter_settings', 'newsletters-settings', array( &$this, 'settings_page' ) );
 
+            //menu for lowest level users
+            add_submenu_page( $slug, __( 'My Subscriptions', 'email-newsletter' ), __( 'My Subscriptions', 'email-newsletter' ), 'read', 'newsletters-subscribes', array( &$this, 'newsletters_subscribe_page' ) );
         } else {
             //first start of plugin
             add_menu_page( __( 'eNewsletter', 'email-newsletter' ), __( 'eNewsletter', 'email-newsletter' ), $mu_cap, 'newsletters-settings' );

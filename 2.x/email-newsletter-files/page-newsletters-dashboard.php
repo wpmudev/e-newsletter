@@ -161,9 +161,11 @@
         ?>
 
         </table>
+        <?php if(current_user_can('create_newsletter')) { ?>
 		<p class="submit">
             <a class="button button-primary" href="<?php echo admin_url( 'admin.php?newsletter_builder_action=create_newsletter' ); ?>"><?php _e( 'Create New Newsletter', 'email-newsletter' ) ?></a>
         </p>
+        <?php } ?>
 
         <h3><?php _e( '5 Latest Members:', 'email-newsletter' ) ?></h3>
            <table id="members_table" class="widefat post">
