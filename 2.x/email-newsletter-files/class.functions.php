@@ -1886,7 +1886,7 @@ class Email_Newsletter_functions {
             wp_redirect( add_query_arg( array( 'page' => 'newsletters-dashboard', 'updated' => 'true', 'message' => urlencode( __( 'The Plugin is installed!', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         } elseif($redirect == 1) {
-            $newsletter_setting_page = (isset($_REQUEST['newsletter_setting_page']) && $_REQUEST['newsletter_setting_page'] != 'tabs-1') ? $_REQUEST['newsletter_setting_page'] : '';
+            $newsletter_setting_page = (isset($_REQUEST['newsletter_setting_page'])) ? $_REQUEST['newsletter_setting_page'] : '';
             wp_redirect( add_query_arg( array( 'page' => 'newsletters-settings', 'tab' => $newsletter_setting_page, 'updated' => 'true', 'message' => urlencode( __( 'The Settings are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         }

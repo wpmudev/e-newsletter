@@ -31,6 +31,7 @@
             current_tab = '#<?php echo (isset($_GET['tab'])) ? $_GET['tab'] : $default_tab; ?>';
             $( "#newsletter_setting_page" ).val(current_tab.substring(1));
             current_menu_link = $('#newsletter-tabs a[href^='+current_tab+']');
+            console.log(current_menu_link);
 
             $(current_menu_link).addClass('nav-tab-active').siblings('a').removeClass('nav-tab-active');
             $(current_tab).show().siblings('div').hide();
@@ -38,7 +39,6 @@
 
 			$('#newsletter-tabs a').click(function(e) {
 				var tab = $(this).attr('href');
-                console.log($(tab));
                 $( "#newsletter_setting_page" ).val(tab.substring(1));
 				$(this).addClass('nav-tab-active').siblings('a').removeClass('nav-tab-active');
 				$(tab).show().siblings('div').hide();
@@ -349,17 +349,17 @@
                             <tbody>
                                 <tr valign="top">
                                     <th scope="row">
-                                        <?php echo _e( 'Email Sending Method:', 'email-newsletter' );?>
+                                        <?php echo _e( 'Email Sending Method:', 'email-newsletter' ); ?>
                                     </th>
                                     <td>
                                         <label id="tip_smtp">
-                                            <input type="radio" name="settings[outbound_type]" id="smtp_method" value="smtp" class="email_out_type" <?php echo ( !isset($settings['outbound_type']) || $settings['outbound_type'] == 'smtp') ? 'checked="checked"' : '';?> /><?php echo _e( 'SMTP (recommended)', 'email-newsletter' );?>
+                                            <input type="radio" name="settings[outbound_type]" id="smtp_method" value="smtp" class="email_out_type" <?php echo (!isset($settings['outbound_type']) || $settings['outbound_type'] == 'smtp') ? 'checked="checked"' : '';?> /><?php echo _e( 'SMTP (recommended)', 'email-newsletter' );?>
                                         </label>
 
 										<?php $tips->bind_tip(__("The SMTP method allows you to use your SMTP server (or Gmail, Yahoo, Hotmail etc. ) for sending newsletters and emails. It's usually the best choice, especially if your host has restrictions on sending email and to help you to avoid being blacklisted as a SPAM sender",'email-newsletter'), '#tip_smtp'); ?>
 
                                         <label id="tip_php">
-                                            <input type="radio" name="settings[outbound_type]" value="mail" class="email_out_type" <?php echo (isset($settings['outbound_type']) && $settings['outbound_type']) == 'mail' ? 'checked="checked"' : '';?> /><?php echo _e( 'php mail', 'email-newsletter' );?>
+                                            <input type="radio" name="settings[outbound_type]" value="mail" class="email_out_type" <?php echo (isset($settings['outbound_type']) && $settings['outbound_type'] == 'mail') ? 'checked="checked"' : '';?> /><?php echo _e( 'php mail', 'email-newsletter' );?>
                                         </label>
 										<?php $tips->bind_tip(__( "This method uses php functions for sending newsletters and emails. Be careful because some hosts may set restrictions on using this method. If you can't edit settings of your server, we recommend to use the SMTP method for optimal results!", 'email-newsletter' ), '#tip_php'); ?>
                                     </td>
@@ -605,13 +605,13 @@
                                 <tr valign="top">
                                     <th scope="row"><?php _e( 'Public group access:', 'email-newsletter' ) ?></td>
                                     <td>
-                                          <?php
+                                        <?php
                                         if(!isset($settings['non_public_group_access']))
                                             $settings['non_public_group_access'] = 'registered';
                                         ?>
                                         <select id="non_public_group_access" name="settings[non_public_group_access]" >
                                             <option value="registered" <?php selected('registered',$settings['non_public_group_access']); ?>><?php _e( 'Registered users', 'email-newsletter' ) ?></option>
-                                            <option value="nobody" <?php selected('none',$settings['non_public_group_access']); ?>><?php _e( 'Nobody', 'email-newsletter' ) ?></option>
+                                            <option value="nobody" <?php selected('nobody',$settings['non_public_group_access']); ?>><?php _e( 'Nobody', 'email-newsletter' ) ?></option>
                                         </select>
                                         <span class="description"><?php _e( 'Choose what type of user can subscribe to non public groups. <small>Keep in mind that users can still be added to all type of groups in eNewsletter memebers admin page.</small>', 'email-newsletter' ) ?></span>
                                    </td>

@@ -201,8 +201,6 @@
 									 jQuery( "#send_cancel" ).val('finish');
                                      jQuery( ".ui-progressbar-value" ).fadeOut();
                                 } else {
-                                	if(typeof console.log != 'undefined')
-                                		console.log(html);
                                     alert( html );
                                 }
                             }
