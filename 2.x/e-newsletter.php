@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.5.7
+Version: 2.5.8
 Text Domain: email-newsletter
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
@@ -59,7 +59,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.57;
+        $this->plugin_ver = 2.58;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -163,8 +163,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( $this->cron_bounce_name .'_1', array( &$this, 'check_bounces' ) );
         add_action( $this->cron_bounce_name .'_2', array( &$this, 'check_bounces' ) );
 
+        //subscribe widget stuff
         add_shortcode( 'enewsletter_subscribe', array( &$this, 'subscribe_shortcode' ) );
         add_action( 'wp_enqueue_scripts', array( &$this, 'email_newsletter_widgets_scripts' ) );
+
+        //unsubscribe message
+        add_shortcode( 'enewsletter_unsubscribe_message', array( &$this, 'unsubscribe_message_shortcode' ) );
 
 
         //ajax action for sent preview (test) email
@@ -199,13 +203,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'wp_ajax_nopriv_send_email_to_member', array( &$this, 'send_email_to_member' ) );
         add_action( 'wp_ajax_send_email_to_member', array( &$this, 'send_email_to_member' ) );
 
-        add_action( 'template_redirect', array( &$this, 'template_redirect' ), 12 );
-
+        //ajax action for subscribing
         add_action( 'wp_ajax_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax' ));
         add_action( 'wp_ajax_nopriv_manage_subscriptions_ajax', array( &$this, 'manage_subscriptions_ajax'));
 
         // filter does shortcodes
         add_filter('email_newsletter_make_email_content', 'do_shortcode', 11);
+
+
+        add_action( 'template_redirect', array( &$this, 'template_redirect' ), 12 );
     }
 
     /**
@@ -1320,7 +1326,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $members_id = array_merge ( $members_id,  $this->get_members_of_group( $group_id ) );
                 }
 
-            //Get ids for Membership levels being eNewsletter members
+            //Get ids for Membership levels being subscribed eNewsletter members
             if ( isset( $_REQUEST["target"]["membership_levels"] ) && is_array($_REQUEST["target"]["membership_levels"]) )
                 foreach ( $_REQUEST["target"]["membership_levels"] as $membership_level ) {
                     $members = $this->get_members_of_membership($membership_level);
@@ -2164,6 +2170,13 @@ class Email_Newsletter extends Email_Newsletter_functions {
         </div><!--//e-newsletter-widget  -->';
 
         return $return;
+    }
+
+    function unsubscribe_message_shortcode( $atts ) {
+        if(isset($_REQUEST['enewsletter_unsubscribed']) && isset($_REQUEST['message']) && !empty($_REQUEST['message']))
+            return $_REQUEST['message'];
+        else
+            return '';
     }
 
     function subscribe_shortcode( $atts ) {

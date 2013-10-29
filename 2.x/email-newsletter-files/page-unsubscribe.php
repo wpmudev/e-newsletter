@@ -1,15 +1,7 @@
 <?php
-$member_id = get_query_var( 'unsubscribe_member_id' );
-$unsubscribe_code = get_query_var( 'unsubscribe_code' );
+if($unsubscribed)
+    echo "<center><br /><br /><br /><h2 style='color: #19700A;'>" . $message . "</h2></center>";
+else
+	echo "<center><br /><br /><br /><h2 style='color: #ff0000;'>" . $message . "</h2></center>";
 
-global $wpdb;
-
-if ( $this->unsubscribe( $unsubscribe_code, false ) ) {
-    echo "<center><br /><br /><br /><h2 style='color: #19700A;'>" . __( 'You are successfully unsubscribed!', 'email-newsletter' ) . "</h2></center>";
-	exit;
-}
-else {
-	echo "<center><br /><br /><br /><h2 style='color: #ff0000;'>" . __( 'You are already unsubscribed or are not subscribed yet!', 'email-newsletter' ) . "</h2></center>";
-	exit;
-}
-?>
+exit;

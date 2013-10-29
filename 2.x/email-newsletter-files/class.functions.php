@@ -67,19 +67,27 @@ class Email_Newsletter_functions {
 		return apply_filters('email_newsletter_get_default_builder_var',$return,$type);
 	}
 
-    function add_rewrite_rule( $regex, $args, $position = 'top' ) {
-        global $wp, $wp_rewrite;
-
-        $result = add_query_arg( $args, 'index.php' );
-        add_rewrite_rule( $regex, $result, $position );
-    }
-
     /**
      * Show not menu page
      **/
     function template_redirect() {
         if ( $this->is_enewsletter_page( 'unsubscribe_page' ) ) {
-            require_once( $this->plugin_dir . "email-newsletter-files/page-unsubscribe.php" );
+            $member_id = get_query_var( 'unsubscribe_member_id' );
+            $unsubscribe_code = get_query_var( 'unsubscribe_code' );
+
+            if ( $this->unsubscribe( $unsubscribe_code, false ) ) {
+                $message = __( 'You are successfully unsubscribed!', 'email-newsletter' );
+                $unsubscribed = 1;
+            }
+            else {
+                $message = __( 'You are already unsubscribed or are not subscribed yet!', 'email-newsletter' );
+                $unsubscribed = 0;
+            }
+
+            if(isset($this->settings['unsubscribe_page_id']) && is_numeric($this->settings['unsubscribe_page_id']) && get_post($this->settings['unsubscribe_page_id']))
+                wp_redirect( add_query_arg( array('member_id' => $member_id, 'message' => urlencode($message), 'enewsletter_unsubscribed' => $unsubscribed), get_permalink($this->settings['unsubscribe_page_id']) ) );
+            else
+                require_once( $this->plugin_dir . "email-newsletter-files/page-unsubscribe.php" );
             exit;
         }
         elseif ( $this->is_enewsletter_page( 'view_newsletter' ) ) {
@@ -302,7 +310,7 @@ class Email_Newsletter_functions {
 
         $table = membership_db_prefix($wpdb, 'membership_relationships');
         $arg['inner_join'] = "{$table} MR ON A.wp_user_id = MR.user_id";
-        $arg['where'] = $wpdb->prepare('MR.level_id = %d', $level_id);
+        $arg['where'] = $wpdb->prepare('MR.level_id = %d AND A.unsubscribe_code != ""', $level_id);
         $members = $this->get_members( $arg, $count, 0);
 
         return $members;

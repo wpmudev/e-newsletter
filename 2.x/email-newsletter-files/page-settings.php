@@ -31,7 +31,6 @@
             current_tab = '#<?php echo (isset($_GET['tab'])) ? $_GET['tab'] : $default_tab; ?>';
             $( "#newsletter_setting_page" ).val(current_tab.substring(1));
             current_menu_link = $('#newsletter-tabs a[href^='+current_tab+']');
-            console.log(current_menu_link);
 
             $(current_menu_link).addClass('nav-tab-active').siblings('a').removeClass('nav-tab-active');
             $(current_tab).show().siblings('div').hide();
@@ -192,29 +191,6 @@
 						 <?php endif; ?>
 					</h3>
                     <div id="tabs-1" class="tab">
-                        <h3><?php _e( 'Double Opt In Settings', 'email-newsletter' ) ?></h3>
-
-                        <table class="settings-form form-table">
-                            <tr valign="top">
-                                <th scope="row">
-                                    <?php _e( 'Double Opt In:', 'email-newsletter' ) ?>
-                                </th>
-                                <td>
-                                    <input type="checkbox" name="settings[double_opt_in]" value="1" <?php checked('1',$settings['double_opt_in']); ?> />
-                                    <span class="description"><?php _e( 'Yes, members will get confirmation email to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
-                                </td>
-                            </tr>
-							<tr valign="top">
-                                <th scope="row">
-                                    <?php _e( 'Double Opt In Subject:', 'email-newsletter' ) ?>
-                                </th>
-                                <td>
-                                    <input type="text" class="regular-text" name="settings[double_opt_in_subject]" value="<?php echo isset($settings['double_opt_in_subject']) ? esc_attr($settings['double_opt_in_subject']) : ''; ?>" />
-                                    <span class="description"><?php _e( 'Yes, members will get confirmation email to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
-                                </td>
-                            </tr>
-						</table>
-
 						<h3><?php _e( 'Default Info Settings', 'email-newsletter' ) ?></h3>
 
 						<table class="settings-form form-table">
@@ -268,12 +244,25 @@
                             </tr>
                         </table>
 
-                        <h3><?php _e( 'Default User Subscribe Settings', 'email-newsletter' ) ?></h3>
+                        <h3><?php _e( 'Default User Subscribe/Unsubscribe Settings', 'email-newsletter' ) ?></h3>
 
                         <table class="settings-form form-table">
                             <tr valign="top">
                                 <th scope="row">
-                                    <?php _e( 'Groups:', 'email-newsletter' ) ?>
+                                    <?php _e( 'Double Opt In:', 'email-newsletter' ) ?>
+                                </th>
+                                <td>
+                                    <label for="settings[double_opt_in]"><?php _e( 'Enable:', 'email-newsletter' ) ?></label>
+                                    <input type="checkbox" name="settings[double_opt_in]" value="1" <?php checked('1',$settings['double_opt_in']); ?> />
+                                    <label for="settings[double_opt_in]"><?php _e( 'Subject:', 'email-newsletter' ) ?></label>
+                                    <input type="text" class="regular-text" name="settings[double_opt_in_subject]" value="<?php echo isset($settings['double_opt_in_subject']) ? esc_attr($settings['double_opt_in_subject']) : ''; ?>" />
+                                    <span class="description"><?php _e( 'If enabled, members will get confirmation email with configured subject to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
+                                </td>
+                            </tr>
+
+                            <tr valign="top">
+                                <th scope="row">
+                                    <?php _e( 'Default Groups:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
                                     <?php
@@ -303,7 +292,7 @@
 
                             <tr valign="top">
                                 <th scope="row">
-                                    <?php _e( 'Newsletter:', 'email-newsletter' ) ?>
+                                    <?php _e( 'Welcome Newsletter:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
                                     <select name="settings[subscribe_newsletter]">
@@ -337,6 +326,16 @@
                                         <option value="0"<?php selected( $settings['wp_user_register_subscribe'], 0); ?>><?php _e( 'Disable', 'email-newsletter' ) ?></option>
                                     </select>
                                     <span class="description"><?php _e( 'Choose if user registering(with WordPress) to your site is automatically subscribed to newsletter.', 'email-newsletter' ) ?></span>
+                                </td>
+                            </tr>
+
+                           <tr valign="top">
+                                <th scope="row">
+                                    <?php _e( 'Unsubscribe Page ID:', 'email-newsletter' ) ?>
+                                </th>
+                                <td>
+                                    <input class="small-text" type="number" name="settings[unsubscribe_page_id]" value="<?php echo isset($settings['unsubscribe_page_id']) ? esc_attr($settings['unsubscribe_page_id']) : '';?>" />
+                                    <span class="description"><?php _e( 'Add ID of page that you want to use as unsubscribe page. You can use [enewsletter_unsubscribe_message] shortcode to display unsubscribe message. Leave blank to dissable.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
                         </table>

@@ -5,6 +5,11 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 
 == Changelog ==
 
+= 2.5.8 =
+* Added ability to select unsubscribe page by ID
+* Small improvements to settings page
+* Fixed unsubscribe respecting for membership users
+
 = 2.5.7 =
 * Fixed settings page displaying incorrect options
 
