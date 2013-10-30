@@ -1719,13 +1719,27 @@ class Email_Newsletter_functions {
 
                 if ( isset( $exist_members ) && is_array( $exist_members ) ) {
                     $message .= '<br />' . __( 'These emails already exist in member list:', 'email-newsletter' ) . '<br />';
+                    $exist_members_count = count($exist_members);
+                    $exist_members = array_slice($exist_members, 0, 40);
                     foreach($exist_members as $exist_member )
                         $message .= $exist_member . '<br />';
+
+                    if($exist_members_count > 40)  {
+                        $exist_members_count_left = $exist_members_count-40;
+                        $message .= __( '...and '.$exist_members_count_left.' more!', 'email-newsletter' ) . '<br />';
+                    }
                 }
                 if ( isset( $incorrect_members ) && is_array( $incorrect_members ) ) {
                     $message .= '<br />' . __( 'These emails are incorrect:', 'email-newsletter' ) . '<br />';
+                    $incorrect_members_count = count($incorrect_members);
+                    $incorrect_members = array_slice($incorrect_members, 0, 40);
                     foreach($incorrect_members as $incorrect_member )
                         $message .= $incorrect_member . '<br />';
+
+                    if($incorrect_members_count > 40)  {
+                        $incorrect_members_count_left = $incorrect_members_count-40;
+                        $message .= __( '...and '.$incorrect_members_count_left.' more!', 'email-newsletter' ) . '<br />';
+                    }
                 }
 
                 if(empty($message)) {

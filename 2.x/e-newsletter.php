@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.5.8
+Version: 2.5.9
 Text Domain: email-newsletter
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
@@ -59,7 +59,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.58;
+        $this->plugin_ver = 2.59;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -492,7 +492,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     else
                         $separate_by = ',';
 
-                    $this->export_members($_REQUEST['groups_id'], $_REQUEST['groups_ungrouped'], $separate_by);
+                    $groups_id = isset($_REQUEST['groups_id']) ? $_REQUEST['groups_id'] : array();
+                    $groups_ungrouped = isset($_REQUEST['groups_ungrouped']) ? $_REQUEST['groups_ungrouped'] : 0;
+
+                    $this->export_members($groups_id, $groups_ungrouped, $separate_by);
                 break;
 
                 //action save settings
@@ -1106,14 +1109,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function save_newsletter( $newsletter_id = NULL, $page_redirect, $data = NULL ) {
         global $wpdb, $email_builder;
 
-        do_action( 'enewsletter_delete_newsletter', $newsletter_id );
-
         if(empty($data))
             $data = $_REQUEST;
 
         if(isset($data['newsletter_id']) && empty($newsletter_id)) {
             $newsletter_id = $data['newsletter_id'];
         }
+
+        do_action( 'enewsletter_delete_newsletter', $newsletter_id );
 
         $current_theme = $email_builder->get_builder_theme($newsletter_id);
 
@@ -1742,8 +1745,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $newsletter_data = $this->get_newsletter_data( $newsletter_id );
         $content = $this->make_email_body($newsletter_id);
+        $content = str_replace( "{VIEW_LINK}", '#', $content );
         $content = str_replace( "{UNSUBSCRIBE_URL}", '#', $content );
-        $content = str_replace( "{OPENED_TRACKER}", '<div style="display:none; font-size: 0px; line-height:0px;"><img src="' . admin_url('admin-ajax.php') . '" width="1" height="1"/></div>', $content );
+        $content = str_replace( "{OPENED_TRACKER}", '<div style="display:none; font-size: 0px; line-height:0px;"><img src="#" width="1" height="1"/></div>', $content );
         if($newsletter_data && $content) {
             $subject = '(PREVIEW) '.$newsletter_data['subject'];
             if( $this->settings['bounce_email'] ) {

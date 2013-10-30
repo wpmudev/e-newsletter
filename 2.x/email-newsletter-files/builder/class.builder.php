@@ -17,31 +17,21 @@ class Email_Newsletter_Builder  {
 	function plugins_loaded() {
 		global $current_user, $pagenow, $builder_id, $email_newsletter;
 
-		//$email_newsletter->register_shortcode_ajax( 'builder_do_shortcodes', array( &$this, 'ajax_do_shortcodes' ) );
-
-		// Start the id at false for checking
-		$builder_id = false;
-
+		//Set up builder id global
 		if(isset($_REQUEST['newsletter_id'])) {
 			if(is_numeric($_REQUEST['newsletter_id'])){
 				$builder_id = $_REQUEST['newsletter_id'];
 				delete_transient('builder_email_id_'.$current_user->ID);
 				set_transient('builder_email_id_'.$current_user->ID, $builder_id);
-			} elseif($_REQUEST['newsletter_id'] == 'new') {
-				// We pass an empty array to create a new newsletter and get our ID
-				$builder_id = $this->save_builder(array('template' => $_REQUEST['theme']));
-				delete_transient('builder_email_id_'.$current_user->ID);
-				set_transient('builder_email_id_'.$current_user->ID, $builder_id);
-			} else {
-				die(__('Something is wrong, we can not determine what your trying to do.','email-newsletter'));
 			}
+			else
+				die(__('Something is wrong, we can not determine what your trying to do.','email-newsletter'));
 		}
 
 		if(!$builder_id)
 			$builder_id = $this->get_builder_email_id();
 
 		if ( isset( $_REQUEST['newsletter_builder_action'] ) ) {
-			$user = new WP_User( $current_user->ID );
 			$mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
 
 			switch( $_REQUEST[ 'newsletter_builder_action' ] ) {
@@ -49,8 +39,14 @@ class Email_Newsletter_Builder  {
 					if(!(current_user_can('create_newsletter') || current_user_can($mu_cap)))
 						wp_die('You do not have permission to do that');
 
+					$builder_id = false;
+					$builder_id = $this->save_builder(array('template' => $this->get_builder_theme()));
+					delete_transient('builder_email_id_'.$current_user->ID);
+					set_transient('builder_email_id_'.$current_user->ID, $builder_id);
+
 					$return = (isset($_REQUEST['return'])) ? $_GET['return'] : false;
-					wp_redirect( $this->generate_builder_link('new', false, $return) );
+					//var_dump($this->generate_builder_link($builder_id, false, $return));
+					wp_redirect( $this->generate_builder_link($builder_id, false, $return) );
 					exit();
 				break;
 				case "edit_newsletter":
@@ -59,7 +55,7 @@ class Email_Newsletter_Builder  {
 
 					$template = (isset($_REQUEST['template'])) ? $_REQUEST['template'] : false;
 					$return = (isset($_REQUEST['return'])) ? $_GET['return'] : false;
-					wp_redirect( $this->generate_builder_link($_REQUEST['newsletter_id'], $template, $return) );
+					wp_redirect( $this->generate_builder_link($builder_id, $template, $return) );
 					exit();
 				break;
 			}
@@ -87,19 +83,21 @@ class Email_Newsletter_Builder  {
 		return $allcaps;
 	}
 	function generate_builder_link($id=false, $theme=false, $return_url=NULL, $url=false) {
-		if(!$id)
-			return;
+		if(is_numeric($id)) {
+			$theme = ($theme == false) ? $this->get_builder_theme($id) : $theme;
+			$final = 'customize.php?wp_customize=on&theme='.$theme.'&newsletter_id='.$id;
+			if(empty($return_url))
+				$final .= '&return='.urlencode('admin.php?page=newsletters');
+			else if($return_url != false)
+				$final .= '&return='.urlencode($return_url);
 
-		$theme = ($theme == false) ? $this->get_builder_theme($id) : $theme;
-		$final = 'customize.php?wp_customize=on&theme='.$theme.'&newsletter_id='.$id;
-		if(empty($return_url))
-			$final .= '&return='.urlencode('admin.php?page=newsletters');
-		else if($return_url != false)
-			$final .= '&return='.urlencode($return_url);
+			if($url)
+				$final .= '&url='.$url;
 
-		if($url)
-			$final .= '&url='.$url;
-		return admin_url($final);
+			return admin_url($final);
+		}
+		else
+			return '';
 	}
 	function parse_theme_settings() {
 		global $email_newsletter;
@@ -241,10 +239,15 @@ class Email_Newsletter_Builder  {
 						window.location.href = window.location.href.replace('theme='+current_theme,'theme='+new_theme)
 				});
 			});
+
 			jQuery(document).ready(function() {
 				jQuery("#save").click();
 			});
 
+			window.onbeforeunload = function() {
+				if(!jQuery("#save").is(":disabled"))
+					return "<?php _e('You have unsaved data in this newsletter.','email-newsletter'); ?>";
+			};
 		</script>
 
 		<style type="text/css">
