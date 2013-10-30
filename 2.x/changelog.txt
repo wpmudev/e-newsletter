@@ -6,8 +6,8 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 == Changelog ==
 
 = 2.5.9 =
-* Added warning when leaving editor for unsaved newsletter
-* Improved error handling why importing members
+* Added warning when leaving newsletter builder with unsaved data
+* Improved error handling when importing members
 * Fixed problems when creating new newsletter
 
 = 2.5.8 =
