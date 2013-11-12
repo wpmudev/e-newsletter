@@ -5,5 +5,3 @@ If your locale is "en_US" then eNewsletter will look for the file in this folder
 If that file is not found it will default back to double_optin.html
 
 If you are having trouble determining your local code use the wordpress function get_locale();
-
-155209-1363273157

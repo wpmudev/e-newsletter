@@ -119,5 +119,3 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 
 = 1.0.0 =
 * Initial Release;
-
-155209-1363273157
