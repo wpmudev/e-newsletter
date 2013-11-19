@@ -23,6 +23,12 @@ class Email_Newsletter_functions {
                 else
                     return 0;
                 break;
+            case 'subscribe_page':
+                if ( 1 == get_query_var( 'subscribe_page' ) )
+                    return 1;
+                else
+                    return 0;
+                break;
             case 'view_newsletter':
                 if ( 1 == get_query_var( 'view_newsletter' ) )
                     return 1;
@@ -66,35 +72,6 @@ class Email_Newsletter_functions {
 		}
 		return apply_filters('email_newsletter_get_default_builder_var',$return,$type);
 	}
-
-    /**
-     * Show not menu page
-     **/
-    function template_redirect() {
-        if ( $this->is_enewsletter_page( 'unsubscribe_page' ) ) {
-            $member_id = get_query_var( 'unsubscribe_member_id' );
-            $unsubscribe_code = get_query_var( 'unsubscribe_code' );
-
-            if ( $this->unsubscribe( $unsubscribe_code, false ) ) {
-                $message = __( 'You are successfully unsubscribed!', 'email-newsletter' );
-                $unsubscribed = 1;
-            }
-            else {
-                $message = __( 'You are already unsubscribed or are not subscribed yet!', 'email-newsletter' );
-                $unsubscribed = 0;
-            }
-
-            if(isset($this->settings['unsubscribe_page_id']) && is_numeric($this->settings['unsubscribe_page_id']) && get_post($this->settings['unsubscribe_page_id']))
-                wp_redirect( add_query_arg( array('member_id' => $member_id, 'message' => urlencode($message), 'enewsletter_unsubscribed' => $unsubscribed), get_permalink($this->settings['unsubscribe_page_id']) ) );
-            else
-                require_once( $this->plugin_dir . "email-newsletter-files/page-unsubscribe.php" );
-            exit;
-        }
-        elseif ( $this->is_enewsletter_page( 'view_newsletter' ) ) {
-            require_once( $this->plugin_dir . "email-newsletter-files/page-view-newsletter.php" );
-            exit;
-        }
-    }
 
     /**
      * Generate Unsubscribe code
@@ -300,7 +277,7 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * Get all members of Group
+     * Get all members of membership
      **/
     function get_members_of_membership( $level_id, $count = 0 ) {
         global $wpdb;
@@ -354,19 +331,19 @@ class Email_Newsletter_functions {
         $left_join  = "";
         $inner_join = "";
 
-        if ( isset( $arg['where'] ) ) {
+        if ( isset( $arg['where'] ) && !empty( $arg['where'] ) ) {
             $where = "WHERE ". $arg['where'];
         }
 
-        if ( isset( $arg['inner_join'] ) ) {
+        if ( isset( $arg['inner_join'] ) && !empty( $arg['inner_join'] ) ) {
             $inner_join= "INNER JOIN ". $arg['inner_join'];
         }
 
-        if ( isset( $arg['left_join'] ) ) {
+        if ( isset( $arg['left_join'] ) && !empty( $arg['left_join'] ) ) {
             $inner_join= "LEFT JOIN ". $arg['left_join'];
         }
 
-        if ( isset( $arg['limit'] ) ) {
+        if ( isset( $arg['limit'] ) && !empty( $arg['limit'] ) ) {
             $limit = $arg['limit'];
         }
 
@@ -685,37 +662,6 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * Create/Edit new Group
-     **/
-    function create_group( $group_name, $public, $group_id = "0" ) {
-        global $wpdb;
-
-        //checking that group not exist other ID
-        $result = $wpdb->get_row( $wpdb->prepare( "SELECT group_id FROM {$this->tb_prefix}enewsletter_groups WHERE LOWER(group_name) = '%s'",  strtolower( $group_name ) ), "ARRAY_A");
-        if ( $result ) {
-            if ( "0" != $group_id && $result['group_id'] == $group_id ) {
-
-            } else {
-                //if group exist with other ID
-                wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'message' => urlencode( __( 'The group already exists!', 'email-newsletter' ) ) ), 'admin.php' ) );
-                exit;
-            }
-        }
-
-        if ( "0" != $group_id ) {
-            //update when edit group
-            $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_groups SET group_name = '%s', public = '%s' WHERE group_id = %d", trim( $group_name ), $public, $group_id ) );
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'message' => urlencode( __( 'The group has been modified.', 'email-newsletter' ) ) ), 'admin.php' ) );
-            exit;
-        } else {
-            //create new group
-            $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_groups SET group_name = '%s', public = '%s'", trim( $group_name), $public ) );
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'message' => urlencode( __( 'The group has been created.', 'email-newsletter' ) ) ), 'admin.php' ) );
-            exit;
-        }
-    }
-
-    /**
      * Get all data of all groups
      **/
      function get_groups($only_public = 0) {
@@ -740,72 +686,6 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * Delete Group
-     **/
-    function delete_group( $group_id ) {
-        global $wpdb;
-        $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_groups WHERE group_id = %d", $group_id ) );
-        wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'message' => urlencode( __( 'Group is deleted!', 'email-newsletter' ) ) ), 'admin.php' ) );
-        exit;
-    }
-
-    /**
-     * Change Group
-     **/
-    function change_group( $member_id, $groups_id ) {
-        global $wpdb;
-
-        //deleting old list of groups for user
-        $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
-
-        $member_data = $this->get_member( $member_id );
-        //if ( "" == $member_data['unsubscribe_code'] ) {
-        //    $this->subscribe( $member_id, false );
-        //}
-
-        //creating new list of groups for user
-        if ( $groups_id )
-            foreach( ( array ) $groups_id as $group_id )
-                $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
-
-        wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Groups are changed!', 'email-newsletter' ) ) ), 'admin.php' ) );
-        exit;
-    }
-
-    /**
-     * Bulk option -  add member to group
-     **/
-    function add_members_group( $members_id, $group_id ) {
-        global $wpdb;
-
-        if ( 0 < $group_id ) {
-            foreach( $members_id as $member_id ) {
-                $result = $wpdb->get_var( $wpdb->prepare( "SELECT group_id FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d AND group_id = %d", $member_id, $group_id ) );
-
-                if ( ! $result )
-                    $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
-            }
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are added to the group!', 'email-newsletter' ) ) ), 'admin.php' ) );
-            exit;
-        }
-    }
-
-    /**
-     * Bulk option -  delete member from group
-     **/
-    function delete_members_group( $members_id, $group_id ) {
-        global $wpdb;
-
-        if ( 0 < $group_id ) {
-            foreach( $members_id as $member_id )
-                $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d AND group_id = %d", $member_id, $group_id ) );
-
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are deleted from the group!', 'email-newsletter' ) ) ), 'admin.php' ) );
-            exit;
-        }
-    }
-
-    /**
      * Get all groups for memeber
      **/
      function get_memeber_groups( $member_id ) {
@@ -815,23 +695,8 @@ class Email_Newsletter_functions {
         foreach( $results as $group ){
             $groups[] = $group['group_id'];
         }
-        return $groups;
-    }
 
-    /**
-     * Get list of all available triggers
-     **/
-     function get_triggers() {
-        $default_triggers = array(
-                'create_user' => array(
-                        'name' => __( 'New user created', 'email-newsletter' ),
-                        'hooks' => array('hook1', 'hooks2')),
-                'other_hook' => array(
-                        'name' => __( 'Other hook', 'email-newsletter' ),
-                        'hooks' => array('hook1', 'hooks2'))
-            );
-        $email_newsletter_triggers = apply_filters('email_newsletter_triggers', $default_triggers);
-        return $email_newsletter_triggers;
+        return $groups;
     }
 
     /**
@@ -1345,15 +1210,23 @@ class Email_Newsletter_functions {
         else
             $id = 0;
 
-        if(!empty($changes['user_name']))
+        if(!empty($changes['user_name'])) {
             $contents = str_replace( "{USER_NAME}", $changes['user_name'], $contents );
-        else
+            $contents = str_replace( "%7BUSER_NAME%7D", $changes['user_name'], $contents );
+        }
+        else {
             $contents = str_replace( "{USER_NAME}", '', $contents );
+            $contents = str_replace( "%7BUSER_NAME%7D", '', $contents );
+        }
 
-        if(!empty($changes["member_email"]))
+        if(!empty($changes["member_email"])) {
             $contents = str_replace( "{TO_EMAIL}", $changes["member_email"], $contents );
-        else
+            $contents = str_replace( "%7BTO_EMAIL%7D", $changes["member_email"], $contents );
+        }
+        else {
             $contents = str_replace( "{TO_EMAIL}", '', $contents );
+            $contents = str_replace( "%7BTO_EMAIL%7D", $changes["member_email"], $contents );
+        }
 
         //Set up permalinks
         $contents = str_replace( "{OPENED_TRACKER}", '<div style="font-size: 0px; line-height:0px;"><img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id . '&wp_only_user_id=' . $wp_only_user_id) . '" width="1" height="1"/></div>', $contents );
@@ -1678,11 +1551,23 @@ class Email_Newsletter_functions {
                         if ( isset( $_REQUEST['import_groups_id'] ) && is_array( $_REQUEST['import_groups_id'] ) )
                             $import_groups_id = $_REQUEST['import_groups_id'];
 
-                        $result = $wpdb->get_var( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE member_email = %s", $email ) );
+                        $member_id = $wpdb->get_var( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE member_email = %s", $email ) );
 
-                        if ( 0 < $result ) {
-                            //email of member already exist
-                            $exist_members[] = $email;
+                        if ( $member_id ) {
+                            if(isset($import_groups_id)) {
+                                $memeber_groups = $this->get_memeber_groups( $member_id );
+                                if(!$memeber_groups)
+                                    $memeber_groups = array();
+                                $import_and_memeber_groups_id = array_unique(array_merge($memeber_groups, $import_groups_id));
+                                if($import_and_memeber_groups_id > $memeber_groups) {
+                                    $this->change_group( $member_id, $import_and_memeber_groups_id );
+                                    $i++;
+                                }
+                                else
+                                    $exist_members[] = $email;
+                            }
+                            else
+                                $exist_members[] = $email;
                         } else {
                             if ( is_email($email) ) {
                                 $member_data_ready = array(
@@ -1697,8 +1582,7 @@ class Email_Newsletter_functions {
                                 if($result) {
                                     //creating new list of groups for user
                                     if ( isset( $import_groups_id ) )
-                                        foreach( $import_groups_id as $group_id )
-                                            $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
+                                        $this->add_members_group( $member_id, $import_groups_id );
 
                                     $i++;
                                 }
@@ -1715,7 +1599,7 @@ class Email_Newsletter_functions {
                 $message = '';
 
                 if ( 0 < $i )
-                    $message .=  __( 'Import is finished successfully,', 'email-newsletter' ) . ' ' . $i . ' ' . __( 'members are added.', 'email-newsletter' );
+                    $message .=  __( 'Import is finished successfully,', 'email-newsletter' ) . ' ' . $i . ' ' . __( 'members are added or subscribed to group.', 'email-newsletter' );
 
                 if ( isset( $exist_members ) && is_array( $exist_members ) ) {
                     $message .= '<br />' . __( 'These emails already exist in member list:', 'email-newsletter' ) . '<br />';
@@ -1779,6 +1663,7 @@ class Email_Newsletter_functions {
         header( 'Content-Disposition: attachment; filename=' . $filename );
         header( 'Content-Type: text/plain; charset=' . get_option( 'blog_charset' ), true );
 
+        $arg = array();
         if(count($groups) > 0) {
             foreach ($groups as $key => $group)
                 if(!is_numeric($group))
@@ -1792,7 +1677,7 @@ class Email_Newsletter_functions {
                 $arg['where'] .= ' OR group_id IS NULL';
         }
         elseif($ungrouped == 1)
-                $arg['where'] .= 'group_id IS NULL';
+                $arg['where'] = 'group_id IS NULL';
 
         $arg['left_join'] = $this->tb_prefix.'enewsletter_member_group C ON (A.member_id = C.member_id)';
 
@@ -2357,21 +2242,6 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * Write log for CRON
-     **/
-    function write_log( $message ) {
-        if(!$this->debug)
-            return false;
-
-        $file = $this->plugin_dir . "email-newsletter-files/debug.log";
-
-        $handle = fopen( $file, 'ab' );
-        $data = date( "[Y-m-d H:i:s]" ) . $message . "\r\n";
-        fwrite($handle, $data);
-        fclose($handle);
-    }
-
-    /**
      * Get path to custom theme directory
      **/
     function get_custom_theme_dir() {
@@ -2421,17 +2291,6 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * Handle shorcodes on our own
-     **/
-    function register_shortcode_ajax( $action, $callable ) {
-
-      if ( empty( $_POST['action'] ) || $_POST['action'] != $action )
-        return;
-
-      call_user_func( $callable );
-    }
-
-    /**
      * Encrypt text (SMTP & POP password)
      **/
     protected function _encrypt( $text ) {
@@ -2451,6 +2310,21 @@ class Email_Newsletter_functions {
         } else {
             return $text;
         }
+    }
+
+    /**
+     * Write log for CRON
+     **/
+    function write_log( $message ) {
+        if(!$this->debug)
+            return false;
+
+        $file = $this->plugin_dir . "email-newsletter-files/debug.log";
+
+        $handle = fopen( $file, 'ab' );
+        $data = date( "[Y-m-d H:i:s]" ) . $message . "\r\n";
+        fwrite($handle, $data);
+        fclose($handle);
     }
 }
 ?>

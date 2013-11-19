@@ -393,8 +393,6 @@ class Email_Newsletter_Builder  {
 
 			if( in_array('BG_COLOR', $this->settings) ) {
 				$instance->add_setting( 'bg_color', array(
-					//'subject'        => '',
-					//'capability' => NULL,
 					'default' => $email_newsletter->get_default_builder_var('bg_color'),
 					'type' => 'newsletter_save'
 				) );
@@ -407,8 +405,6 @@ class Email_Newsletter_Builder  {
 
 			if( in_array('BODY_COLOR', $this->settings) ) {
 				$instance->add_setting( 'body_color', array(
-					//'subject'        => '',
-					//'capability' => NULL,
 					'default' => $email_newsletter->get_default_builder_var('body_color'),
 					'type' => 'newsletter_save'
 				) );
@@ -421,8 +417,6 @@ class Email_Newsletter_Builder  {
 
 			if( in_array('ALTERNATIVE_COLOR', $this->settings) ) {
 				$instance->add_setting( 'alternative_color', array(
-					//'subject'        => '',
-					//'capability' => NULL,
 					'default' => $email_newsletter->get_default_builder_var('alternative_color'),
 					'type' => 'newsletter_save'
 				) );
@@ -436,8 +430,6 @@ class Email_Newsletter_Builder  {
 
 			if( in_array('TITLE_COLOR', $this->settings) ) {
 				$instance->add_setting( 'title_color', array(
-					//'subject'        => '',
-					//'capability' => NULL,
 					'default' => $email_newsletter->get_default_builder_var('title_color'),
 					'type' => 'newsletter_save'
 				) );
@@ -450,8 +442,6 @@ class Email_Newsletter_Builder  {
 
 			if( in_array('LINK_COLOR', $this->settings) ) {
 				$instance->add_setting( 'link_color', array(
-					//'subject'        => '',
-					//'capability' => NULL,
 					'default' => $email_newsletter->get_default_builder_var('link_color'),
 					'type' => 'newsletter_save'
 				) );
@@ -498,52 +488,36 @@ class Email_Newsletter_Builder  {
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'subject', array(
-			//'subject'        => '',
-			//'capability' => NULL,
 			'default' => $email_newsletter->get_default_builder_var('email_title'),
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'from_name', array(
-			//'subject'        => '',
-			//'capability' => NULL,
 			'default' => $email_newsletter->settings['from_name'],
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'from_email', array(
-			//'subject'        => '',
-			//'capability' => NULL,
 			'default' => $email_newsletter->settings['from_email'],
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'bounce_email', array(
-			//'subject'        => '',
-			//'capability' => NULL,
 			'default' => $email_newsletter->settings['bounce_email'],
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'email_content', array(
-			//'subject'        => '',
-			//'capability' => NULL,
 			'default' => '',
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'email_preview', array(
-			//'subject'        => '',
-			//'capability' => NULL,
 			'default' => (isset($email_newsletter->settings['preview_email'])) ? $email_newsletter->settings['preview_email'] : '',
 			'type' => 'newsletter_save'
 		) );
 
 		$instance->add_setting( 'branding_html', array(
-			//'subject'        => '',
-			//'capability' => NULL,
 			'default' => '',
 			'type' => 'newsletter_save',
 		) );
 
 		$instance->add_setting( 'contact_info', array(
-			//'subject'        => '',
-			//'capability' => NULL,
 			'default' => '',
 			'type' => 'newsletter_save',
 		) );
@@ -609,7 +583,7 @@ class Email_Newsletter_Builder  {
 	}
 
 	function save_builder($new_values = false) {
-		global $email_newsletter, $builder_id;
+		global $email_newsletter, $builder_id, $wpdb;
 
 		$data = array();
 		$default = array(
@@ -659,7 +633,61 @@ class Email_Newsletter_Builder  {
 
 		$data = array_merge($default,$data);
 
-		return $email_newsletter->save_newsletter($builder_id, false, $data);
+        $current_theme = $this->get_builder_theme($builder_id);
+
+        $content        = base64_decode( str_replace( "-", "+", (isset($data['content_encoded']) ? $data['content_encoded'] : '' ) ) );
+        $contact_info   = base64_decode( str_replace( "-", "+", (isset($data['contact_info']) ? $data['contact_info'] : '' ) ) );
+
+        $fields = array(
+            "template"      => $data['newsletter_template'],
+            "subject"       => $data['subject'],
+            "from_name"     => $data['from_name'],
+            "from_email"    => $data['from_email'],
+            "bounce_email"  => ( isset( $data['bounce_email'] ) ) ? $data['bounce_email'] : '',
+            "content"       => $content,
+            "contact_info"  => $contact_info,
+        );
+
+        $meta = $data['meta'];
+
+        $meta['branding_html'] = base64_decode( str_replace( "-", "+", (isset($meta['branding_html']) ? $meta['branding_html'] : '' ) ) );
+
+
+        if($data['newsletter_template'] != $current_theme) {
+            $exclude = array();
+            if($meta['email_title'] != BUILDER_DEFAULT_EMAIL_TITLE)
+                $exclude[] = 'email_title';
+
+            $email_newsletter->delete_newsletter_meta($builder_id, $exclude, 1 );
+        }
+        else
+            foreach($meta as $meta_key => $meta_value) {
+                $email_newsletter->update_newsletter_meta($builder_id, $meta_key, $meta_value);
+            }
+
+        if( ! $builder_id ) {
+            $sql    = "INSERT INTO {$email_newsletter->tb_prefix}enewsletter_newsletters SET create_date = " . time() . " ";
+            $where  = '';
+        }else{
+            $sql    = "UPDATE {$email_newsletter->tb_prefix}enewsletter_newsletters SET newsletter_id = '".mysql_real_escape_string( $builder_id )."' ";
+            $where  = " WHERE newsletter_id = '".mysql_real_escape_string( $builder_id )."' LIMIT 1";
+        }
+
+        foreach( $fields as $key=>$val ) {
+            $val = trim( $val );
+
+            $sql .= ", `".$key."` = '".mysql_real_escape_string( $val )."'";
+        }
+        $sql .= $where;
+
+        $result = $wpdb->query( $sql );
+
+        if( ! $builder_id )
+            $builder_id = $wpdb->insert_id;
+
+        do_action( 'enewsletter_newsletter_saved', $builder_id, $data);
+
+        return $builder_id;
 	}
 
 	// Anything that isnt a text input has to have its own function because

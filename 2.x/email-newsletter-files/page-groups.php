@@ -100,9 +100,9 @@
             <table class="form-table">
                 <tr class="top">
                     <th scope="row">
-						
+
                         <?php _e( 'Group Name:', 'email-newsletter' ) ?><span class="required">*</span>
-      
+
 					</th>
 					<td>
 						<input type="text" class="input" name="group_name" id="group_name" value="" size="30" />
@@ -126,6 +126,9 @@
             <table id="groups_table" class="widefat post table_slim">
                 <thead>
                     <tr>
+                        <th>
+                            <?php _e( 'ID', 'email-newsletter' ) ?>
+                        </th>
                         <th>
                             <?php _e( 'Group Name', 'email-newsletter' ) ?>
                         </th>
@@ -151,6 +154,11 @@
 
                     $i++;
             ?>
+                    <td style="vertical-align: middle;">
+                        <span id="group_id_block_<?php echo $group['group_id'];?>">
+                            <?php echo $group['group_id']; ?>
+                        </span>
+                    </td>
                     <td style="vertical-align: middle;">
                         <span id="group_name_block_<?php echo $group['group_id'];?>">
                             <?php echo $group['group_name']; ?>

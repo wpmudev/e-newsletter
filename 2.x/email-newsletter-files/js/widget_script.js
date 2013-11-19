@@ -4,7 +4,7 @@ jQuery( document ).ready( function() {
         event.preventDefault(); //disable default behavior
     });
     jQuery("#subscribes_form .enewletter_widget_submit").click(function(event){
-        var stop = 0; 
+        var stop = 0;
 
         event.preventDefault(); //disable default behavior
 
@@ -28,8 +28,12 @@ jQuery( document ).ready( function() {
                 if(jQuery(this).is(':checked'))
                     e_newsletter_groups_id.push(jQuery(this).val());
             });
-            
-            
+
+            var e_newsletter_auto_groups_id = new Array(); //prepers data for pdata filter
+            jQuery.each(parent.find('input[name="e_newsletter_auto_groups_id[]"]' ), function() {
+                e_newsletter_auto_groups_id.push(jQuery(this).val());
+            });
+
             var data = { //looks for and sets all variables used for export
                 action: 'manage_subscriptions_ajax',
                 newsletter_action: parent.find("#newsletter_action" ).val(),
@@ -37,9 +41,10 @@ jQuery( document ).ready( function() {
                 e_newsletter_email: parent.find("#e_newsletter_email" ).val(),
                 e_newsletter_name: parent.find("#e_newsletter_name" ).val(),
                 newsletter_action: parent.find("#newsletter_action" ).val(),
-                e_newsletter_groups_id: e_newsletter_groups_id
+                e_newsletter_groups_id: e_newsletter_groups_id,
+                e_newsletter_auto_groups_id: e_newsletter_auto_groups_id
             };
-            
+
             jQuery.post(email_newsletter_widget_scripts.ajax_url, data, function(data){ //post data to specified action trough special WP ajax page
                 data = jQuery.parseJSON(data);
 

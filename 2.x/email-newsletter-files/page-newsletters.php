@@ -51,6 +51,11 @@
         <p><?php _e( 'This page contains the list of all Newsletters.', 'email-newsletter' ) ?></p>
         <p class="description"><?php _e( 'Note: please store your custom themes in enewsletter-custom-themes folder located in wp-content/uploads(+/siteID/ if activated on a single blog of a multi-site install).', 'email-newsletter' ) ?></p>
 
+        <?php
+        global $email_builder;
+        $i = 0;
+        $template_query = array();
+        ?>
         <table id="newsletter_list" class="widefat post">
             <thead>
                 <tr>
@@ -96,11 +101,7 @@
                     </th>
                 </tr>
             </thead>
-        <?php
-		global $email_builder;
-        $i = 0;
-		$template_query = array();
-        if ( $newsletters )
+            <?php
             foreach( $newsletters as $key => $newsletter ) {
             	$template_id = $this->get_newsletter_meta($newsletter['newsletter_id'],'plugin_template_id');
 
@@ -116,7 +117,7 @@
                     echo "<tr class='' >";
 
                 $i++;
-        ?>
+            ?>
                 <td>
                     <?php echo $newsletter['newsletter_id']; ?>
                 </td>
