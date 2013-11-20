@@ -5,6 +5,9 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 
 == Changelog ==
 
+= 2.6.1 =
+* Fixed warning in widget
+
 = 2.6 =
 * Added option for each subscribe widget and shortcode to automatically subscribe to selected groups
 * Added ability to select subscribe page by ID(for "double opt in" method)

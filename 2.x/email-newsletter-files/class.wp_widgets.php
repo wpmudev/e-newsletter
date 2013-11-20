@@ -16,7 +16,7 @@ class e_newsletter_subscribe extends WP_Widget {
         $show_name      = apply_filters( 'widget_title', $instance['name'] );
         $show_groups    = $instance['groups'];
         $title = $instance['title'];
-        $subscribe_to_groups = $instance['auto_groups'];
+        $subscribe_to_groups = isset($instance['auto_groups']) ? $instance['auto_groups'] : array();
 
         echo $before_widget;
 
@@ -34,7 +34,7 @@ class e_newsletter_subscribe extends WP_Widget {
         $instance['title']  = strip_tags($new_instance['title']);
         $instance['name']   = strip_tags($new_instance['name']);
         $instance['groups'] = strip_tags($new_instance['groups']);
-        $instance['auto_groups'] = $new_instance['auto_groups'];
+        $instance['auto_groups'] = isset($new_instance['auto_groups']) ? $new_instance['auto_groups'] : array();
         return $instance;
     }
 
@@ -80,7 +80,7 @@ class e_newsletter_subscribe extends WP_Widget {
                 <label for="<?php echo $this->get_field_id( 'groups' ); ?>"><?php _e( 'Show Groups?', 'email-newsletter' ) ?></label>
             </p>
             <?php
-            if(count($groups) > 0) {
+            if(is_array($all_groups) && count($all_groups) > 0) {
                 $groups_html = implode('<br/>', $groups_html)
             ?>
                 <p>

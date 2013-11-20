@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: email-newsletter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-11-19 19:30+0100\n"
-"PO-Revision-Date: 2013-11-19 19:30+0100\n"
+"POT-Creation-Date: 2013-11-20 15:08+0100\n"
+"PO-Revision-Date: 2013-11-20 15:08+0100\n"
 "Last-Translator: \n"
 "Language-Team: Incsub\n"
 "MIME-Version: 1.0\n"
@@ -478,39 +478,39 @@ msgid "Saving..."
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2176
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2178
 msgid "Your Email:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2182
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2184
 msgid "Your Name:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2188
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2223
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2190
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2225
 msgid "Subscribe to:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2208
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2210
 #: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/email-newsletter-files/page-settings.php:325
 msgid "Subscribe"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2241
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2243
 msgid "Save Subscriptions"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2246
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2248
 msgid "Unsubscribe"
 msgstr ""
 
 #: C:\Programs
-#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2256
+#: Portable\xampp\htdocs\wordpress-incsub\wp-content\plugins\e-newsletter2/e-newsletter.php:2258
 msgid "Subscribe to Newsletters"
 msgstr ""
 

@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.6
+Version: 2.6.1
 Text Domain: email-newsletter
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
@@ -57,7 +57,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.6;
+        $this->plugin_ver = 2.61;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -2162,9 +2162,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             <form action="" method="post" name="subscribes_form" id="subscribes_form">
                 <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />';
-        foreach($subscribe_to_groups as $group_id ){
-            $return .= '<input type="hidden" name="e_newsletter_auto_groups_id[]" value="'.$group_id.'" />';
-        }
+        if(is_array($subscribe_to_groups))
+            foreach($subscribe_to_groups as $group_id )
+                if(is_numeric($group_id))
+                    $return .= '<input type="hidden" name="e_newsletter_auto_groups_id[]" value="'.$group_id.'" />';
+
         if($view != 'add_member')
             $return .= '
                 <div id="add_member" style="display:none;">';
@@ -2270,8 +2272,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         if(!empty($subscribe_to_groups))
             $subscribe_to_groups = explode(',',$subscribe_to_groups);
-        if(!is_array($subscribe_to_groups))
-            $subscribe_to_groups = array();
 
         $subscribe = $this->subscribe_widget($show_name, $show_groups, $subscribe_to_groups);
 
