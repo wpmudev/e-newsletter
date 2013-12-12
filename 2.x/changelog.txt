@@ -5,6 +5,13 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 
 == Changelog ==
 
+= 2.6.2 =
+* Added support for WordPress 3.8
+* Added sample CSV file for easier import
+* Fixed members per page setting getting lost when changing page
+* Fixed small typos
+* Other small improvements to the code
+
 = 2.6.1 =
 * Fixed warning in widget
 

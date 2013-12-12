@@ -1242,7 +1242,7 @@ class Email_Newsletter_functions {
     }
 
     /**
-     * Get custom theme details
+     * Get theme details
      **/
     function get_selected_theme($theme_name) {
         global $wp_theme_directories;
@@ -1275,7 +1275,14 @@ class Email_Newsletter_functions {
             $template_dir  = $theme_root_dir.$theme_name.'/';
             $template_url  = $theme_root_url.$theme_name.'/';
 
-            $this->load_theme_options($template_dir);
+            //load theme options
+            if($this->loaded_theme_options != $template_dir) {
+                $this->loaded_theme_options = $template_dir;
+                if(file_exists($template_dir . 'functions.php'))
+                    include($template_dir . 'functions.php');
+                elseif(file_exists($template_dir . 'index.php'))
+                    include($template_dir . 'index.php');
+            }
 
             $styles = $this->get_contents_elements($template_dir, 0);
 
@@ -1442,16 +1449,6 @@ class Email_Newsletter_functions {
         return array();
     }
 
-    function load_theme_options($template_dir) {
-        if($this->loaded_theme_options != $template_dir) {
-            $this->loaded_theme_options = $template_dir;
-            if(file_exists($template_dir . 'functions.php'))
-                include($template_dir . 'functions.php');
-            elseif(file_exists($template_dir . 'index.php'))
-                include($template_dir . 'index.php');
-        }
-    }
-
     /**
      * Choose nicename
      **/
@@ -1560,7 +1557,7 @@ class Email_Newsletter_functions {
                                     $memeber_groups = array();
                                 $import_and_memeber_groups_id = array_unique(array_merge($memeber_groups, $import_groups_id));
                                 if($import_and_memeber_groups_id > $memeber_groups) {
-                                    $this->change_group( $member_id, $import_and_memeber_groups_id );
+                                    $this->add_members_to_groups( $member_id, $import_and_memeber_groups_id );
                                     $i++;
                                 }
                                 else
@@ -1582,7 +1579,7 @@ class Email_Newsletter_functions {
                                 if($result) {
                                     //creating new list of groups for user
                                     if ( isset( $import_groups_id ) )
-                                        $this->add_members_group( $member_id, $import_groups_id );
+                                        $this->add_members_to_groups( $member_id, $import_groups_id );
 
                                     $i++;
                                 }
@@ -1599,7 +1596,7 @@ class Email_Newsletter_functions {
                 $message = '';
 
                 if ( 0 < $i )
-                    $message .=  __( 'Import is finished successfully,', 'email-newsletter' ) . ' ' . $i . ' ' . __( 'members are added or subscribed to group.', 'email-newsletter' );
+                    $message .=  __( 'Import is finished successfully,', 'email-newsletter' ) . ' ' . $i . ' ' . __( 'members are added or subscribed to group(s).', 'email-newsletter' );
 
                 if ( isset( $exist_members ) && is_array( $exist_members ) ) {
                     $message .= '<br />' . __( 'These emails already exist in member list:', 'email-newsletter' ) . '<br />';
@@ -1638,7 +1635,7 @@ class Email_Newsletter_functions {
                 exit;
             }
         } else {
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Import ERROR: Please change permission for the folder /wp-contant/uploads/', 'email-newsletter' ) ) ), 'admin.php' ) );
+            wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Import ERROR: Please change permission for the folder /wp-content/uploads/', 'email-newsletter' ) ) ), 'admin.php' ) );
             exit;
         }
     }
@@ -2239,6 +2236,9 @@ class Email_Newsletter_functions {
             delete_site_option('email_newsletter_version');
         else
             delete_option('email_newsletter_version');
+
+        wp_redirect( add_query_arg( array( 'page' => 'newsletters-settings', 'updated' => 'true', 'message' => urlencode( __( "eNewsletter data are deleted.", 'email-newsletter' ) ) ), 'admin.php' ) );
+        exit;
     }
 
     /**

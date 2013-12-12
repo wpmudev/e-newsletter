@@ -164,6 +164,7 @@
             //change per page count
             jQuery( "#per_page" ).change( function() {
                 jQuery( "#newsletter_action" ).val( '' );
+                jQuery( "#members_per_page" ).val(jQuery(this).val());
                 jQuery( "#form_members" ).submit();
                 return false;
             });
@@ -344,7 +345,7 @@
                                 </tr>
                                 <tr>
                                     <td colspan="2">
-                                       <span class="description"><?php _e( 'Note: The file should have the next columns: Email (required), First Name (not required), Last Name (not required). Without headers.', 'email-newsletter' ) ?></span>
+                                       <span class="description"><?php _e( 'Note: The file should have the next columns: Email (required), First Name (not required), Last Name (not required). Without headers.', 'email-newsletter' ) ?> <a href="<?php echo $this->plugin_url.'/email-newsletter-files/sample.csv'; ?>"><?php _e( 'Sample File', 'email-newsletter' ) ?></a></span>
                                     </td>
                                 </tr>
                                 <tr id="import_file_line">
@@ -486,6 +487,7 @@
 
             <input type="hidden" name="member_id" id="member_id" value="" />
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
+            <input type="hidden" name="per_page" id="members_per_page" value="<?php echo $per_page; ?>" />
             <table id="members_table" class="widefat post">
                 <thead>
                     <tr>
@@ -702,9 +704,9 @@
                         <?php
                             if ( $members_pagination['cpage'] > 1 ) {
                                 // first
-                                $url = add_query_arg( array('cpage' => 1 ), $url_orginal );
+                                $url = add_query_arg( array('cpage' => 1, 'per_page' => $per_page ), $url_orginal );
                                 echo '<a href="'.$url.'" title="Go to the first page" class="first-page" ><<</a> ';
-                                $url = add_query_arg( array('cpage' => ( $members_pagination['cpage'] - 1 ) ), $url_orginal );
+                                $url = add_query_arg( array('cpage' => ( $members_pagination['cpage'] - 1 ), 'per_page' => $per_page ), $url_orginal );
                                 echo '<a href="'.$url.'" title="Go to the previous page" class="prev-page" ><</a> ';
                             }
 
@@ -715,7 +717,7 @@
                                 if ( $i == $members_pagination['cpage'] ) {
                                     echo '<span class="current" style="margin: 0px 7px 0px 3px;"><strong>' . $i . '</strong></span>';
                                 } else {
-                                    $url = add_query_arg( array('cpage' => $i ), $url_orginal );
+                                    $url = add_query_arg( array('cpage' => $i, 'per_page' => $per_page ), $url_orginal );
                                     echo '<a href="'.$url.'">' . $i . '</a> ';
                                 }
                             }
@@ -725,10 +727,10 @@
 
                             if ( $members_pagination['cpage'] < $pagescount ) {
                                 // next
-                                $url = add_query_arg( array('cpage' => ( $members_pagination['cpage'] + 1 ) ), $url_orginal );
+                                $url = add_query_arg( array('cpage' => ( $members_pagination['cpage'] + 1 ), 'per_page' => $per_page ), $url_orginal );
                                 echo '<a href="'.$url.'" title="Go to the next page" class="next-page" >></a> ';
                                 // last
-                                $url = add_query_arg( array('cpage' => $pagescount ), $url_orginal );
+                                $url = add_query_arg( array('cpage' => $pagescount, 'per_page' => $per_page ), $url_orginal );
                                 echo '<a href="'.$url.'" title="Go to the last page" class="last-page" >>></a> ';
                             }
                         ?>

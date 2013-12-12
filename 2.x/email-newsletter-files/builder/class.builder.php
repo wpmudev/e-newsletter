@@ -6,13 +6,9 @@ class Email_Newsletter_Builder  {
 	var $ID = '';
 	var $settings = array();
 
-	function Email_Newsletter_Builder() {
+	function __construct() {
 		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded'), 999 );
 		add_action( 'wp_ajax_builder_do_shortcodes', array( &$this, 'ajax_do_shortcodes' ) );
-
-		//shorcodes
-		add_shortcode('en-recent-posts', array( &$this, 'recent_posts_shortcode'));
-		add_shortcode( 'en-gallery' , array( &$this,'n_gallery_shortcode') );
 	}
 	function plugins_loaded() {
 		global $current_user, $pagenow, $builder_id, $email_newsletter;
@@ -62,8 +58,6 @@ class Email_Newsletter_Builder  {
 		}
 
 		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $_REQUEST['theme'] === $this->get_builder_theme() && $builder_id ) {
-			$this->parse_theme_settings();
-
 			add_filter( 'template', array( &$this, 'inject_builder_template'), 999 );
 			add_filter( 'stylesheet', array( &$this, 'inject_builder_stylesheet' ), 999 );
 			add_action( 'customize_register', array( &$this, 'init_newsletter_builder'),9999 );
@@ -72,6 +66,7 @@ class Email_Newsletter_Builder  {
 
 			add_action( 'template_redirect', array( &$this, 'enable_customizer') );
 
+			//fix customizer capabilities users without possibility to use customizer
 			if(!current_user_can( 'edit_theme_options' )) {
 				add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 10, 1);
 			}
@@ -98,19 +93,6 @@ class Email_Newsletter_Builder  {
 		}
 		else
 			return '';
-	}
-	function parse_theme_settings() {
-		global $email_newsletter;
-
-		$theme = $email_newsletter->get_selected_theme($this->get_builder_theme());
-
-		$match = array();
-		$possible_settings = array('BG_COLOR', 'BG_IMAGE', 'HEADER_IMAGE', 'LINK_COLOR', 'BODY_COLOR', 'ALTERNATIVE_COLOR', 'TITLE_COLOR', 'EMAIL_TITLE' );
-		foreach ($possible_settings as $possible_setting)
-			if(defined('BUILDER_DEFAULT_'.$possible_setting))
-				$match[] = $possible_setting;
-
-		$this->settings = $match;
 	}
 	function setup_builder_header_footer() {
 		add_action( 'customize_controls_print_scripts', array( &$this, 'customize_controls_print_scripts') );
@@ -251,6 +233,9 @@ class Email_Newsletter_Builder  {
 		</script>
 
 		<style type="text/css">
+			body {
+				background: #fff;
+			}
 			#customize-info .<?php echo $selector; ?>-section-content {
 				text-align: center;
 				position: relative;
@@ -344,6 +329,12 @@ class Email_Newsletter_Builder  {
 
 		$theme = $email_newsletter->get_selected_theme($email_data['template']);
 		$template_url  = $theme['url'];
+
+		//pharse theme settings
+		$possible_settings = array('BG_COLOR', 'BG_IMAGE', 'HEADER_IMAGE', 'LINK_COLOR', 'BODY_COLOR', 'ALTERNATIVE_COLOR', 'TITLE_COLOR', 'EMAIL_TITLE' );
+		foreach ($possible_settings as $possible_setting)
+			if(defined('BUILDER_DEFAULT_'.$possible_setting))
+				$this->settings[] = $possible_setting;
 
 
 		// Load our extra control classes
@@ -974,30 +965,6 @@ class Email_Newsletter_Builder  {
 		echo $content;
 
 		exit();
-	}
-
-
-	//builders shortcodes
-	public function recent_posts_shortcode($atts){
-	   extract(shortcode_atts(array(
-	      'posts' => 1,
-	   ), $atts));
-
-	   $return_string = '<ul>';
-	   query_posts(array('orderby' => 'date', 'order' => 'DESC' , 'showposts' => $posts));
-	   if (have_posts()) :
-	      while (have_posts()) : the_post();
-	         $return_string .= '<li><a href="'.get_permalink().'">'.get_the_title().'</a></li>';
-	      endwhile;
-	   endif;
-	   $return_string .= '</ul>';
-
-	   wp_reset_query();
-	   return $return_string;
-	}
-	//wrapper for default wp gallery so it does not show up image that is destroying everything
-	public function n_gallery_shortcode($attr) {
-		return gallery_shortcode($attr);
 	}
 }
 ?>

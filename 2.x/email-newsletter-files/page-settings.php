@@ -335,7 +335,7 @@
                                 </th>
                                 <td>
                                     <input class="small-text" type="number" name="settings[subscribe_page_id]" value="<?php echo isset($settings['subscribe_page_id']) ? esc_attr($settings['subscribe_page_id']) : '';?>" />
-                                    <span class="description"><?php _e( 'Add ID of page that you want to use as subscribe page. You can use [enewsletter_subscribe_message] shortcode to display subscribe message. Leave blank to disable.', 'email-newsletter' ) ?></span>
+                                    <span class="description"><?php _e( 'Add ID of page that you want to use as subscribe page. You can use [enewsletter_subscribe_message] shortcode inside it to display subscribe message. Leave blank to disable.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
 
@@ -345,7 +345,7 @@
                                 </th>
                                 <td>
                                     <input class="small-text" type="number" name="settings[unsubscribe_page_id]" value="<?php echo isset($settings['unsubscribe_page_id']) ? esc_attr($settings['unsubscribe_page_id']) : '';?>" />
-                                    <span class="description"><?php _e( 'Add ID of page that you want to use as unsubscribe page. You can use [enewsletter_unsubscribe_message] shortcode to display unsubscribe message. Leave blank to disable.', 'email-newsletter' ) ?></span>
+                                    <span class="description"><?php _e( 'Add ID of page that you want to use as unsubscribe page. You can use [enewsletter_unsubscribe_message] shortcode inside it to display unsubscribe message. Leave blank to disable.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
                         </table>
@@ -432,7 +432,7 @@
                                             <option value="ssl" <?php selected('ssl',$settings['smtp_secure_method']); ?>><?php _e( 'SSL', 'email-newsletter' ) ?></option>
                                             <option value="tls" <?php selected('tls',$settings['smtp_secure_method']); ?>><?php _e( 'TLS', 'email-newsletter' ) ?></option>
                                         </select>
-                                        <span class="description"><?php _e( 'Choose and optional type of connection', 'email-newsletter' ) ?></span>
+                                        <span class="description"><?php _e( 'Choose an optional type of connection', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr valign="top">
@@ -622,7 +622,7 @@
                                             <option value="registered" <?php selected('registered',$settings['non_public_group_access']); ?>><?php _e( 'Registered users', 'email-newsletter' ) ?></option>
                                             <option value="nobody" <?php selected('nobody',$settings['non_public_group_access']); ?>><?php _e( 'Nobody', 'email-newsletter' ) ?></option>
                                         </select>
-                                        <span class="description"><?php _e( 'Choose what type of user can subscribe to non public groups. <small>Keep in mind that users can still be added to all type of groups in eNewsletter memebers admin page.</small>', 'email-newsletter' ) ?></span>
+                                        <span class="description"><?php _e( 'Choose what type of user can subscribe to non public groups. <small>Keep in mind that users can still be added to all type of groups in eNewsletter members admin page.</small>', 'email-newsletter' ) ?></span>
                                    </td>
                                 </tr>
                             </tbody>

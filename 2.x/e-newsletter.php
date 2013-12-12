@@ -3,13 +3,13 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.6.1
+Version: 2.6.2
 Text Domain: email-newsletter
 Author: Cole / Andrey (Incsub), Maniu (Incsub)
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
 
-Copyright 2009-2011 Incsub (http://incsub.com)
+Copyright 2009-2013 Incsub (http://incsub.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License (Version 2 - GPLv2) as published by
@@ -24,7 +24,6 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-include_once( 'email-newsletter-files/class.wpmudev_dash_notification.php' );
 
 require_once( 'email-newsletter-files/class.functions.php' );
 require_once( 'email-newsletter-files/builder/class.builder.php' );
@@ -57,7 +56,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function __construct() {
         global $wpdb;
 
-        $this->plugin_ver = 2.61;
+        global $wpmudev_notices;
+        $wpmudev_notices[] = array( 'id'=> 233,'name'=> 'E-Newsletter', 'screens' => array( 'edit-funder', 'funder', 'edit-donation', 'funder_page_wdf_settings', 'funder_page_wdf' ) );
+        include_once('email-newsletter-files/wpmudev-dash-notification.php');
+
+        $this->plugin_ver = 2.62;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -325,6 +328,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * Loads script for enewsletter admin area
      */
     function admin_enqueue_scripts($hook) {
+        global $wp_version;
+
          //including JS scripts and CSS for Newsletter pages
         if ( isset( $_REQUEST['page'] ) && 1 == $this->is_enewsletter_page( $_REQUEST['page'] ) ) {
             wp_enqueue_script( 'jquery' );
@@ -346,8 +351,93 @@ class Email_Newsletter extends Email_Newsletter_functions {
             wp_enqueue_script( 'jquery_progressbar' );
 
             // Including CSS file
-            wp_register_style( 'emailNewsletterStyle', $this->plugin_url . 'email-newsletter-files/email-newsletter.css', array(), 2 );
-            wp_enqueue_style( 'emailNewsletterStyle' );
+            wp_register_style( 'enewsletter-style', $this->plugin_url . 'email-newsletter-files/css/email-newsletter.css' );
+            wp_enqueue_style( 'enewsletter-style' );
+        }
+
+        //mp6 icon load
+        if ( $wp_version >= 3.8 ) {
+            wp_register_style( 'enewsletter-mp6', $this->plugin_url . 'email-newsletter-files/css/mp6.css');
+            wp_enqueue_style('enewsletter-mp6');
+        }
+    }
+
+    /**
+     * Manage page redirects if necessary
+     **/
+    function template_redirect() {
+        if ( $this->is_enewsletter_page( 'unsubscribe_page' ) ) {
+            $member_id = get_query_var( 'unsubscribe_member_id' );
+            $unsubscribe_code = get_query_var( 'unsubscribe_code' );
+            $result = $this->unsubscribe_by_code( $unsubscribe_code );
+            if ( !$result['error'] ) {
+                $message = $result['message'];
+                $unsubscribed = 1;
+            }
+            else {
+                $message = $result['message'];
+                $unsubscribed = 0;
+            }
+
+            if(isset($this->settings['unsubscribe_page_id']) && is_numeric($this->settings['unsubscribe_page_id']) && get_post($this->settings['unsubscribe_page_id']))
+                wp_redirect( add_query_arg( array('member_id' => $member_id, 'message' => urlencode($message), 'enewsletter_unsubscribed' => $unsubscribed), get_permalink($this->settings['unsubscribe_page_id']) ) );
+            else {
+                if($unsubscribed)
+                    echo "<center><br /><br /><br /><h2 style='color: #19700A;'>" . $message . "</h2></center>";
+                else
+                    echo "<center><br /><br /><br /><h2 style='color: #ff0000;'>" . $message . "</h2></center>";
+            }
+            exit;
+        }
+        if ( $this->is_enewsletter_page( 'subscribe_page' ) ) {
+            global $wpdb;
+
+            $subscribed = 0;
+
+            $member_id = get_query_var( 'subscribe_member_id' );
+            $subscribe_code = get_query_var( 'subscribe_code' );
+
+            if ( $subscribe_code != md5( "sometext123" . $member_id ) )
+                $message = __( 'Error: Wrong subscription data!', 'email-newsletter' );
+
+            $member_data = $this->get_member( $member_id );
+            if($member_data) {
+                if(empty($member_data['unsubscribe_code'])) {
+                    $unsubscribe_code = $this->gen_unsubscribe_code();
+
+                    $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET member_info = '', unsubscribe_code = '%s' WHERE member_id = %d", $unsubscribe_code, $member_id ) );
+
+                    //creating new list of groups for user
+                    if ( is_array( $member_data['future_groups_id'] ) )
+                        $this->add_members_to_groups( $member_id, $member_data['future_groups_id'] );
+
+                    if($this->settings['subscribe_newsletter'])
+                        $this->add_send_email_info( $this->settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
+
+                    $subscribed = 1;
+                    $message = __( 'Successful subscription!', 'email-newsletter' );
+                }
+                else {
+                    $message = __( 'Member already subscribed!', 'email-newsletter' );
+                }
+            }
+            else {
+                $message = __( 'There was a problem while subscribing!', 'email-newsletter' );
+            }
+
+            if(isset($this->settings['subscribe_page_id']) && is_numeric($this->settings['subscribe_page_id']) && get_post($this->settings['subscribe_page_id']))
+                wp_redirect( add_query_arg( array('member_id' => $member_id, 'message' => urlencode($message), 'enewsletter_subscribed' => $subscribed), get_permalink($this->settings['subscribe_page_id']) ) );
+            else {
+                if($subscribed)
+                    echo "<center><br /><br /><br /><h2 style='color: #19700A;'>" . $message . "</h2></center>";
+                else
+                    echo "<center><br /><br /><br /><h2 style='color: #ff0000;'>" . $message . "</h2></center>";
+            }
+            exit;
+        }
+        elseif ( $this->is_enewsletter_page( 'view_newsletter' ) ) {
+            require_once( $this->plugin_dir . "email-newsletter-files/page-view-newsletter.php" );
+            exit;
         }
     }
 
@@ -367,6 +457,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         //private actions of the plugin
         if ( isset( $_REQUEST['newsletter_action'] ) ) {
+            //handle custom redirects
+            if(isset($_REQUEST['redirect_to']))
+                $redirect = $_REQUEST['redirect_to'];
+
             switch( $_REQUEST[ 'newsletter_action' ] ) {
 
                 //action for save Newsletter
@@ -374,93 +468,110 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     if(! (current_user_can('create_newsletter') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
-                    $this->clone_newsletter( $_REQUEST['newsletter_id'], $_REQUEST['page'] );
+                    $result = $this->clone_newsletter( $_REQUEST['newsletter_id'], $_REQUEST['page'] );
 
-                    wp_redirect( add_query_arg( array( 'page' => $page_redirect, 'updated' => 'true', 'message' => urlencode( __( 'The Newsletter has been copied!', 'email-newsletter' ) ) ), 'admin.php' ) );
-                    exit;
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters', 'updated' => 'true', 'message' => urlencode( __( 'The Newsletter has been copied!', 'email-newsletter' ) ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
                 break;
 
                 //action for delete Newsletter
                 case "delete_newsletter":
-
                     if(! (current_user_can('delete_newsletter') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
-                    $this->delete_newsletter( $_REQUEST['newsletter_id'] );
+                    $result = $this->delete_newsletter( $_REQUEST['newsletter_id'] );
 
-                    wp_redirect( add_query_arg( array( 'page' => $_REQUEST['page'], 'updated' => 'true', 'message' => urlencode( __( 'The Newsletter is deleted!', 'email-newsletter' ) ) ), 'admin.php' ) );
-                    exit;
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters', 'updated' => 'true', 'message' => urlencode( __( 'The Newsletter is deleted!', 'email-newsletter' ) ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
                 break;
 
                 //action for create new group
                 case "create_group":
-
                     if(! (current_user_can('create_newsletter_group') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
                     $edit_public = ( isset( $_REQUEST['public'] ) ) ? '1' : '0';
-                    $this->create_group( $_REQUEST['group_name'], $edit_public );
+                    $result = $this->create_edit_group( $_REQUEST['group_name'], $edit_public );
 
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
                 break;
 
                 //action for edit group
                 case "edit_group":
-
                     if(! (current_user_can('edit_newsletter_group') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
                     $edit_public = ( isset( $_REQUEST['edit_public'] ) ) ? '1' : '0';
-                    $this->create_group( $_REQUEST['edit_group_name'], $edit_public, $_REQUEST['group_id'] );
+                    $result = $this->create_edit_group( $_REQUEST['edit_group_name'], $edit_public, $_REQUEST['group_id'] );
+
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
                 break;
 
                 //action for delete group
                 case "delete_group":
-
                     if(! (current_user_can('delete_newsletter_group') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
-                    $this->delete_group( $_REQUEST['group_id'] );
+                    $result = $this->delete_group( $_REQUEST['group_id'] );
 
-                    wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'message' => urlencode( __( 'Group is deleted!', 'email-newsletter' ) ) ), 'admin.php' ) );
-                    exit;
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'message' => urlencode( __( 'Group is deleted!', 'email-newsletter' ) ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
                 break;
 
                 //action add new member
                 case "add_member":
-
                     if(! (current_user_can('add_newsletter_member') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
-                    $this->add_member( $_REQUEST['member'] );
+                    $result = $this->add_member( $_REQUEST['member'] );
+
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
                 break;
 
                 //action edit member
                 case "edit_member":
-
                     if(! (current_user_can('edit_newsletter_member') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
-                    $this->edit_member( $_REQUEST['member_id'], $_REQUEST['edit_member_nicename'], $_REQUEST['edit_member_email'] );
+                    $result = $this->edit_member( $_REQUEST['member_id'], $_REQUEST['edit_member_nicename'], $_REQUEST['edit_member_email'] );
+
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
                 break;
 
                 //action delete member
                 case "delete_member":
-
                     if(! (current_user_can('delete_newsletter_member') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
                     $member_id = array($_REQUEST['member_id']);
+                    $result = $this->delete_members( $member_id );
 
-                    $this->delete_members( $member_id );
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit;
                 break;
 
                 //Bulk action delete members
                 case "delete_members":
-
                     if(! (current_user_can('delete_newsletter_member') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
-                    $this->delete_members( $_REQUEST['members_id'] );
+                    $result = $this->delete_members( $_REQUEST['members_id'] );
+
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
                 break;
 
                 //Bulk action add members to group
@@ -469,9 +580,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     if(! (current_user_can('add_members_group') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
-                    $this->add_members_group( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
+                    $result = $this->add_members_to_groups( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
 
-                    wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are added to the group!', 'email-newsletter' ) ) ), 'admin.php' ) );
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are added to the group!', 'email-newsletter' ) ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
                     exit();
                 break;
 
@@ -482,9 +594,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
                         wp_die('You do not have permission to do that');
 
                     $groups_id = ( isset( $_REQUEST['groups_id'] ) ) ? $_REQUEST['groups_id'] : NULL;
-                    $this->change_group( $_REQUEST['member_id'], $groups_id );
+                    $result = $this->add_members_to_groups( $_REQUEST['member_id'], $groups_id, 1 );
 
-                    wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Groups are changed!', 'email-newsletter' ) ) ), 'admin.php' ) );
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Groups are changed!', 'email-newsletter' ) ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
                     exit;
                 break;
 
@@ -494,9 +607,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     if(! (current_user_can('delete_members_group') || current_user_can($mu_cap)) )
                         wp_die('You do not have permission to do that');
 
-                    $this->delete_members_group( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
+                    $result = $this->delete_members_group( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
 
-                    wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are deleted from the group!', 'email-newsletter' ) ) ), 'admin.php' ) );
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are deleted from the group!', 'email-newsletter' ) ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
                     exit;
                 break;
 
@@ -566,8 +680,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
                         wp_die('You do not have permission to do that');
 
                     $this->uninstall();
-                    wp_redirect( add_query_arg( array( 'page' => 'newsletters-settings', 'updated' => 'true', 'message' => urlencode( __( "eNewsletter data are deleted.", 'email-newsletter' ) ) ), 'admin.php' ) );
-                    exit;
                 break;
 
                 case "dismiss_install":
@@ -597,24 +709,37 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         //public actions of the plugin
         if ( isset( $_REQUEST['newsletter_action'] ) && !defined('DOING_AJAX') ) {
-            $redirect_to = $_SERVER['HTTP_REFERER'];
+            //handle custom redirects
+            if(isset($_REQUEST['redirect_to']))
+                $redirect = $_REQUEST['redirect_to'];
 
             switch( $_REQUEST['newsletter_action'] ) {
                 //action for save selected groups of subscribe
                 case "save_subscribes":
-                    $groups_id = (isset($_REQUEST['e_newsletter_groups_id'])) ? $_REQUEST['e_newsletter_groups_id'] : array();
-                    $this->save_subscribes( $groups_id );
+                    $result = $this->save_subscribes();
+
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
                 break;
 
                 //action for subscribe
                 case "subscribe":
-                    $this->subscribe( "" );
+                    $result = $this->subscribe();
+
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'message' => urlencode( $result['message'] )), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
                 break;
 
                 //action for Unsubscribe
                 case "unsubscribe":
                     $unsubscribe_code = (isset($_REQUEST['unsubscribe_code'])) ? $_REQUEST['unsubscribe_code'] : '';
-                    $this->unsubscribe( $unsubscribe_code );
+                    $result = $this->unsubscribe_by_code( $unsubscribe_code );
+
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'message' => urlencode( $result['message']) ), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
                 break;
             }
         }
@@ -628,26 +753,44 @@ class Email_Newsletter extends Email_Newsletter_functions {
             switch( $_REQUEST['newsletter_action'] ) {
                 //action for save selected groups of subscribe
                 case "save_subscribes":
-                    $groups_id = (isset($_REQUEST['e_newsletter_groups_id'])) ? $_REQUEST['e_newsletter_groups_id'] : array();
-                    $this->save_subscribes( $groups_id, false, 1 );
+                    $result = $this->save_subscribes();
+
+                    $data['message'] = $result['message'];
+                    $data['view'] = 'manage_subscriptions';
+                    $data['hide'] = '';
+                    echo json_encode($data);
+                    die();
                 break;
 
                 //action for subscribe
                 case "subscribe":
-                    //set up auto groups
-                    global $current_user;
-                    if(isset($_REQUEST['e_newsletter_auto_groups_id']) && is_array($_REQUEST['e_newsletter_auto_groups_id']) && isset($current_user->data->ID)) {
-                        $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
-                        $this->add_members_group( $member_id, $_REQUEST['e_newsletter_auto_groups_id'] );
+                    $result = $this->subscribe();
+
+                    $data['message'] = $result['message'];
+                    if(!$result['error']) {
+                        $data['view'] = 'manage_subscriptions';
+                        $data['hide'] = 'subscribe';
+                        $data['unsubscribe_code'] = $result['data']['unsubscribe_code'];
+                    }
+                    else {
+                        $data['view'] = 'subscribe';
+                        $data['hide'] = 'subscribe';
                     }
 
-                    $this->subscribe( "", false, 1 );
+                    echo json_encode($data);
+                    die();
                 break;
 
                 //action for Unsubscribe
                 case "unsubscribe":
                     $unsubscribe_code = (isset($_REQUEST['unsubscribe_code'])) ? $_REQUEST['unsubscribe_code'] : '';
-                    $this->unsubscribe( $unsubscribe_code, false, 1 );
+                    $result = $this->unsubscribe_by_code( $unsubscribe_code );
+
+                    $data['message'] = $result['message'];
+                    $data['view'] = 'subscribe';
+                    $data['hide'] = 'manage_subscriptions';
+                    echo json_encode($data);
+                    die();
                 break;
 
                 //action for Subscribe of public member (not user of site)
@@ -668,15 +811,21 @@ class Email_Newsletter extends Email_Newsletter_functions {
                         $subscribe_groups = array_merge($_REQUEST['e_newsletter_auto_groups_id'], $subscribe_groups);
                     $subscribe_groups = array_unique($subscribe_groups);
 
-                    if( isset( $this->settings['double_opt_in'] ) && $this->settings['double_opt_in'] ) {
-                        $member_data['double_opt_in'] = 1;
-                        $member_data['future_groups_id'] = $subscribe_groups;
-                    }
+                    //set up if double opt in is on
+                    $double_opt_in = ( isset( $this->settings['double_opt_in'] ) && $this->settings['double_opt_in'] ) ? 1 : 0;
+
                     $member_data['email']       =  ( isset( $_REQUEST['e_newsletter_email'] ) ) ? $_REQUEST['e_newsletter_email'] : '';
                     $member_data['fname']       =  ( isset( $_REQUEST['e_newsletter_name'] ) ) ? $_REQUEST['e_newsletter_name'] : '';
                     $member_data['lname']       =  '';
                     $member_data['groups_id']   =  $subscribe_groups;
-                    $this->add_member( $member_data, false, 1 );
+
+                    $result = $this->add_member( $member_data, $double_opt_in );
+                    if(!$result['error'])
+                        $result['data']['message'] = __( 'You have been successfully subscribed!', 'email-newsletter' );
+                    else
+                        $result['data']['message'] = $result['message'];
+                    echo json_encode($result['data']);
+                    die();
                 break;
             }
         }
@@ -684,219 +833,19 @@ class Email_Newsletter extends Email_Newsletter_functions {
         die();
     }
 
-    /**
-     * Manage page redirects if necessary
-     **/
-    function template_redirect() {
-        if ( $this->is_enewsletter_page( 'unsubscribe_page' ) ) {
-            $member_id = get_query_var( 'unsubscribe_member_id' );
-            $unsubscribe_code = get_query_var( 'unsubscribe_code' );
 
-            if ( $this->unsubscribe( $unsubscribe_code, false ) ) {
-                $message = __( 'You are successfully unsubscribed!', 'email-newsletter' );
-                $unsubscribed = 1;
-            }
-            else {
-                $message = __( 'You are already unsubscribed or are not subscribed yet!', 'email-newsletter' );
-                $unsubscribed = 0;
-            }
-
-            if(isset($this->settings['unsubscribe_page_id']) && is_numeric($this->settings['unsubscribe_page_id']) && get_post($this->settings['unsubscribe_page_id']))
-                wp_redirect( add_query_arg( array('member_id' => $member_id, 'message' => urlencode($message), 'enewsletter_unsubscribed' => $unsubscribed), get_permalink($this->settings['unsubscribe_page_id']) ) );
-            else {
-                if($unsubscribed)
-                    echo "<center><br /><br /><br /><h2 style='color: #19700A;'>" . $message . "</h2></center>";
-                else
-                    echo "<center><br /><br /><br /><h2 style='color: #ff0000;'>" . $message . "</h2></center>";
-            }
-            exit;
-        }
-        if ( $this->is_enewsletter_page( 'subscribe_page' ) ) {
-            global $wpdb;
-
-            $subscribed = 0;
-
-            $member_id = get_query_var( 'subscribe_member_id' );
-            $subscribe_code = get_query_var( 'subscribe_code' );
-
-            if ( $subscribe_code != md5( "sometext123" . $member_id ) )
-                $message = __( 'Error: Wrong subscription data!', 'email-newsletter' );
-
-            $member_data = $this->get_member( $member_id );
-            if($member_data) {
-                if(empty($member_data['unsubscribe_code'])) {
-                    $unsubscribe_code = $this->gen_unsubscribe_code();
-
-                    $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET member_info = '', unsubscribe_code = '%s' WHERE member_id = %d", $unsubscribe_code, $member_id ) );
-
-                    //creating new list of groups for user
-                    if ( is_array( $member_data['future_groups_id'] ) )
-                        $this->add_members_group( $member_id, $member_data['future_groups_id'] );
-
-                    if($this->settings['subscribe_newsletter'])
-                        $this->add_send_email_info( $this->settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
-
-                    $subscribed = 1;
-                    $message = __( 'Successful subscription!', 'email-newsletter' );
-                }
-                else {
-                    $message = __( 'Member already subscribed!', 'email-newsletter' );
-                }
-            }
-            else {
-                $message = __( 'There was a problem while subscribing!', 'email-newsletter' );
-            }
-
-            if(isset($this->settings['subscribe_page_id']) && is_numeric($this->settings['subscribe_page_id']) && get_post($this->settings['subscribe_page_id']))
-                wp_redirect( add_query_arg( array('member_id' => $member_id, 'message' => urlencode($message), 'enewsletter_subscribed' => $subscribed), get_permalink($this->settings['subscribe_page_id']) ) );
-            else {
-                if($subscribed)
-                    echo "<center><br /><br /><br /><h2 style='color: #19700A;'>" . $message . "</h2></center>";
-                else
-                    echo "<center><br /><br /><br /><h2 style='color: #ff0000;'>" . $message . "</h2></center>";
-            }
-            exit;
-        }
-        elseif ( $this->is_enewsletter_page( 'view_newsletter' ) ) {
-            require_once( $this->plugin_dir . "email-newsletter-files/page-view-newsletter.php" );
-            exit;
-        }
-    }
-
-
-
-
-    /**
-     * Save Subscribes
-     **/
-    function save_subscribes( $groups_id, $redirect_to = true, $ajax = 0  ) {
-        global $wpdb, $current_user;
-
-        $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
-
-        do_action( 'enewsletter_user_save_subscribe', $member_id, $groups_id );
-
-        if(!empty($member_id))
-            $this->change_group( $member_id, $groups_id );
-
-        if ( $redirect_to )
-            if ( true === $redirect_to ) {
-                wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'message' => urlencode( __( 'Subscriptions are saved!', 'email-newsletter' ) ) ), 'admin.php' ) );
-                exit;
-            } else {
-                wp_redirect( $redirect_to );
-                exit;
-            }
-
-        if ( 1 == $ajax ) {
-            $data['message'] = __( 'Subscribes were saved!', 'email-newsletter' );
-            $data['view'] = 'manage_subscriptions';
-            $data['hide'] = '';
-            echo json_encode($data);
-        }
-    }
-
-    /**
-     *  Subscribe on Newsletters
-     **/
-    function subscribe( $member_id = "", $redirect_to = true, $ajax = 0 ) {
-        global $wpdb, $current_user;
-
-        if(empty($member_id)) {
-            $user_id = $current_user->data->ID;
-            $member_data = array();
-        }
-        else {
-            $member_data = array('member_id' => $member_id);
-            $user_id = '';
-        }
-
-        $result = $this->create_update_member_user($user_id, $member_data, 1);
-        $member_id = $result['member_id'];
-
-        do_action( 'enewsletter_user_subscribe', $member_id );
-
-        if($this->settings['subscribe_newsletter'])
-            $this->add_send_email_info( $this->settings['subscribe_newsletter'], $member_id, 0, 'by_cron' );
-
-        if ( $redirect_to )
-            if ( true === $redirect_to ) {
-                wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'message' => urlencode( __( 'You are subscribed successfully!', 'email-newsletter' ) ) ), 'admin.php' ) );
-                exit;
-            } else {
-                wp_redirect( $redirect_to );
-                exit;
-            }
-
-        if ( 1 == $ajax ) {
-            if($result) {
-                $data['message'] = __( 'You are subscribed successfully!', 'email-newsletter' );
-                $data['view'] = 'manage_subscriptions';
-                $data['hide'] = 'subscribe';
-                $data['unsubscribe_code'] = $result['unsubscribe_code'];
-            }
-            else {
-                $data['message'] = __( 'Error occured while subscribing!', 'email-newsletter' );
-                $data['view'] = 'subscribe';
-                $data['hide'] = 'subscribe';
-            }
-
-            echo json_encode($data);
-            die();
-        }
-    }
-
-    /**
-     * Unsubscribe on Newsletters
-     **/
-    function unsubscribe( $unsubscribe_code, $redirect_to = true, $ajax = 0 ) {
-        global $wpdb;
-        if ($unsubscribe_code) {
-            $member =  $this->get_member_id_by_code($unsubscribe_code);
-            if ( 0 < $member['member_id'] ) {
-                //delete unsubscribe_code of member
-                $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '' WHERE unsubscribe_code = '%s'", $unsubscribe_code ) );
-
-                if ( $redirect_to )
-                    if ( true === $redirect_to ) {
-                        wp_redirect( add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'message' => urlencode( __( 'You are unsubscribed!', 'email-newsletter' ) ) ), 'admin.php' ) );
-                        exit;
-                    } else {
-                        wp_redirect( $redirect_to );
-                        exit;
-                    }
-
-                if ( 1 == $ajax ) {
-                    $data['message'] = __( 'You are unsubscribed!', 'email-newsletter' );
-                    $data['view'] = 'subscribe';
-                    $data['hide'] = 'manage_subscriptions';
-                    echo json_encode($data);
-                    die();
-                }
-
-                return true;
-            }
-            elseif( 0 < $member['wp_only_user_id'] ) {
-                update_user_meta( $member['wp_only_user_id'], 'email_newsletter_unsubscribe_code', 'unsubscribed' );
-                return true;
-            }
-            return false;
-        }
-    }
 
     /**
      * Add new member
      **/
-    function add_member( $member_data, $redirect_to = true, $ajax = 0 ) {
+    function add_member( $member_data, $double_opt_in = 0 ) {
         global $wpdb;
 
         do_action( 'enewsletter_before_user_add', $member_data );
 
-        $message = "";
-
+        //first lets check if email exists somewhere
         if ( email_exists( $member_data['email'] ) !== false ) {
             //if email of new member == email of site user
-
             $wp_user_id = email_exists( $member_data['email'] );
             $member_id = $this->get_members_by_wp_user_id( $wp_user_id );
 
@@ -907,74 +856,89 @@ class Email_Newsletter extends Email_Newsletter_functions {
         } else {
             //check email of new member that isn't on list of members
             $member =  $this->get_member_by_email($member_data['email']);
-            if ( $member )
-                if ( "" != $member['unsubscribe_code'] )
-                    $message =   __( 'This email is already subscribed!', 'email-newsletter' );
+            if ( isset($member['unsubscribe_code']) && !empty($member['unsubscribe_code']) )
+                $message =   __( 'This email is already subscribed!', 'email-newsletter' );
         }
+        if(isset($message))
+            return array('action' => 'email_exists', 'error' => true, 'message' => $message, 'data' => array());
 
-        if ( !$message ) {
-            if ( isset( $member_data['double_opt_in'] ) && 1 == $member_data['double_opt_in'] )
-                $subscribe = "";
+        //New email, lets add it!
+        $subscribe = $double_opt_in ? "" : 1;
+
+        $member_data['member_info'] = $double_opt_in ? serialize(array("future_groups_id" => $member_data['groups_id'])) : '';
+        $member_data_ready = array(
+                'member_fname' => $member_data['fname'],
+                'member_lname' => $member_data['lname'],
+                'member_email' => $member_data['email'],
+                'member_info' => $member_data['member_info']
+            );
+        $result = $this->create_update_member_user('', $member_data_ready, $subscribe);
+        $member_id = $result['member_id'];
+        do_action( 'enewsletter_after_user_add', $member_id );
+
+        if ( $double_opt_in ) {
+            $status = $this->do_double_opt_in( $member_id );
+            if($status)
+                return array('action' => 'optin_sent', 'error' => false, 'message' => __( 'Confirmation email has been sent! Please confirm subscription.', 'email-newsletter' ), 'data' => $data);
             else
-                $subscribe = 1;
+                return array('action' => 'optin_sent', 'error' => true, 'message' => __( 'Failed to send opt-in email, please contact us and inform about this error.', 'email-newsletter' ), 'data' => $data);
+        } else {
+            //creating new list of groups for user
+            if ( isset( $member_data['groups_id'] ) && is_array( $member_data['groups_id'] ) )
+                $this->add_members_to_groups( $member_id, $member_data['groups_id'] );
 
-            $member_info = '';
-            if ( isset( $member_data['future_groups_id'] ) && $member_data['future_groups_id'] ) {
-                $member_info = array(
-                    "future_groups_id" => $member_data['future_groups_id']
-                );
-
-                $member_info = serialize( $member_info );
-            }
-
-            $member_data_ready = array(
-                    'member_fname' => $member_data['fname'],
-                    'member_lname' => $member_data['lname'],
-                    'member_email' => $member_data['email'],
-                    'member_info' => $member_info
-                );
-            $result = $this->create_update_member_user('', $member_data_ready, $subscribe);
-
-            $member_id = $result['member_id'];
-
-            do_action( 'enewsletter_after_user_add', $member_id );
-
-            if ( isset( $member_data['double_opt_in'] ) && 1 == $member_data['double_opt_in'] ) {
-                $status = $this->do_double_opt_in( $member_id );
-                if($status)
-                    $message = __( 'Confirmation email has been sent! Please confirm subscription.', 'email-newsletter' );
-                else
-                    $message = __( 'Failed to send opt-in email, please contact us and inform about this error.', 'email-newsletter' );
-            } else {
-                //creating new list of groups for user
-                if ( isset( $member_data['groups_id'] ) && is_array( $member_data['groups_id'] ) )
-                    $this->add_members_group( $member_id, $member_data['groups_id'] );
-
-                if($this->settings['subscribe_newsletter'])
-                    $this->add_send_email_info( $this->settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
-            }
-
-            if(!$message)
-                if ( "" == $redirect_to )
-                    $message =  __( 'The new member is added!', 'email-newsletter' );
-                else
-                    $message =  __( 'You have been successfully subscribed!', 'email-newsletter' );
+            //set sending welcome newsletter if necessary
+            if($this->settings['subscribe_newsletter'])
+                $this->add_send_email_info( $this->settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
         }
 
-        if ( $redirect_to )
-            if ( true === $redirect_to ) {
-                wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $message ) ), 'admin.php' ) );
-                exit;
-            } else {
-                wp_redirect( $redirect_to );
-                exit;
-            }
+        return array('action' => 'member_added', 'error' => false, 'message' => __( 'The new member is added!', 'email-newsletter' ));
+    }
 
-        if ( 1 == $ajax ) {
-            $data['message'] = $message;
-            echo json_encode($data);
-            die();
+    /**
+     *  Subscribe on Newsletters
+     **/
+    function subscribe() {
+        global $wpdb, $current_user;
+
+        $user_id = $current_user->data->ID;
+        $member_data = array();
+
+        $result = $this->create_update_member_user($user_id, $member_data, 1);
+        $member_id = $result['member_id'];
+
+        if($member_id) {
+            do_action( 'enewsletter_user_subscribe', $member_id );
+
+            //Sets up groups to subscribe to on the beginning
+            $subscribe_groups = (isset($this->settings['subscribe_groups'])) ? explode(',', $this->settings['subscribe_groups']) : array();
+            if(isset($_REQUEST['e_newsletter_groups_id']))
+                $subscribe_groups = array_merge($_REQUEST['e_newsletter_groups_id'], $subscribe_groups);
+            if(isset($_REQUEST['e_newsletter_auto_groups_id']))
+                $subscribe_groups = array_merge($_REQUEST['e_newsletter_auto_groups_id'], $subscribe_groups);
+            $subscribe_groups = array_unique($subscribe_groups);
+
+            if($this->settings['subscribe_newsletter'])
+                $this->add_send_email_info( $this->settings['subscribe_newsletter'], $member_id, 0, 'by_cron' );
+
+            return array('action' => 'subscribed', 'error' => false, 'message' => __( 'You are subscribed successfully!', 'email-newsletter' ), 'data' => array('member_id' => $member_id));
         }
+        else
+            return array('action' => 'subscribed', 'error' => true, 'message' => __( 'Error occured while subscribing!', 'email-newsletter' ), 'data' => array('member_id' => $member_id, 'unsubscribe_code' => $result['unsubscribe_code']));
+    }
+
+    /**
+     * Save Subscribes
+     **/
+    function save_subscribes() {
+        global $current_user;
+        $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
+        $groups_id = (isset($_REQUEST['e_newsletter_groups_id'])) ? $_REQUEST['e_newsletter_groups_id'] : array();
+        $result = $this->add_members_to_groups( $member_id, $groups_id, 1 );
+
+        do_action( 'enewsletter_user_save_subscribe', $member_id, $groups_id );
+
+        return array('action' => 'subscription_saved', 'error' => false, 'message' => __( 'Subscribes were saved!', 'email-newsletter' ), 'data' => array('member_id' => $member_id, 'groups_ids' => $groups_id));
     }
 
     /**
@@ -982,6 +946,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function edit_member( $member_id, $member_nicename, $member_email ) {
         global $wpdb;
+
+        do_action( 'enewsletter_user_edit', $member_id, $member_nicename, $member_email );
 
         if ( $member_id && is_email( $member_email ) ) {
             $member_name = explode(' ', $member_nicename);
@@ -996,15 +962,31 @@ class Email_Newsletter extends Email_Newsletter_functions {
             ", $member_name[0], $member_name[1], $member_email, $member_id ) );
         }
 
-        if($result)
-            $message = 'User updated!';
+        if(isset($result) && $result)
+            return array('action' => 'member_updated', 'error' => false, 'message' => __( 'User updated!', 'email-newsletter' ));
         else
-            $message = 'Updating user failed!';
+            return array('action' => 'member_updated', 'error' => true, 'message' => __( 'Updating user failed!', 'email-newsletter' ));
+    }
 
-        do_action( 'enewsletter_user_edit', $member_id, $member_nicename, $member_email );
+    /**
+     * Unsubscribe on Newsletters
+     **/
+    function unsubscribe_by_code( $unsubscribe_code ) {
+        global $wpdb;
+        if ($unsubscribe_code) {
+            $member =  $this->get_member_id_by_code($unsubscribe_code);
+            if ( 0 < $member['member_id'] ) {
+                //delete unsubscribe_code of member
+                $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '' WHERE unsubscribe_code = '%s'", $unsubscribe_code ) );
 
-        wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $message ) ), 'admin.php' ) );
-        exit;
+                return array('action' => 'unsubscribed', 'error' => false, 'message' => __( 'You are unsubscribed!', 'email-newsletter' ));
+            }
+            elseif( 0 < $member['wp_only_user_id'] ) {
+                update_user_meta( $member['wp_only_user_id'], 'email_newsletter_unsubscribe_code', 'unsubscribed' );
+                return array('action' => 'unsubscribed', 'error' => false, 'message' => __( 'You are unsubscribed!', 'email-newsletter' ));
+            }
+            return array('action' => 'unsubscribed', 'error' => false, 'message' => __( 'You are already unsubscribed or are not subscribed yet!', 'email-newsletter' ));
+        }
     }
 
     /**
@@ -1022,14 +1004,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
             }
 
             if(count($members_id) == 1)
-                $message = __( 'Member deleted!', 'email-newsletter' );
+                return array('action' => 'member_deleted', 'error' => false, 'message' => __( 'Member deleted!', 'email-newsletter' ));
             elseif(count($members_id) == 0)
-                $message = __( 'No members to delete!', 'email-newsletter' );
+                return array('action' => 'member_deleted', 'error' => true, 'message' => __( 'No members to delete!', 'email-newsletter' ));
             else
-                $message = __( 'Members deleted!', 'email-newsletter' );
-
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $message ) ), 'admin.php' ) );
-            exit;
+                return array('action' => 'member_deleted', 'error' => false, 'message' => __( 'Members deleted!', 'email-newsletter' ));
         }
     }
 
@@ -1053,9 +1032,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $this->add_send_email_info( $this->settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
 
             //creating new list of groups for user
-            $subscribe_groups = explode(',', $this->settings['subscribe_groups']);
-            if ( isset( $subscribe_groups ) && is_array( $subscribe_groups ) )
-                $this->add_members_group( $member_id, $subscribe_groups );
+            $subscribe_groups = isset($this->settings['subscribe_groups']) ? explode(',', $this->settings['subscribe_groups']) : 0;
+            if ( $subscribe_groups && is_array( $subscribe_groups ) )
+                $this->add_members_to_groups( $member_id, $subscribe_groups );
         }
     }
 
@@ -1188,31 +1167,22 @@ class Email_Newsletter extends Email_Newsletter_functions {
     /**
      * Create/Edit new Group
      **/
-    function create_group( $group_name, $public, $group_id = "0" ) {
+    function create_edit_group( $group_name, $public, $group_id = 0 ) {
         global $wpdb;
 
-        //checking that group not exist other ID
-        $result = $wpdb->get_row( $wpdb->prepare( "SELECT group_id FROM {$this->tb_prefix}enewsletter_groups WHERE LOWER(group_name) = '%s'",  strtolower( $group_name ) ), "ARRAY_A");
-        if ( $result ) {
-            if ( "0" != $group_id && $result['group_id'] == $group_id ) {
+        //update when editing group
+        if ( $group_id ) {
 
-            } else {
-                //if group exist with other ID
-                wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'message' => urlencode( __( 'The group already exists!', 'email-newsletter' ) ) ), 'admin.php' ) );
-                exit;
-            }
-        }
-
-        if ( "0" != $group_id ) {
-            //update when edit group
             $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_groups SET group_name = '%s', public = '%s' WHERE group_id = %d", trim( $group_name ), $public, $group_id ) );
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'message' => urlencode( __( 'The group has been modified.', 'email-newsletter' ) ) ), 'admin.php' ) );
-            exit;
+            if( $result && $result['group_id'] != $group_id )
+                return array('action' => 'group_modified', 'error' => false, 'message' => __( 'The group has been modified.', 'email-newsletter' ));
         } else {
-            //create new group
+            $result = $wpdb->get_row( $wpdb->prepare( "SELECT group_id FROM {$this->tb_prefix}enewsletter_groups WHERE LOWER(group_name) = '%s'",  strtolower( $group_name ) ), "ARRAY_A");
+            if ( $result )
+                return array('action' => 'group_exists', 'error' => true, 'message' => __( 'The group already exists!', 'email-newsletter' ));
+
             $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_groups SET group_name = '%s', public = '%s'", trim( $group_name), $public ) );
-            wp_redirect( add_query_arg( array( 'page' => 'newsletters-groups', 'updated' => 'true', 'message' => urlencode( __( 'The group has been created.', 'email-newsletter' ) ) ), 'admin.php' ) );
-            exit;
+                return array('action' => 'group_created', 'error' => false, 'message' => __( 'The group has been created.', 'email-newsletter' ));
         }
     }
 
@@ -1222,31 +1192,17 @@ class Email_Newsletter extends Email_Newsletter_functions {
      **/
     function delete_group( $group_id ) {
         global $wpdb;
+
+        $result = $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE group_id = %d", $group_id ) );
         $result = $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_groups WHERE group_id = %d", $group_id ) );
 
         return $result;
     }
 
     /**
-     * Change Group
-     **/
-    function change_group( $member_id, $groups_id ) {
-        global $wpdb;
-
-        //deleting old list of groups for user
-        $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
-
-        $member_data = $this->get_member( $member_id );
-
-        //creating new list of groups for user
-        foreach( ( array ) $groups_id as $group_id )
-            $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
-    }
-
-    /**
      * Add members to groups
      **/
-    function add_members_group( $members_id, $groups_id ) {
+    function add_members_to_groups( $members_id, $groups_id, $delete_old = 0 ) {
         global $wpdb;
         $result = 0;
 
@@ -1256,7 +1212,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
             $groups_id = array($groups_id);
 
         if ( count($members_id) > 0 && count($groups_id) > 0)
-            foreach( $members_id as $member_id )
+            foreach( $members_id as $member_id ) {
+                //deleting old list of groups if necessary
+                if($delete_old)
+                    $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
+
                 foreach( $groups_id as $group_id ) {
                     if(!$this->get_group_by_id( $group_id ))
                         continue;
@@ -1265,6 +1225,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     if ( !$result )
                         $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_member_group SET member_id = %d, group_id =  %d", $member_id, $group_id ) );
                 }
+            }
 
         return $result;
     }
@@ -1298,6 +1259,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         //$wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_send WHERE newsletter_id = %d", $newsletter_id ) );
 
         $this->delete_newsletter_meta($newsletter_id);
+
+        return true;
     }
 
     /**
@@ -1327,6 +1290,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
             WHERE email_id = %d
             "
              , $new_newsletter_id, $newsletter_id  ) );
+
+        return true;
     }
 
     /**
@@ -1423,7 +1388,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             else
                 wp_redirect( add_query_arg( array( 'page' => $_REQUEST['page'], 'newsletter_action' => 'send_newsletter', 'newsletter_id' => $newsletter_id, 'send_id' => $result['send_id'], 'check_key' => $_REQUEST['check_key'] ), 'admin.php' ) );
 
-        exit;
+        exit();
     }
 
     /**
@@ -2137,6 +2102,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ( $current_user->data && 0 < $current_user->data->ID ) {
             $member_id      = $this->get_members_by_wp_user_id( $current_user->data->ID );
             $member_data    = $this->get_member( $member_id );
+            $only_public = (isset($this->settings['non_public_group_access']) && $this->settings['non_public_group_access'] == 'nobody') ? 1 : 0;
+            $groups = $this->get_groups($only_public);
 
             if ( "" != $member_data['unsubscribe_code'] ) {
                 $member_groups = $this->get_memeber_groups( $member_id );
@@ -2146,6 +2113,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             $show_groups = true;
         }
+        else
+            $groups = $this->get_groups(1);
 
         if ( ! $current_user->data || 0 == $current_user->data->ID ) {
             $view = "add_member";
@@ -2301,8 +2270,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
         die();
     }
     function unsubscribe_ajax() {
-        $this->unsubscribe( $_REQUEST['unsubscribe_code'] );
-        die('');
+        $this->unsubscribe_by_code( $_REQUEST['unsubscribe_code'] );
+        die();
     }
 }
 global $email_newsletter, $email_builder;
