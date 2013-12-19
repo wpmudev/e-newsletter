@@ -12,93 +12,6 @@
     }
 
 ?>
-
-     <script type="text/javascript">
-        jQuery( document ).ready( function() {
-            var cron = 0;
-            var assoontext = jQuery('#timestamp b').html();
-
-            jQuery( '#add_cron' ).click( function() {
-                cron = 1;
-                jQuery( '#send_form' ).submit();
-            });
-
-
-            jQuery( '#send_form' ).submit( function() {
-                error = '1';
-
-                if ( true == jQuery( "input[name='all_members']" ).prop( 'checked' ) )
-                    error = '0'
-
-                jQuery( "input[name='target[groups][]']" ).each( function() {
-                    if ( true == jQuery(this).prop( 'checked' ) )
-                        error = '0'
-                });
-
-                jQuery( "input[name='target[roles][]']" ).each( function() {
-                    if ( true == jQuery(this).prop( 'checked' ) )
-                        error = '0'
-                });
-
-                jQuery( "input[name='target[membership_levels][]']" ).each( function() {
-                    if ( true == jQuery(this).prop( 'checked' ) )
-                        error = '0'
-                });
-
-                if ( true == jQuery( "input[name='target[site_admins]']" ).prop( 'checked' ) )
-                    error = '0'
-
-
-                if ( '1' == error ) {
-                    alert( "<?php _e( 'Please select members.', 'email-newsletter' ) ?>" );
-                    cron = 0;
-                    return false;
-                } else {
-                    if ( 1 == cron ) {
-                        jQuery( '#cron' ).val( 'cron' );
-                    }
-                    return true;
-                }
-            });
-
-            jQuery('a.edit-timestamp').click(function() {
-                if (jQuery('#timestampdiv').is(":hidden")) {
-                    jQuery('#timestampdiv').slideDown('fast');
-                    jQuery('#mm').focus();
-                    jQuery(this).hide();
-                }
-                return false;
-            });
-
-            jQuery('.save-timestamp', '#timestampdiv').click(function () {
-                aa = jQuery('#aa').val(), mm = jQuery('#mm').val(), jj = jQuery('#jj').val(), hh = jQuery('#hh').val(), mn = jQuery('#mn').val();
-
-                jQuery('#timestamp b').html(
-                    jQuery('option[value="' + jQuery('#mm').val() + '"]', '#mm').text() + ' ' +
-                    jj + ', ' +
-                    aa + ' @ ' +
-                    hh + ':' +
-                    mn
-                );
-                jQuery('#timestampdiv').slideUp('fast');
-                jQuery('a.edit-timestamp').show();
-                jQuery( '#cron_time' ).val( 'cron_time' );
-
-                return false;
-            });
-            jQuery('.cancel-timestamp', '#timestampdiv').click(function() {
-                jQuery('#timestampdiv').slideUp('fast');
-                jQuery('a.edit-timestamp').show();
-                jQuery('#timestamp b').html(assoontext);
-                jQuery( '#cron_time' ).val( '' );
-                return false;
-            });
-
-        });
-
-     </script>
-
-
     <div class="wrap">
         <h2><?php _e( 'Send Newsletter:', 'email-newsletter' ) ?> "<?php echo htmlspecialchars( $newsletter_data['subject'] );?>" <a href="?page=newsletters&amp;newsletter_builder_action=edit_newsletter&amp;newsletter_id=<?php echo $newsletter_data['newsletter_id'];?>&amp;template=<?php echo $newsletter_data['template'];?>&amp;return=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>" class="add-new-h2"><?php _e( 'Edit', 'email-newsletter' ) ?></a></h2>
 
@@ -157,13 +70,11 @@
                     jQuery( '#send_pause' ).click( function () {
                         if ( 1 == pause ) {
                             pause = 0;
-//                            jQuery( "#send_cancel" ).attr( 'disabled', true );
                             jQuery( "#progressbar_text" ).html( '<?php echo _e( 'Sending', 'email-newsletter' ) ?>' );
                             jQuery( this ).val( '<?php echo _e( "Pause", 'email-newsletter' ) ?>' );
                             jQuery( this ).send_email();
                         } else {
                             pause = 1;
-//                            jQuery( "#send_cancel" ).attr( 'disabled', false );
                             jQuery( "#progressbar_text" ).html( '<?php echo _e( 'Pause', 'email-newsletter' ) ?>' );
                             jQuery( this ).val( '<?php echo _e( "Continue", 'email-newsletter' ) ?>' );
                         }
@@ -245,19 +156,17 @@
                             <p class="description">
                                 <?php _e( 'Please keep in mind emails are not being sent to unsubscribed users.', 'email-newsletter' ) ?>
                             </p>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							 <label>
-								 <input type="checkbox" name="dont_send_duplicate" value="1" checked="checked" />
-								 <?php _e( "Don't resend to people that had this newsletter sent to.", 'email-newsletter' ); ?>
-							 </label>
+                            <p>
+                                <label>
+                                    <input type="checkbox" name="dont_send_duplicate" value="1" checked="checked" />
+                                    <?php _e( "Don't resend to people that had this newsletter sent to.", 'email-newsletter' ); ?>
+                                </label>
 
-                             <label>
-                                 <input type="checkbox" name="send_to_bounced" value="1" />
-                                 <?php _e( "Send to bounced members.", 'email-newsletter' ); ?>
-                             </label>
+                                <label>
+                                    <input type="checkbox" name="send_to_bounced" value="1" />
+                                    <?php _e( "Send to bounced members.", 'email-newsletter' ); ?>
+                                </label>
+                            </p>
 						</td>
 					</tr>
 					<tr>
@@ -266,7 +175,7 @@
                                 <input class="button button-primary" type="submit" name="send" value="<?php echo _e( 'Send newsletter now', 'email-newsletter' ) ?>" />
                                 <input class="button button-secondary" type="button" name="send" id="add_cron" value="<?php echo _e( 'Send in background (by CRON)', 'email-newsletter' ) ?>" />
                                 <span id="timestamp">
-                                    <?php _e( "Send(UTC):", 'email-newsletter' ); ?> <b><?php _e( "As fast as possible.", 'email-newsletter' ); ?></b>
+                                    <?php _e( "Send:", 'email-newsletter' ); ?> <b><?php _e( "As fast as possible.", 'email-newsletter' ); ?></b>
                                 </span>
                                 <a href="#edit_timestamp" class="edit-timestamp" style="display: inline;">Edit</a>
                             </p>
@@ -317,13 +226,13 @@
             $total = array ( 'send' => 0, 'cron' => 0, 'sent' => 0, 'bounced' => 0, 'opened' => 0 );
         ?>
 
-        <h2><?php _e( 'Previous sending:', 'email-newsletter' ) ?></h2>
+        <h3><?php _e( 'Previous sending:', 'email-newsletter' ) ?></h3>
 
         <table width="700px" class="widefat post" id="send_list" style="width:95%;">
             <thead>
                 <tr>
                     <th>
-                        <?php _e( 'Start Date (UTC)', 'email-newsletter' ) ?>
+                        <?php _e( 'Start Date', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Waiting send (manualy)', 'email-newsletter' ) ?>
@@ -360,7 +269,7 @@
                 $i++;
         ?>
                 <td style="vertical-align: middle;">
-                   <?php echo date( $this->settings['date_format'] . " h:i:s", $send['start_time'] ); ?>
+                   <?php echo get_date_from_gmt(date('Y-m-d H:i:s', $send['start_time'])); ?>
                 </td>
                 <td style="vertical-align: middle;">
                     <?php

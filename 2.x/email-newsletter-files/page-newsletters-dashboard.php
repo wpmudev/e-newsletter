@@ -18,7 +18,6 @@
     if ( isset( $_GET['updated'] ) ) {
         ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['message'] ); ?></p></div><?php
     }
-
 ?>
 
     <div class="wrap">
@@ -87,6 +86,9 @@
             </tr>
         </table>
 
+        <?php
+        if ( $newsletters_sent ) {
+        ?>
         <h3><?php _e( '5 Latest Sent Newsletters:', 'email-newsletter' ) ?></h3>
         <table class="widefat post newsletter_table_center">
             <thead>
@@ -115,8 +117,8 @@
                 </tr>
             </thead>
         <?php
-        $i = 0;
-        if ( $newsletters_sent )
+            $i = 0;
+
             foreach( $newsletters_sent as $one_sent ) {
                 if ( $i % 2 == 0 )
                     echo "<tr class='alternate'>";
@@ -126,7 +128,7 @@
                 $i++;
         ?>
                 <td>
-                   <?php echo date( $this->settings['date_format'] . " h:i:s", $one_sent['last_sent_time'] ); ?>
+                   <?php echo get_date_from_gmt(date('Y-m-d H:i:s', $one_sent['last_sent_time'])); ?>
                 </td>
                 <td style="text-align: left;">
                     <?php echo $one_sent['subject']; ?>
@@ -161,7 +163,10 @@
         ?>
 
         </table>
-        <?php if(current_user_can('create_newsletter')) { ?>
+        <?php
+        }
+
+        if(current_user_can('create_newsletter')) { ?>
 		<p class="submit">
             <a class="button button-primary" href="<?php echo admin_url( 'admin.php?newsletter_builder_action=create_newsletter' ); ?>"><?php _e( 'Create New Newsletter', 'email-newsletter' ) ?></a>
         </p>
@@ -243,7 +248,7 @@
                         </span>
                     </td>
                     <td style="vertical-align: middle;">
-                        <?php echo date( $this->settings['date_format'] . " h:i:s", $member['join_date'] ); ?>
+                        <?php echo get_date_from_gmt(date('Y-m-d H:i:s', $member['join_date'])); ?>
                     </td>
                     <td style="vertical-align: middle;">
                         <?php echo $member['sent']; ?>

@@ -192,10 +192,10 @@ vertical-align: middle !important;
 }
 
 .members-join, .members-groups {
-    width: 180px;
+    min-width: 180px;
 }
 .members-count {
-    width:150px;
+    min-width:150px;
 }
 
 .newsletters_actions {
@@ -203,6 +203,9 @@ vertical-align: middle !important;
 }
 .newsletter-subject {
     width:150px;
+}
+.newsletter-template {
+    width:100px;
 }
 .members-actions {
     width:230px;
@@ -221,4 +224,7 @@ vertical-align: middle !important;
 }
 .newsletter-settings-tabs {
     display: none;
+}
+#sending_form p.submit {
+    text-align: center;
 }

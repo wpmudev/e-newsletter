@@ -8,88 +8,6 @@
     }
 
 ?>
-    <script type="text/javascript">
-        jQuery( document ).ready( function() {
-            //Save Newsletter action
-            jQuery( "#add_group" ).click( function() {
-                if ( "" == jQuery( "#group_name" ).val() ) {
-                    alert( 'Please write Group name' );
-                    return false;
-                }
-
-                jQuery( "#newsletter_action" ).val( "create_group" );
-                jQuery( "#create_group" ).submit();
-            });
-
-            var group_name      = "";
-            var group_public    = "";
-
-
-            jQuery.fn.editGroup = function ( id ) {
-//            alert(group_name);
-
-                if ( "<?php _e( 'Edit', 'email-newsletter' ) ?>" == jQuery( this ).val() ) {
-                    group_name = jQuery( "#group_name_block_" + id ).html();
-                    group_name = group_name.replace(/(^\s+)|(\s+$)/g, "");
-
-                    jQuery( "#group_name_block_" + id ).html( '<input type="text" name="edit_group_name" size="30" id="edit_group_name"  value="' + group_name + '" /><input type="hidden" name="group_id" value="' + id + '" />' );
-
-                    group_public = jQuery( "#public_block_" + id ).html();
-                    group_public = group_public.replace(/(^\s+)|(\s+$)/g, "");
-
-                    if ( "Yes" == group_public )
-                        jQuery( "#public_block_" + id ).html( '<input type="checkbox" name="edit_public" id="public" value="1" checked="checked" />' );
-                    else
-                        jQuery( "#public_block_" + id ).html( '<input type="checkbox" name="edit_public" id="public" value="1" />' );
-
-
-                    jQuery( '#edit_group input[type="button"]' ).attr( 'disabled', true );
-
-                    jQuery( this ).val('<?php _e( 'Close', 'email-newsletter' ) ?>');
-                    jQuery( this ).attr( 'disabled', false );
-
-                    jQuery( "#save_block_" + id ).html( '<input class="button button-secondary" type="button" name="save_button" onClick="jQuery(this).saveGroup();" value="<?php _e( 'Save', 'email-newsletter' ) ?>" />' );
-
-                    return;
-                }
-
-                if ( "<?php _e( 'Close', 'email-newsletter' ) ?>" == jQuery( this ).val() ) {
-                    jQuery( "#group_name_block_" + id ).html( group_name );
-                    jQuery( "#public_block_" + id ).html( group_public );
-
-                    jQuery( this ).val('<?php _e( 'Edit', 'email-newsletter' ) ?>');
-                    jQuery( '#edit_group input[type="button"]' ).attr( 'disabled', false );
-
-                     jQuery( "#save_block_" + id ).html( '' );
-
-                    return;
-                }
-
-
-            };
-
-
-            jQuery.fn.saveGroup = function ( ) {
-                if ( "" == jQuery( "#edit_group_name" ).val() ) {
-                    alert( 'Please write Group name' );
-                    return false;
-                }
-
-                jQuery( "#newsletter_action2" ).val( "edit_group" );
-                jQuery( "#edit_group" ).submit();
-            };
-
-
-            jQuery.fn.deleteGroup = function ( id ) {
-                jQuery( "#newsletter_action2" ).val( "delete_group" );
-                jQuery( "#group_id" ).val( id );
-                jQuery( "#edit_group" ).submit();
-            };
-
-        });
-    </script>
-
-
     <div class="wrap">
         <h2><?php _e( 'Groups', 'email-newsletter' ) ?></h2>
         <p><?php _e( 'This page contains the list of all groups.', 'email-newsletter' ) ?></p>
@@ -145,7 +63,7 @@
                 </thead>
             <?php
             $i = 0;
-            if ( $groups )
+            if ( $groups ) {
                 foreach( $groups as $group ) {
                     if ( $i % 2 == 0 )
                         echo "<tr class='alternate'>";
@@ -185,6 +103,9 @@
                 </tr>
             <?php
                 }
+            }
+            else
+                echo '<tr><td colspan="5">'.__( 'No groups found.', 'email-newsletter' ).'</td><td>';
             ?>
             </table>
         </form>

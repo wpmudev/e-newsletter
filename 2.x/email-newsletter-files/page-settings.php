@@ -1,14 +1,9 @@
 <?php
-    $siteurl = get_option( 'siteurl' );
-    $settings = $this->get_settings();
-
     $page_title =  __( 'eNewsletter Settings', 'email-newsletter' );
 
-    if ( ! $settings ) {
+    if ( !$this->settings ) {
         $page_title =  __( 'eNewsletter plugin Installation', 'email-newsletter' );
-
         $mode = "install";
-
     }
 
     $default_tab = isset($mode) ? 'tabs-2' : 'tabs-1';
@@ -24,151 +19,6 @@
         ?><div id="message" class="updated fade"><p><?php echo urldecode( $_GET['message'] ); ?></p></div><?php
     }
 ?>
-
-    <script type="text/javascript">
-
-        jQuery( document ).ready( function($) {
-            current_tab = '#<?php echo (isset($_GET['tab'])) ? $_GET['tab'] : $default_tab; ?>';
-            $( "#newsletter_setting_page" ).val(current_tab.substring(1));
-            current_menu_link = $('#newsletter-tabs a[href^='+current_tab+']');
-
-            $(current_menu_link).addClass('nav-tab-active').siblings('a').removeClass('nav-tab-active');
-            $(current_tab).show().siblings('div').hide();
-            $(current_tab).addClass('active');
-
-			$('#newsletter-tabs a').click(function(e) {
-				var tab = $(this).attr('href');
-                $( "#newsletter_setting_page" ).val(tab.substring(1));
-				$(this).addClass('nav-tab-active').siblings('a').removeClass('nav-tab-active');
-				$(tab).show().siblings('div').hide();
-				$(tab).addClass('nav-tab-active');
-				return false;
-			});
-
-            $('.newsletter-settings-tabs > div').not('.active').hide();
-
-            $('.newsletter-settings-tabs').show();
-
-            $( "input[type=button][name='save']" ).click( function() {
-                if ( "" == $( "#smtp_host" ).val() && $( "#smtp_method" ).attr( 'checked' ) ) {
-                    alert("<?php _e( 'Please write SMTP Outgoing Server, or select another Sending Method!', 'email-newsletter' ); ?>");
-                    return false;
-                }
-
-                $( "#newsletter_action" ).val( "save_settings" );
-                $( "#settings_form" ).submit();
-            });
-
-            //install plugin data
-            $( "#install" ).click( function() {
-                if ( "" == $( "#smtp_host" ).val() && $( "#smtp_method" ).attr( 'checked' ) ) {
-                    alert("<?php _e( 'Please write SMTP Outgoing Server, or select another Sending Method!', 'email-newsletter' ); ?>");
-                    return false;
-                }
-
-                $( "#newsletter_action" ).val( "install" );
-                $( "#settings_form" ).submit();
-                return false;
-            });
-
-
-
-            //uninstall plugin data
-            $( "#uninstall_yes" ).click( function() {
-                $( "#newsletter_action" ).val( "uninstall" );
-                $( "#settings_form" ).submit();
-                return false;
-
-            });
-
-            $( "#uninstall" ).click( function() {
-                $( "#uninstall_confirm" ).show( );
-                return false;
-            });
-
-            $( "#uninstall_no" ).click( function() {
-                $( "#uninstall_confirm" ).hide( );
-                return false;
-            });
-
-
-            //Test connection to bounces email
-            $( "#test_bounce_conn" ).click( function() {
-                var bounce_email    = encodeURIComponent($( "#bounce_email" ).val());
-                var bounce_host     = encodeURIComponent($( "#bounce_host" ).val());
-                var bounce_port     = encodeURIComponent($( "#bounce_port" ).val());
-                var bounce_username = encodeURIComponent($( "#bounce_username" ).val());
-                var bounce_password = encodeURIComponent($( "#bounce_password" ).val());
-				var bounce_security = encodeURIComponent($( "#bounce_security" ).val());
-
-                $( "#test_bounce_loading" ).show();
-                $( "#test_bounce_conn" ).attr( 'disabled', true );
-
-                $.ajax({
-                    type: "POST",
-                    url: "<?php echo $siteurl;?>/wp-admin/admin-ajax.php",
-                    data: "action=test_bounces&bounce_email=" + bounce_email + "&bounce_host=" + bounce_host + "&bounce_port=" + bounce_port + "&bounce_username=" + bounce_username + "&bounce_password=" + bounce_password + "&bounce_security=" + bounce_security,
-                    success: function( html ){
-                        $( "#test_bounce_conn" ).attr( 'disabled', false );
-                        $( "#test_bounce_loading" ).hide();
-                        alert( html );
-                    }
-                 });
-            });
-
-            //Test connection to bounces email
-            $( "#test_smtp_conn" ).click( function() {
-                var smtp_host     = encodeURIComponent($( "#smtp_host" ).val());
-                var smtp_port     = encodeURIComponent($( "#smtp_port" ).val());
-                var smtp_from = encodeURIComponent($( "#smtp_from" ).val());
-                var smtp_username = encodeURIComponent($( "#smtp_username" ).val());
-                var smtp_password = encodeURIComponent($( "#smtp_password" ).val());
-                var smtp_security = encodeURIComponent($( "#smtp_security" ).val());
-
-                $( "#test_smtp_loading" ).show();
-                $( "#test_smtp_conn" ).attr( 'disabled', true );
-
-                $.ajax({
-                    type: "POST",
-                    url: "<?php echo $siteurl;?>/wp-admin/admin-ajax.php",
-                    data: "action=test_smtp&smtp_from=" + smtp_from + "&smtp_host=" + smtp_host + "&smtp_port=" + smtp_port + "&smtp_username=" + smtp_username + "&smtp_password=" + smtp_password + "&smtp_security=" + smtp_security,
-                    success: function( html ){
-                        $( "#test_smtp_conn" ).attr( 'disabled', false );
-                        $( "#test_smtp_loading" ).hide();
-                        alert( html );
-                    }
-                 });
-            });
-
-            function set_out_option() {
-	            $('.email_out_type' ).each( function() {
-	                if( $( this )[0].checked ){
-	                    $( '.email_out' ).hide();
-	                    $( '.email_out_' + $( this ).val() ).show();
-	                }
-	            });
-	        }
-
-            set_out_option();
-            $( '.email_out_type' ).change( function() {
-                set_out_option();
-                if( $( this )[0].checked ){
-                    $( '.email_out' ).hide();
-                    $( '.email_out_' + $( this ).val() ).show();
-                }
-            });
-
-            $('table.permissionTable thead .check-column input:checkbox').change(function() {
-            	if($(this).is(':checked')) {
-            		$(this).parents('table').find('.check-column input:checkbox').not($(this)).attr('checked','checked');
-            	} else {
-            		$(this).parents('table').find('.check-column input:checkbox').not($(this)).prop("checked", false);
-            	}
-            });
-
-
-        });
-    </script>
 
 
     <div class="wrap">
@@ -199,7 +49,7 @@
                                     <?php _e( 'From name:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
-                                    <input type="text" class="regular-text" name="settings[from_name]" value="<?php echo isset($settings['from_name']) ? esc_attr($settings['from_name']) : get_option( 'blogname' );?>" />
+                                    <input type="text" class="regular-text" name="settings[from_name]" value="<?php echo isset($this->settings['from_name']) ? esc_attr($this->settings['from_name']) : get_option( 'blogname' );?>" />
                                     <span class="description"><?php _e( 'Default "from" name when sending newsletters.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
@@ -208,7 +58,7 @@
                                     <?php _e( 'Branding:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
-                                    <textarea name="settings[branding_html]" class="branding-html" ><?php echo isset($settings['branding_html']) ? esc_textarea($settings['branding_html']) : "";?></textarea>
+                                    <textarea name="settings[branding_html]" class="branding-html" ><?php echo isset($this->settings['branding_html']) ? esc_textarea($this->settings['branding_html']) : "";?></textarea>
                                     <br />
                                     <span class="description"><?php _e( 'Default branding html/text will be added to the top of each email.', 'email-newsletter' ) ?> <?php _e( 'It can be easily changed for each newsletter', 'email-newsletter' ) ?></span>
                                 </td>
@@ -218,7 +68,7 @@
                                     <?php _e( 'Contact information:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
-                                    <textarea name="settings[contact_info]" class="contact-information" ><?php echo isset($settings['contact_info']) ? esc_textarea($settings['contact_info']) : "";?></textarea>
+                                    <textarea name="settings[contact_info]" class="contact-information" ><?php echo isset($this->settings['contact_info']) ? esc_textarea($this->settings['contact_info']) : "";?></textarea>
                                     <br />
                                     <span class="description"><?php _e( 'Default contact information will be added to the bottom of each email.', 'email-newsletter' ) ?> <?php _e( 'It can be easily changed for each newsletter', 'email-newsletter' ) ?></span>
                                 </td>
@@ -228,7 +78,7 @@
                                     <?php _e( 'View email in browser:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
-                                    <textarea name="settings[view_browser]" class="view-browser" ><?php echo isset($settings['view_browser']) ? esc_textarea($settings['view_browser']) : __( '<a href="{VIEW_LINK}" title="View e-mail in browser">View e-mail in browser</a>', 'email-newsletter' ); ?></textarea>
+                                    <textarea name="settings[view_browser]" class="view-browser" ><?php echo isset($this->settings['view_browser']) ? esc_textarea($this->settings['view_browser']) : __( '<a href="{VIEW_LINK}" title="View e-mail in browser">View e-mail in browser</a>', 'email-newsletter' ); ?></textarea>
                                     <br />
                                     <span class="description"><?php _e( 'This HTML message will be visible before newsletter starts so user have ability to display email in browser. Use "{VIEW_LINK}" as link. Leave blank to disable.', 'email-newsletter' ) ?></span>
                                 </td>
@@ -238,7 +88,7 @@
                                     <?php _e( 'Preview mail:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
-                                    <input type="text" class="regular-text" name="settings[preview_email]" value="<?php echo isset($settings['preview_email']) ? esc_attr($settings['preview_email']) : $settings['from_email'];?>" />
+                                    <input type="text" class="regular-text" name="settings[preview_email]" value="<?php echo isset($this->settings['preview_email']) ? esc_attr($this->settings['preview_email']) : $this->settings['from_email'];?>" />
                                     <span class="description"><?php _e( 'Default email adress to send previews to.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
@@ -253,9 +103,9 @@
                                 </th>
                                 <td>
                                     <label for="settings[double_opt_in]"><?php _e( 'Enable:', 'email-newsletter' ) ?></label>
-                                    <input type="checkbox" name="settings[double_opt_in]" value="1" <?php checked('1',$settings['double_opt_in']); ?> />
+                                    <input type="checkbox" name="settings[double_opt_in]" value="1" <?php checked('1',$this->settings['double_opt_in']); ?> />
                                     <label for="settings[double_opt_in]"><?php _e( 'Subject:', 'email-newsletter' ) ?></label>
-                                    <input type="text" class="regular-text" name="settings[double_opt_in_subject]" value="<?php echo isset($settings['double_opt_in_subject']) ? esc_attr($settings['double_opt_in_subject']) : ''; ?>" />
+                                    <input type="text" class="regular-text" name="settings[double_opt_in_subject]" value="<?php echo isset($this->settings['double_opt_in_subject']) ? esc_attr($this->settings['double_opt_in_subject']) : ''; ?>" />
                                     <span class="description"><?php _e( 'If enabled, members will get confirmation email with configured subject to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
@@ -269,11 +119,11 @@
                                     $groups = $this->get_groups();
 
                                     if ( $groups ) {
-                                        $settings['subscribe_groups'] = isset($settings['subscribe_groups']) ? explode(',', $settings['subscribe_groups']) : array();
+                                        $this->settings['subscribe_groups'] = isset($this->settings['subscribe_groups']) ? explode(',', $this->settings['subscribe_groups']) : array();
                                     ?>
                                         <?php foreach( $groups as $group ) : ?>
                                             <label for="member[groups_id][]">
-                                                <input type="checkbox" name="settings[subscribe_groups][<?php echo $group['group_id'];?>]" value="<?php echo $group['group_id'];?>" <?php if(in_array($group['group_id'], $settings['subscribe_groups'])) echo 'checked'; ?>/>
+                                                <input type="checkbox" name="settings[subscribe_groups][<?php echo $group['group_id'];?>]" value="<?php echo $group['group_id'];?>" <?php if(in_array($group['group_id'], $this->settings['subscribe_groups'])) echo 'checked'; ?>/>
                                                 <?php echo ( $group['public'] ) ? $group['group_name'] .' (public)' : $group['group_name']; ?>
                                             </label>
                                             <br />
@@ -304,7 +154,7 @@
                                             foreach( $newsletters as $key => $newsletter ) {
                                                 if (strlen($newsletter['subject']) > 30)
                                                 $newsletter['subject'] = substr($newsletter['subject'], 0, 27) . '...';
-                                                echo '<option value="'.$newsletter['newsletter_id'].'" '.selected( $settings['subscribe_newsletter'], $newsletter['newsletter_id'], false).'>'.$newsletter['newsletter_id'].': '.$newsletter['subject'].'</option>';
+                                                echo '<option value="'.$newsletter['newsletter_id'].'" '.selected( $this->settings['subscribe_newsletter'], $newsletter['newsletter_id'], false).'>'.$newsletter['newsletter_id'].': '.$newsletter['subject'].'</option>';
                                             }
                                         ?>
                                     </select>
@@ -318,12 +168,12 @@
                                 </th>
                                 <td>
                                     <?php
-                                    if(!isset($settings['wp_user_register_subscribe']))
-                                        $settings['wp_user_register_subscribe'] = 1;
+                                    if(!isset($this->settings['wp_user_register_subscribe']))
+                                        $this->settings['wp_user_register_subscribe'] = 1;
                                     ?>
                                     <select name="settings[wp_user_register_subscribe]">
-                                        <option value="1"<?php selected( $settings['wp_user_register_subscribe'], 1); ?>><?php _e( 'Subscribe', 'email-newsletter' ) ?></option>
-                                        <option value="0"<?php selected( $settings['wp_user_register_subscribe'], 0); ?>><?php _e( 'Disable', 'email-newsletter' ) ?></option>
+                                        <option value="1"<?php selected( $this->settings['wp_user_register_subscribe'], 1); ?>><?php _e( 'Subscribe', 'email-newsletter' ) ?></option>
+                                        <option value="0"<?php selected( $this->settings['wp_user_register_subscribe'], 0); ?>><?php _e( 'Disable', 'email-newsletter' ) ?></option>
                                     </select>
                                     <span class="description"><?php _e( 'Choose if user registering(with WordPress) to your site is automatically subscribed to newsletter.', 'email-newsletter' ) ?></span>
                                 </td>
@@ -334,7 +184,7 @@
                                     <?php _e( 'Subscribe Page ID:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
-                                    <input class="small-text" type="number" name="settings[subscribe_page_id]" value="<?php echo isset($settings['subscribe_page_id']) ? esc_attr($settings['subscribe_page_id']) : '';?>" />
+                                    <input class="small-text" type="number" name="settings[subscribe_page_id]" value="<?php echo isset($this->settings['subscribe_page_id']) ? esc_attr($this->settings['subscribe_page_id']) : '';?>" />
                                     <span class="description"><?php _e( 'Add ID of page that you want to use as subscribe page. You can use [enewsletter_subscribe_message] shortcode inside it to display subscribe message. Leave blank to disable.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
@@ -344,7 +194,7 @@
                                     <?php _e( 'Unsubscribe Page ID:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
-                                    <input class="small-text" type="number" name="settings[unsubscribe_page_id]" value="<?php echo isset($settings['unsubscribe_page_id']) ? esc_attr($settings['unsubscribe_page_id']) : '';?>" />
+                                    <input class="small-text" type="number" name="settings[unsubscribe_page_id]" value="<?php echo isset($this->settings['unsubscribe_page_id']) ? esc_attr($this->settings['unsubscribe_page_id']) : '';?>" />
                                     <span class="description"><?php _e( 'Add ID of page that you want to use as unsubscribe page. You can use [enewsletter_unsubscribe_message] shortcode inside it to display unsubscribe message. Leave blank to disable.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
@@ -362,13 +212,13 @@
                                     </th>
                                     <td>
                                         <label id="tip_smtp">
-                                            <input type="radio" name="settings[outbound_type]" id="smtp_method" value="smtp" class="email_out_type" <?php echo (!isset($settings['outbound_type']) || $settings['outbound_type'] == 'smtp') ? 'checked="checked"' : '';?> /><?php echo _e( 'SMTP (recommended)', 'email-newsletter' );?>
+                                            <input type="radio" name="settings[outbound_type]" id="smtp_method" value="smtp" class="email_out_type" <?php echo (!isset($this->settings['outbound_type']) || $this->settings['outbound_type'] == 'smtp') ? 'checked="checked"' : '';?> /><?php echo _e( 'SMTP (recommended)', 'email-newsletter' );?>
                                         </label>
 
 										<?php $tips->bind_tip(__("The SMTP method allows you to use your SMTP server (or Gmail, Yahoo, Hotmail etc. ) for sending newsletters and emails. It's usually the best choice, especially if your host has restrictions on sending email and to help you to avoid being blacklisted as a SPAM sender",'email-newsletter'), '#tip_smtp'); ?>
 
                                         <label id="tip_php">
-                                            <input type="radio" name="settings[outbound_type]" value="mail" class="email_out_type" <?php echo (isset($settings['outbound_type']) && $settings['outbound_type'] == 'mail') ? 'checked="checked"' : '';?> /><?php echo _e( 'php mail', 'email-newsletter' );?>
+                                            <input type="radio" name="settings[outbound_type]" value="mail" class="email_out_type" <?php echo (isset($this->settings['outbound_type']) && $this->settings['outbound_type'] == 'mail') ? 'checked="checked"' : '';?> /><?php echo _e( 'php mail', 'email-newsletter' );?>
                                         </label>
 										<?php $tips->bind_tip(__( "This method uses php functions for sending newsletters and emails. Be careful because some hosts may set restrictions on using this method. If you can't edit settings of your server, we recommend to use the SMTP method for optimal results!", 'email-newsletter' ), '#tip_php'); ?>
                                     </td>
@@ -381,7 +231,7 @@
                                         <?php _e( 'From email:', 'email-newsletter' ) ?>
                                     </th>
                                     <td>
-                                        <input type="text" id="smtp_from" class="regular-text" name="settings[from_email]" value="<?php echo esc_attr( isset($settings['from_email']) ? $settings['from_email'] : get_option( 'admin_email' ) );?>" />
+                                        <input type="text" id="smtp_from" class="regular-text" name="settings[from_email]" value="<?php echo esc_attr( isset($this->settings['from_email']) ? $this->settings['from_email'] : get_option( 'admin_email' ) );?>" />
                                         <span class="description"><?php _e( 'Default "from" email address when sending newsletters.', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
@@ -395,28 +245,28 @@
                                 <tr valign="top">
                                     <th scope="row"><?php _e( 'SMTP Outgoing Server', 'email-newsletter' ) ?>:</th>
                                     <td>
-                                        <input type="text" id="smtp_host" class="regular-text" name="settings[smtp_host]" value="<?php echo isset($settings['smtp_host']) ? esc_attr($settings['smtp_host']) : '';?>" />
+                                        <input type="text" id="smtp_host" class="regular-text" name="settings[smtp_host]" value="<?php echo isset($this->settings['smtp_host']) ? esc_attr($this->settings['smtp_host']) : '';?>" />
                                         <span class="description"><?php _e( 'The hostname for the SMTP account, eg: mail.', 'email-newsletter' ) ?><?php echo $_SERVER['HTTP_HOST'];?></span>
                                     </td>
                                 </tr>
                                 <tr valign="top">
                                     <th scope="row"><?php _e( 'SMTP Username:', 'email-newsletter' ) ?></th>
                                     <td>
-                                        <input type="text" id="smtp_username" class="regular-text" name="settings[smtp_user]" value="<?php echo isset($settings['smtp_user']) ? esc_attr($settings['smtp_user']) : '';?>" />
+                                        <input type="text" id="smtp_username" class="regular-text" name="settings[smtp_user]" value="<?php echo isset($this->settings['smtp_user']) ? esc_attr($this->settings['smtp_user']) : '';?>" />
                                         <span class="description"><?php _e( '(leave blank for none)', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr valign="top">
                                     <th scope="row"><?php _e( 'SMTP Password:', 'email-newsletter' ) ?></th>
                                     <td>
-                                        <input type="password" id="smtp_password" class="regular-text" name="settings[smtp_pass]" value="<?php echo ( isset( $settings['smtp_pass'] ) && '' != $settings['smtp_pass'] ) ? '********' : ''; ?>" />
-                                        <span class="description"><?php _e( '(leave blank for none)', 'email-newsletter' ); if(isset( $settings['smtp_pass'] ) && '' != $settings['smtp_pass']) _e( ' (For security, saved password lenght does not match preview)', 'email-newsletter' ); ?></span>
+                                        <input type="password" id="smtp_password" class="regular-text" name="settings[smtp_pass]" value="<?php echo ( isset( $this->settings['smtp_pass'] ) && '' != $this->settings['smtp_pass'] ) ? '********' : ''; ?>" />
+                                        <span class="description"><?php _e( '(leave blank for none)', 'email-newsletter' ); if(isset( $this->settings['smtp_pass'] ) && '' != $this->settings['smtp_pass']) _e( ' (For security, saved password lenght does not match preview)', 'email-newsletter' ); ?></span>
                                     </td>
                                 </tr>
                                 <tr valign="top">
                                     <th scope="row"><?php _e( 'SMTP Port', 'email-newsletter' ) ?>:</th>
                                     <td>
-                                        <input type="text" id="smtp_port" name="settings[smtp_port]" value="<?php echo isset($settings['smtp_port']) ? esc_attr($settings['smtp_port']) : '';?>" />
+                                        <input type="text" id="smtp_port" name="settings[smtp_port]" value="<?php echo isset($this->settings['smtp_port']) ? esc_attr($this->settings['smtp_port']) : '';?>" />
                                         <span class="description"><?php _e( 'Defaults to 25.  Gmail uses 465 or 587', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
@@ -424,13 +274,13 @@
                                     <th scope="row"><?php _e( 'Secure SMTP?', 'email-newsletter' ) ?>:</th>
                                     <td>
                                         <?php
-                                        if(!isset($settings['smtp_secure_method']))
-                                            $settings['smtp_secure_method'] = 0;
+                                        if(!isset($this->settings['smtp_secure_method']))
+                                            $this->settings['smtp_secure_method'] = 0;
                                         ?>
                                         <select id="smtp_security" name="settings[smtp_secure_method]" >
-                                            <option value="0" <?php selected('0',$settings['smtp_secure_method']); ?>><?php _e( 'None', 'email-newsletter' ) ?></option>
-                                            <option value="ssl" <?php selected('ssl',$settings['smtp_secure_method']); ?>><?php _e( 'SSL', 'email-newsletter' ) ?></option>
-                                            <option value="tls" <?php selected('tls',$settings['smtp_secure_method']); ?>><?php _e( 'TLS', 'email-newsletter' ) ?></option>
+                                            <option value="0" <?php selected('0',$this->settings['smtp_secure_method']); ?>><?php _e( 'None', 'email-newsletter' ) ?></option>
+                                            <option value="ssl" <?php selected('ssl',$this->settings['smtp_secure_method']); ?>><?php _e( 'SSL', 'email-newsletter' ) ?></option>
+                                            <option value="tls" <?php selected('tls',$this->settings['smtp_secure_method']); ?>><?php _e( 'TLS', 'email-newsletter' ) ?></option>
                                         </select>
                                         <span class="description"><?php _e( 'Choose an optional type of connection', 'email-newsletter' ) ?></span>
                                     </td>
@@ -449,46 +299,41 @@
                             <tbody>
                                 <tr valign="top">
                                     <th scope="row">
-                                        <?php _e( 'Enable', 'email-newsletter' ) ?>
-                                        <span class="description"><?php _e( ' (CRON)', 'email-newsletter' ) ?></span>
+                                        <?php _e( 'CRON Email Sending:', 'email-newsletter' ) ?>
                                     </th>
                                     <td>
                                         <?php
-                                        if(!isset($settings['cron_enable']))
-                                            $settings['cron_enable'] = 1;
+                                        if(!isset($this->settings['cron_enable']))
+                                            $this->settings['cron_enable'] = 1;
                                         ?>
                                         <select name="settings[cron_enable]" >
-                                            <option value="1" <?php selected('1',esc_attr($settings['cron_enable'])); ?>><?php _e( 'Enable', 'email-newsletter' ) ?></option>
-                                            <option value="2" <?php selected('2',esc_attr($settings['cron_enable'])); ?>><?php _e( 'Disable', 'email-newsletter' ) ?></option>
+                                            <option value="1" <?php selected('1',esc_attr($this->settings['cron_enable'])); ?>><?php _e( 'Enable', 'email-newsletter' ) ?></option>
+                                            <option value="2" <?php selected('2',esc_attr($this->settings['cron_enable'])); ?>><?php _e( 'Disable', 'email-newsletter' ) ?></option>
                                         </select>
                                         <span class="description"><?php _e( "('Disable' - not use CRON for sending emails)", 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr valign="top">
                                     <th scope="row">
-                                        <?php _e( 'Limit send:', 'email-newsletter' ) ?>
-                                        <span class="description"><?php _e( ' (CRON)', 'email-newsletter' ) ?></span>
+                                        <?php _e( 'Limitations:', 'email-newsletter' ) ?>
                                     </th>
                                     <td>
-                                        <input type="text" name="settings[send_limit]" value="<?php echo isset($settings['send_limit']) ? esc_attr($settings['send_limit']) : '';?>" />
-                                        <span class="description"><?php _e( '(0 or blank for unlimited)', 'email-newsletter' ) ?></span>
-                                    </td>
-                                </tr>
-                                <tr valign="top">
-                                    <th scope="row">
-                                        <?php _e( 'Emails per', 'email-newsletter' ) ?>
-                                        <span class="description"><?php _e( ' (CRON)', 'email-newsletter' ) ?></span>
-                                    </th>
-                                    <td>
-                                      <?php
-                                        if(!isset($settings['cron_time']))
-                                            $settings['cron_time'] = 1;
+                                        <?php _e( 'Send', 'email-newsletter' ) ?>
+                                        <input class="small-text" type="number" name="settings[send_limit]" value="<?php echo isset($this->settings['send_limit']) ? esc_attr($this->settings['send_limit']) : '';?>" />
+                                        <small class="description"><?php _e( '(0 or blank for unlimited)', 'email-newsletter' ) ?></small>
+                                        <?php _e( 'emails per', 'email-newsletter' ) ?>
+                                        <?php
+                                        if(!isset($this->settings['cron_time']))
+                                            $this->settings['cron_time'] = 1;
                                         ?>
                                         <select name="settings[cron_time]" >
-                                            <option value="1" <?php echo ( 1 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Hour', 'email-newsletter' ) ?></option>
-                                            <option value="2" <?php echo ( 2 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Day', 'email-newsletter' ) ?></option>
-                                            <option value="3" <?php echo ( 3 == $settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Month', 'email-newsletter' ) ?></option>
+                                            <option value="1" <?php echo ( 1 == $this->settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Hour', 'email-newsletter' ) ?></option>
+                                            <option value="2" <?php echo ( 2 == $this->settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Day', 'email-newsletter' ) ?></option>
+                                            <option value="3" <?php echo ( 3 == $this->settings['cron_time'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'Month', 'email-newsletter' ) ?></option>
                                         </select>
+                                        <?php _e( 'and wait', 'email-newsletter' ) ?>
+                                        <input class="small-text" type="number" name="settings[cron_wait]" value="<?php echo isset($this->settings['cron_wait']) ? esc_attr($this->settings['cron_wait']) : 1;?>" />
+                                        <?php _e( 'second(s) between each email', 'email-newsletter' ) ?>.
                                     </td>
                                 </tr>
 							</tbody>
@@ -513,36 +358,36 @@
                                 <tr valign="top">
                                     <th scope="row"><?php _e( 'Email Address:', 'email-newsletter' ) ?></td>
                                     <td>
-                                        <input type="text" name="settings[bounce_email]" id="bounce_email" class="regular-text" value="<?php echo isset($settings['bounce_email']) ? esc_attr($settings['bounce_email']) : '';?>" />
+                                        <input type="text" name="settings[bounce_email]" id="bounce_email" class="regular-text" value="<?php echo isset($this->settings['bounce_email']) ? esc_attr($this->settings['bounce_email']) : '';?>" />
                                         <span class="description"><?php _e( 'Email address where bounce emails will be sent by default (might be overwritten by server)', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr valign="top">
                                     <th scope="row"><?php _e( 'POP3 Host:', 'email-newsletter' ) ?></th>
                                     <td>
-                                        <input type="text" name="settings[bounce_host]" id="bounce_host" class="regular-text" value="<?php echo isset($settings['bounce_host']) ? esc_attr($settings['bounce_host']) : '';?>" />
+                                        <input type="text" name="settings[bounce_host]" id="bounce_host" class="regular-text" value="<?php echo isset($this->settings['bounce_host']) ? esc_attr($this->settings['bounce_host']) : '';?>" />
                                         <span class="description"><?php _e( 'The hostname for the POP3 account, eg: mail.', 'email-newsletter' ) ?><?php echo $_SERVER['HTTP_HOST'];?></span>
                                     </td>
                                 </tr>
                                 <tr valign="top">
                                     <th scope="row"><?php _e( 'POP3 Port', 'email-newsletter' ) ?>:</th>
                                     <td>
-                                        <input type="text" name="settings[bounce_port]" id="bounce_port" value="<?php echo isset($settings['bounce_port']) ? esc_attr($settings['bounce_port']) : '110';?>" size="2" />
+                                        <input type="text" name="settings[bounce_port]" id="bounce_port" value="<?php echo isset($this->settings['bounce_port']) ? esc_attr($this->settings['bounce_port']) : '110';?>" size="2" />
                                         <span class="description"><?php _e( 'Defaults to 110 or 995 with SSL enabled', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr valign="top">
                                     <th scope="row"><?php _e( 'POP3 Username:', 'email-newsletter' ) ?></th>
                                     <td>
-                                        <input type="text" name="settings[bounce_username]" id="bounce_username" class="regular-text" value="<?php echo isset($settings['bounce_username']) ? esc_attr($settings['bounce_username']) : '';?>" />
+                                        <input type="text" name="settings[bounce_username]" id="bounce_username" class="regular-text" value="<?php echo isset($this->settings['bounce_username']) ? esc_attr($this->settings['bounce_username']) : '';?>" />
                                         <span class="description"><?php _e( 'Username for this bounce email account (usually the same as the above email address) ', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
                                 <tr valign="top">
                                     <th scope="row"><?php _e( 'POP3 Password:', 'email-newsletter' ) ?></th>
                                     <td>
-                                        <input type="password" name="settings[bounce_password]" id="bounce_password" class="regular-text" value="<?php echo ( isset( $settings['bounce_password'] ) && '' != $settings['bounce_password'] ) ? '********' : ''; ?>" />
-                                        <span class="description"><?php _e( 'Password to access this bounce email account', 'email-newsletter' ); if(isset( $settings['bounce_password'] ) && '' != $settings['bounce_password']) _e( ' (For security, saved password lenght does not match preview)', 'email-newsletter' ); ?></span>
+                                        <input type="password" name="settings[bounce_password]" id="bounce_password" class="regular-text" value="<?php echo ( isset( $this->settings['bounce_password'] ) && '' != $this->settings['bounce_password'] ) ? '********' : ''; ?>" />
+                                        <span class="description"><?php _e( 'Password to access this bounce email account', 'email-newsletter' ); if(isset( $this->settings['bounce_password'] ) && '' != $this->settings['bounce_password']) _e( ' (For security, saved password lenght does not match preview)', 'email-newsletter' ); ?></span>
                                     </td>
                                 </tr>
                                 <tr valign="top">
@@ -551,12 +396,12 @@
                                     </th>
                                     <td>
                                         <?php
-                                        if(!isset($settings['bounce_security']))
-                                            $settings['bounce_security'] = '';
+                                        if(!isset($this->settings['bounce_security']))
+                                            $this->settings['bounce_security'] = '';
                                         ?>
                                         <select name="settings[bounce_security]" id="bounce_security" >
-                                            <option value="" <?php echo ( '' == $settings['bounce_security'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'None', 'email-newsletter' ) ?></option>
-                                            <option value="/ssl" <?php echo ( '/ssl' == $settings['bounce_security'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'SSL', 'email-newsletter' ) ?></option>
+                                            <option value="" <?php echo ( '' == $this->settings['bounce_security'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'None', 'email-newsletter' ) ?></option>
+                                            <option value="/ssl" <?php echo ( '/ssl' == $this->settings['bounce_security'] ) ? 'selected="selected"' : ''; ?> ><?php _e( 'SSL', 'email-newsletter' ) ?></option>
                                         </select>
                                     </td>
                                 </tr>
@@ -615,12 +460,12 @@
                                     <th scope="row"><?php _e( 'Public group access:', 'email-newsletter' ) ?></td>
                                     <td>
                                         <?php
-                                        if(!isset($settings['non_public_group_access']))
-                                            $settings['non_public_group_access'] = 'registered';
+                                        if(!isset($this->settings['non_public_group_access']))
+                                            $this->settings['non_public_group_access'] = 'registered';
                                         ?>
                                         <select id="non_public_group_access" name="settings[non_public_group_access]" >
-                                            <option value="registered" <?php selected('registered',$settings['non_public_group_access']); ?>><?php _e( 'Registered users', 'email-newsletter' ) ?></option>
-                                            <option value="nobody" <?php selected('nobody',$settings['non_public_group_access']); ?>><?php _e( 'Nobody', 'email-newsletter' ) ?></option>
+                                            <option value="registered" <?php selected('registered',$this->settings['non_public_group_access']); ?>><?php _e( 'Registered users', 'email-newsletter' ) ?></option>
+                                            <option value="nobody" <?php selected('nobody',$this->settings['non_public_group_access']); ?>><?php _e( 'Nobody', 'email-newsletter' ) ?></option>
                                         </select>
                                         <span class="description"><?php _e( 'Choose what type of user can subscribe to non public groups. <small>Keep in mind that users can still be added to all type of groups in eNewsletter members admin page.</small>', 'email-newsletter' ) ?></span>
                                    </td>

@@ -25,25 +25,6 @@
     }
 
 ?>
-    <script type="text/javascript">
-        jQuery( document ).ready( function() {
-
-            //save subscribes
-            jQuery( "#save_subscribes" ).click( function() {
-                jQuery( "#newsletter_action" ).val( 'save_subscribes' );
-                jQuery( "#subscribes_form" ).submit();
-
-            });
-
-            //unsubscribe
-            jQuery( "#unsubscribe" ).click( function() {
-                jQuery( "#newsletter_action" ).val( 'unsubscribe' );
-                jQuery( "#subscribes_form" ).submit();
-
-            });
-        });
-    </script>
-
     <div class="wrap">
         <h2><?php _e( 'My Subscriptions', 'email-newsletter' ) ?></h2>
         <p><?php _e( 'At this page you can Subscribe or Unsubcribe to Newsletters', 'email-newsletter' ) ?></p>

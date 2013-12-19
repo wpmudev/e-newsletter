@@ -69,193 +69,6 @@
     }
 
 ?>
-    <script type="text/javascript">
-        jQuery( document ).ready( function() {
-
-            jQuery.fn.changeGroups = function ( id ) {
-
-                if ( '<?php _e( 'Save Groups', 'email-newsletter' ) ?>' == jQuery( "#change_button_" + id ).val() ) {
-                    jQuery( "#newsletter_action" ).val( "change_group" );
-                    jQuery( "#member_id" ).val( id );
-                    jQuery( "#form_members" ).submit();
-                    return;
-                }
-                jQuery( "body" ).css( "cursor", "wait" );
-                jQuery( "#form_members input[type=button]" ).attr( 'disabled', true );
-                jQuery.ajax({
-                    type: "POST",
-                    url: "<?php echo $siteurl;?>/wp-admin/admin-ajax.php",
-                    data: "action=change_groups&member_id=" + id,
-                    success: function(html){
-                        jQuery( "#change_group_block_" + id ).html( html );
-                        jQuery( "#close_block_" + id ).html( '<input class="button button-secondary" type="button" onClick="jQuery(this).closeChangeGroups( ' + id + ' );" value="<?php _e( 'Close', 'email-newsletter' ) ?>" />' );
-
-                        jQuery( "#change_button_" + id ).val('<?php _e( 'Save Groups', 'email-newsletter' ) ?>');
-
-                        if ( jQuery( "#change_group_block_" + id + " input[type=checkbox]" ).length )
-                            jQuery( "#change_button_" + id ).attr( 'disabled', false );
-
-                        jQuery( "body" ).css( "cursor", "default" );
-                    }
-                });
-
-
-
-
-            };
-
-            jQuery.fn.closeChangeGroups = function ( id ) {
-                jQuery( "#form_members input[type=button]" ).attr( 'disabled', false );
-                jQuery( "#change_group_block_" + id ).html( '' );
-                jQuery( "#close_block_" + id ).html( '' );
-                jQuery( "#change_button_" + id ).val('<?php _e( 'Change groups', 'email-newsletter' ) ?>');
-            };
-
-
-
-            //Add new member
-            jQuery( "#add_member" ).click( function() {
-                if ( "" == jQuery( "#member_email" ).val() ) {
-                    alert('<?php _e( 'Please write Email of the member', 'email-newsletter' ) ?>');
-                    return false;
-                }
-                jQuery( "#newsletter_action2" ).val( 'add_member' );
-                jQuery( "#add_new_member" ).submit();
-
-            });
-
-            //Import new members
-            jQuery( "#import_members" ).click( function() {
-                if ( "" == jQuery( "#import_members_file" ).val() ) {
-                    jQuery( "#import_file_line" ).attr('class', 'newsletter_error');
-                    return false;
-                }
-
-                jQuery( "#newsletter_action2" ).val( 'import_members' );
-                jQuery( "#add_new_member" ).submit();
-
-            });
-
-
-            //Some actions
-            jQuery( "#apply" ).click( function() {
-                if ( -1 == jQuery( "#some_action" ).val() ) {
-                    return false;
-                } else if ( ( 'add_members_group' == jQuery( "#some_action" ).val() || 'delete_members_group' == jQuery( "#some_action" ).val() )
-                                && -1 == jQuery( "#list_group_id" ).val() ) {
-                    return false;
-                }
-
-                jQuery( "#newsletter_action" ).val( jQuery( "#some_action" ).val() );
-                jQuery( "#form_members" ).submit();
-                return false;
-            });
-
-            //show/hide select box of groups list
-            jQuery( "#some_action" ).change( function() {
-                if ( 'add_members_group' == jQuery( "#some_action" ).val() || 'delete_members_group' == jQuery( "#some_action" ).val() ) {
-                    jQuery( "#list_group_id" ).show();
-                } else {
-                    jQuery( "#list_group_id" ).hide();
-                }
-            });
-
-
-            //change per page count
-            jQuery( "#per_page" ).change( function() {
-                jQuery( "#newsletter_action" ).val( '' );
-                jQuery( "#members_per_page" ).val(jQuery(this).val());
-                jQuery( "#form_members" ).submit();
-                return false;
-            });
-
-
-            jQuery( "#show_add_form" ).click( function() {
-                jQuery( "#panel" ).slideToggle( "slow" );
-
-                if ( "<?php _e( 'Show the New Member / Import forms', 'email-newsletter' ) ?>" == jQuery(this).val() )
-                    jQuery(this).val( '<?php _e( 'Hide the New Member / Import forms', 'email-newsletter' ) ?>' );
-                else
-                    jQuery(this).val( '<?php _e( 'Show the New Member / Import forms', 'email-newsletter' ) ?>' );
-
-                return false;
-            });
-
-            jQuery( "#show_add_form2" ).click( function() {
-                jQuery( "#panel2" ).slideToggle( "slow" );
-
-                if ( "<?php _e( 'Show the export Members form', 'email-newsletter' ) ?>" == jQuery(this).val() )
-                    jQuery(this).val( '<?php _e( 'Show the export Members form', 'email-newsletter' ) ?>' );
-                else
-                    jQuery(this).val( '<?php _e( 'Hide the export Members form', 'email-newsletter' ) ?>' );
-
-                return false;
-            });
-
-           jQuery.fn.editMember = function ( id ) {
-                if ( "<?php _e( 'Edit', 'email-newsletter' ) ?>" == jQuery( this ).val() ) {
-                    jQuery( "#member_id" ).val( id );
-
-                    member_nicename = jQuery( "#member_nicename_block_" + id ).html();
-                    member_nicename = member_nicename.replace(/(^\s+)|(\s+$)/g, "");
-
-                    jQuery( "#member_nicename_block_" + id ).html( '<input type="text" name="edit_member_nicename" id="edit_member_nicename"  value="' + member_nicename + '" />' );
-
-                    member_email = jQuery( "#member_email_block_" + id ).html();
-                    member_email = member_email.replace(/(^\s+)|(\s+$)/g, "");
-
-                    jQuery( "#member_email_block_" + id ).html( '<input type="text" size="30" name="edit_member_email" id="edit_member_email"  value="' + member_email + '" />' );
-
-                    jQuery( '#form_members input[type="button"]' ).attr( 'disabled', true );
-
-                    jQuery( this ).val('<?php _e( 'Close', 'email-newsletter' ) ?>');
-                    jQuery( this ).attr( 'disabled', false );
-
-                    jQuery( "#save_block_" + id ).html( '<input class="button button-secondary" type="button" id="save_member_button" name="save_button" onClick="jQuery(this).saveMember();" value="<?php _e( 'Save', 'email-newsletter' ) ?>" />' );
-
-                    return;
-                }
-
-                if ( "<?php _e( 'Close', 'email-newsletter' ) ?>" == jQuery( this ).val() ) {
-                    jQuery( "#member_id" ).val( '' );
-
-                    jQuery( "#member_nicename_block_" + id ).html( member_nicename );
-                    jQuery( "#member_email_block_" + id ).html( member_email );
-
-                    jQuery( this ).val('<?php _e( 'Edit', 'email-newsletter' ) ?>');
-                    jQuery( '#form_members input[type="button"]' ).attr( 'disabled', false );
-
-                     jQuery( "#save_block_" + id ).html( '' );
-
-                    return;
-                }
-
-
-            };
-
-
-            jQuery.fn.saveMember = function ( ) {
-                filter = /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-                if (filter.test(jQuery( "#edit_member_email" ).val())) {} else {
-                    alert( '<?php _e( "Please use proper email", "email-newsletter" ) ?>' );
-                    return false;
-                }
-
-                jQuery( "#newsletter_action" ).val( "edit_member" );
-                jQuery( "#form_members" ).submit();
-            };
-
-
-            jQuery.fn.deleteMember = function ( id ) {
-                if (confirm('<?php _e( "Are you sure?", "email-newsletter" ) ?>')) {
-                    jQuery( "#newsletter_action" ).val( "delete_member" );
-                    jQuery( "#member_id" ).val( id );
-                    jQuery( "#form_members" ).submit();
-                }
-            };
-
-        });
-    </script>
 
     <div class="wrap">
         <h2><?php _e( 'Members', 'email-newsletter' ) ?></h2>
@@ -362,11 +175,11 @@
                                     </td>
                                     <td>
                                         <select name="separ_sign">
-                                            <option value="1" <?php echo ( isset( $_GET['separ_sign'] ) && 1 == $_GET['separ_sign'] ) ? 'selected': ''; ?> >
-                                                <?php _e( 'Semicolon', 'email-newsletter' ) ?> (;)&nbsp;
-                                            </option>
                                             <option value="2" <?php echo ( isset( $_GET['separ_sign'] ) && 2 == $_GET['separ_sign'] ) ? 'selected': ''; ?> >
                                                 <?php _e( 'Comma', 'email-newsletter' ) ?> (,)&nbsp;
+                                            </option>
+                                            <option value="1" <?php echo ( isset( $_GET['separ_sign'] ) && 1 == $_GET['separ_sign'] ) ? 'selected': ''; ?> >
+                                                <?php _e( 'Semicolon', 'email-newsletter' ) ?> (;)&nbsp;
                                             </option>
                                         </select>
                                     </td>
@@ -444,11 +257,11 @@
                                     </td>
                                     <td>
                                         <select name="separ_sign">
-                                            <option value="1" selected>
-                                                <?php _e( 'Semicolon', 'email-newsletter' ) ?> (;)&nbsp;
-                                            </option>
                                             <option value="2">
                                                 <?php _e( 'Comma', 'email-newsletter' ) ?> (,)&nbsp;
+                                            </option>
+                                            <option value="1">
+                                                <?php _e( 'Semicolon', 'email-newsletter' ) ?> (;)&nbsp;
                                             </option>
                                         </select>
                                     </td>
@@ -584,7 +397,7 @@
                         </span>
                     </td>
                     <td style="vertical-align: middle;">
-                        <?php echo date( $this->settings['date_format'] . " h:i:s", $member['join_date'] ); ?>
+                        <?php echo get_date_from_gmt(date('Y-m-d H:i:s', $member['join_date'])); ?>
                     </td>
                     <td style="vertical-align: middle;">
                         <?php echo $member['sent']; ?>
@@ -638,6 +451,8 @@
                 </tr>
             <?php
                 }
+                else
+                    echo '<tr><td colspan="9">'.__( 'No members found.', 'email-newsletter' ).'</td></tr>'
             ?>
             </table>
             <div class="tablenav bottom">

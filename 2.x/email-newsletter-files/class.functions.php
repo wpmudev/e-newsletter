@@ -1029,7 +1029,8 @@ class Email_Newsletter_functions {
             return $mail->ErrorInfoRaw;
         }
 
-        sleep( 1 );
+        $wait_time = isset($options['wait']) ? $options['wait'] : 1;
+        sleep( $wait_time );
         return true;
     }
 
@@ -2236,9 +2237,6 @@ class Email_Newsletter_functions {
             delete_site_option('email_newsletter_version');
         else
             delete_option('email_newsletter_version');
-
-        wp_redirect( add_query_arg( array( 'page' => 'newsletters-settings', 'updated' => 'true', 'message' => urlencode( __( "eNewsletter data are deleted.", 'email-newsletter' ) ) ), 'admin.php' ) );
-        exit;
     }
 
     /**

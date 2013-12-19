@@ -26,21 +26,6 @@
     }
 
 ?>
-    <script type="text/javascript">
-        jQuery( document ).ready( function() {
-            jQuery( "#show_trigger_form" ).click( function() {
-                jQuery( "#panel" ).slideToggle( "slow" );
-
-                if ( "<?php _e( 'Show and Configure Triggers', 'email-newsletter' ) ?>" == jQuery(this).val() )
-                    jQuery(this).val( "<?php _e( 'Hide Triggers Form', 'email-newsletter' ) ?>" );
-                else
-                    jQuery(this).val( "<?php _e( 'Show and Configure Triggers', 'email-newsletter' ) ?>" );
-
-                return false;
-            });
-        });
-    </script>
-
     <div class="wrap">
         <h2>
         	<?php _e( 'Newsletters', 'email-newsletter' ) ?>
@@ -80,7 +65,7 @@
                             <span class="sorting-indicator"></span>
                         </a>
                     </th>
-                    <th <?php echo (isset($arg['orderby']) && "template" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
+                    <th <?php echo (isset($arg['orderby']) && "template" == $arg['orderby']) ? 'class="newsletter-template sorted '. $arg['order'].'"' : 'class="newsletter-template sortable desc"';?>>
                         <?php $url = add_query_arg( array('orderby' => 'template'), $url_orginal ); ?>
                         <a href="<?php echo $url; ?>">
                             <span><?php _e( 'Template', 'email-newsletter' ) ?></span>
@@ -102,96 +87,72 @@
                 </tr>
             </thead>
             <?php
-            foreach( $newsletters as $key => $newsletter ) {
-            	$template_id = $this->get_newsletter_meta($newsletter['newsletter_id'],'plugin_template_id');
+            if($newsletters)
+                foreach( $newsletters as $key => $newsletter ) {
+                	$template_id = $this->get_newsletter_meta($newsletter['newsletter_id'],'plugin_template_id');
 
-				if($template_id != false) {
-					$template_query[$template_id] = $newsletter;
-					unset($newsletters[$key]);
-					continue;
-				}
+    				if($template_id != false) {
+    					$template_query[$template_id] = $newsletter;
+    					unset($newsletters[$key]);
+    					continue;
+    				}
 
-                if ( $i % 2 == 0 )
-                    echo "<tr class='alternate'>";
-                else
-                    echo "<tr class='' >";
+                    if ( $i % 2 == 0 )
+                        echo "<tr class='alternate'>";
+                    else
+                        echo "<tr class='' >";
 
-                $i++;
-            ?>
-                <td>
-                    <?php echo $newsletter['newsletter_id']; ?>
-                </td>
-                <td>
-                    <?php echo date( $this->settings['date_format'] . " h:i:s", $newsletter['create_date'] ); ?>
-                </td>
-                <td>
-                    <?php echo $newsletter['subject']; ?>
-                </td>
-                <td>
-                    <?php echo $newsletter['template']; ?>
-                </td>
-                <td>
-                    <?php echo $newsletter['count_bounced']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
-                </td>
-                <td>
-                    <?php echo $newsletter['count_sent']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
-                </td>
-                <td>
-                    <?php echo $newsletter['count_opened']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
-                </td>
-                <td>
-                    <?php if(current_user_can('delete_newsletter')) { ?>
-                    <a class="deleteNewsletter button button-secondary" href="?page=newsletters&amp;newsletter_action=delete_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
-                        <?php _e( 'Delete', 'email-newsletter' ) ?>
-                    </a>
-                    <?php } ?>
-                    <?php if(current_user_can('create_newsletter')) { ?>
-                    <a class="cloneNewsletter button button-secondary" href="?page=newsletters&amp;newsletter_action=clone_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
-                        <?php _e( 'Clone', 'email-newsletter' ) ?>
-                    </a>
-                    <?php } ?>
-                    <?php if(current_user_can('save_newsletter')) { ?>
-                    <a class="button button-secondary" href="?page=newsletters&amp;newsletter_builder_action=edit_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>&amp;template=<?php echo $newsletter['template'];?>">
-                        <?php _e( 'Edit', 'email-newsletter' ) ?>
-                    </a>
-                    <?php } ?>
-                    <?php if(current_user_can('send_newsletter')) { ?>
-                    <a class="button button-primary"  href="?page=newsletters&amp;newsletter_action=send_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
-                        <?php _e( 'Send', 'email-newsletter' ) ?>
-                    </a>
-                    <?php } ?>
-                </td>
-            </tr>
+                    $i++;
+                ?>
+                    <td>
+                        <?php echo $newsletter['newsletter_id']; ?>
+                    </td>
+                    <td>
+                        <?php echo get_date_from_gmt(date('Y-m-d H:i:s', $newsletter['create_date'])); ?>
+                    </td>
+                    <td>
+                        <?php echo $newsletter['subject']; ?>
+                    </td>
+                    <td>
+                        <?php echo $newsletter['template']; ?>
+                    </td>
+                    <td>
+                        <?php echo $newsletter['count_bounced']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
+                    </td>
+                    <td>
+                        <?php echo $newsletter['count_sent']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
+                    </td>
+                    <td>
+                        <?php echo $newsletter['count_opened']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
+                    </td>
+                    <td>
+                        <?php if(current_user_can('delete_newsletter')) { ?>
+                        <a class="deleteNewsletter button button-secondary" href="?page=newsletters&amp;newsletter_action=delete_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
+                            <?php _e( 'Delete', 'email-newsletter' ) ?>
+                        </a>
+                        <?php } ?>
+                        <?php if(current_user_can('create_newsletter')) { ?>
+                        <a class="cloneNewsletter button button-secondary" href="?page=newsletters&amp;newsletter_action=clone_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
+                            <?php _e( 'Clone', 'email-newsletter' ) ?>
+                        </a>
+                        <?php } ?>
+                        <?php if(current_user_can('save_newsletter')) { ?>
+                        <a class="button button-secondary" href="?page=newsletters&amp;newsletter_builder_action=edit_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>&amp;template=<?php echo $newsletter['template'];?>">
+                            <?php _e( 'Edit', 'email-newsletter' ) ?>
+                        </a>
+                        <?php } ?>
+                        <?php if(current_user_can('send_newsletter')) { ?>
+                        <a class="button button-primary"  href="?page=newsletters&amp;newsletter_action=send_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
+                            <?php _e( 'Send', 'email-newsletter' ) ?>
+                        </a>
+                        <?php } ?>
+                    </td>
+                </tr>
         <?php
-            }
+                }
+            else
+                echo '<tr><td colspan="8">'.__( 'No newsletters found.', 'email-newsletter' ).'</td><td>';
         ?>
         </table>
 
     </div><!--/wrap-->
-    <style type="text/css">
-    	#newsletterList tbody td {
-    		vertical-align: middle;
-    	}
-    	td.subjectCol,
-    	th.subjectCol {
-    		width: 350px;
-    	}
-    	td.actionCol,
-    	th.actionCol {
-    		width: 161px;
-    	}
-    	#newsletterList thead th.actionCol {
-    		text-align: center;
-    	}
-    </style>
-    <script type="text/javascript">
-    	jQuery(document).ready( function($) {
-    		$('.deleteNewsletter').on('click', function() {
-    			var choice = confirm("<?php _e('Are you sure you want to delete this newsletter?','email-newsletter'); ?>");
-    			if(choice)
-    				return true;
-    			else
-    				return false;
-    		});
-    	});
-    </script>
