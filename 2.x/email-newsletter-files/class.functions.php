@@ -971,10 +971,10 @@ class Email_Newsletter_functions {
      * Send email
      **/
     function send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents,  $options=array() ) {
-        if ( !class_exists( 'PHPMailer' ) )
+        if ( !class_exists( 'ePHPMailer' ) )
             require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
 
-        $mail = new PHPMailer();
+        $mail = new ePHPMailer();
         $mail->CharSet = 'UTF-8';
 
         //Set Sending Method
@@ -1211,22 +1211,12 @@ class Email_Newsletter_functions {
         else
             $id = 0;
 
-        if(!empty($changes['user_name'])) {
-            $contents = str_replace( "{USER_NAME}", $changes['user_name'], $contents );
-            $contents = str_replace( "%7BUSER_NAME%7D", $changes['user_name'], $contents );
-        }
-        else {
-            $contents = str_replace( "{USER_NAME}", '', $contents );
-            $contents = str_replace( "%7BUSER_NAME%7D", '', $contents );
-        }
-
-        if(!empty($changes["member_email"])) {
-            $contents = str_replace( "{TO_EMAIL}", $changes["member_email"], $contents );
-            $contents = str_replace( "%7BTO_EMAIL%7D", $changes["member_email"], $contents );
-        }
-        else {
-            $contents = str_replace( "{TO_EMAIL}", '', $contents );
-            $contents = str_replace( "%7BTO_EMAIL%7D", $changes["member_email"], $contents );
+        //apply all dynamic replcements to content
+        foreach ($changes as $key => $value) {
+            if(!empty($value)) {
+                $contents = str_replace( "{".strtoupper($key)."}", $value, $contents );
+                $contents = str_replace( "%7B".strtoupper($key)."%7D", $value, $contents );
+            }
         }
 
         //Set up permalinks
@@ -1460,6 +1450,26 @@ class Email_Newsletter_functions {
         else {
             $wp_user = ($wp_user_id == 0 ? false : get_user_by('id', $wp_user_id));
             $user_name = is_a($wp_user,'WP_User') ? $wp_user->display_name : '';
+        }
+        return $user_name;
+    }
+
+
+    /**
+     * Choose firstname
+     **/
+    function get_firstname($wp_user_id, $user_nicename) {
+        if($wp_user_id == 0 ) {
+            $user_name = explode(' ', $user_nicename);
+            $user_name = $user_name[0];
+        }
+        else {
+            $wp_user = ($wp_user_id == 0 ? false : get_user_by('id', $wp_user_id));
+
+            if(is_a($wp_user,'WP_User'))
+                $user_name = !empty($wp_user->first_name) ? $wp_user->first_name : $wp_user->display_name;
+            else
+                $user_name = '';
         }
         return $user_name;
     }

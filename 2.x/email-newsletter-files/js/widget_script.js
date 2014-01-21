@@ -48,15 +48,19 @@ jQuery( document ).ready( function() {
             jQuery.post(email_newsletter_widget_scripts.ajax_url, data, function(data){ //post data to specified action trough special WP ajax page
                 data = jQuery.parseJSON(data);
 
-                parent.find("#message").slideUp('fast', function() {
-                    jQuery(this).text(data.message).slideDown('fast');
-                });
+                if(typeof data.redirect !== 'undefined')
+                    window.location = data.redirect;
+                else {
+                    parent.find("#message").slideUp('fast', function() {
+                        jQuery(this).text(data.message).slideDown('fast');
+                    });
 
-                if(typeof data.unsubscribe_code !== "undefined") {
-                    parent.find("#unsubscribe_code").val(data.unsubscribe_code);
+                    if(typeof data.unsubscribe_code !== "undefined") {
+                        parent.find("#unsubscribe_code").val(data.unsubscribe_code);
+                    }
+                    parent.find('#'+data.view).slideDown('fast');
+                    parent.find('#'+data.hide).slideUp('fast');
                 }
-                parent.find('#'+data.view).slideDown('fast');
-                parent.find('#'+data.hide).slideUp('fast');
             });
         }
     });

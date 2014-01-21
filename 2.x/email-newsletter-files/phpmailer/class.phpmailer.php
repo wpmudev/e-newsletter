@@ -41,7 +41,7 @@ if (version_compare(PHP_VERSION, '5.0.0', '<') ) exit("Sorry, this version of PH
  * PHP email creation and transport class
  * @package PHPMailer
  */
-class PHPMailer {
+class ePHPMailer {
 
   /////////////////////////////////////////////////
   // PROPERTIES, PUBLIC
@@ -2330,7 +2330,7 @@ class PHPMailer {
         $msg .= '<p>' . $this->Lang('smtp_error') . $lasterror['smtp_msg'] . "</p>\n";
       }
     }
-    else 
+    else
       $lasterror = '';
 
     $this->ErrorInfo = $msg;

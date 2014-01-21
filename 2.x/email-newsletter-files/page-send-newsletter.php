@@ -235,7 +235,7 @@
                         <?php _e( 'Start Date', 'email-newsletter' ) ?>
                     </th>
                     <th>
-                        <?php _e( 'Waiting send (manualy)', 'email-newsletter' ) ?>
+                        <?php _e( 'Waiting send (manually)', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Waiting send (cron)', 'email-newsletter' ) ?>

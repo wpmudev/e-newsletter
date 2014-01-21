@@ -5,6 +5,12 @@ Plugin Page: http://premium.wpmudev.org/project/e-newsletter
 
 == Changelog ==
 
+= 2.6.5 =
+* Added ability to add first name of receiver to newsletter by using "{FIRST_NAME}"
+* Added subscription redirection for subscription widget and shortcode
+* Added ability to subscribe and unsubscribe users with WordPress admin panel
+* Other small improvements
+
 = 2.6.3 =
 * Added UI improvements
 * Added support for WordPress Time zone setting

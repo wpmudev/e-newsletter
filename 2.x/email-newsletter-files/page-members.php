@@ -48,8 +48,6 @@
         elseif("bounced" == $_REQUEST['filter']) {
             $arg['where'] = "A.bounced > 0";
         }
-
-
     }
 
     $count = $this->get_members( $arg, 1 );
@@ -283,13 +281,13 @@
 
         <form method="post" action="" name="form_members" id="form_members" >
             <p style="float:left;">
-                <?php $url = add_query_arg( array('filter' => false), $url_orginal ); ?>
+                <?php $url = add_query_arg( array('filter' => false, 'group_id' => false), $url_orginal ); ?>
                 <a class="button button-second" href="<?php echo $url; ?>"><?php _e( 'Show All', 'email-newsletter' ); ?></a>
-                <?php $url = add_query_arg( array('filter' => 'ungrouped'), $url_orginal ); ?>
+                <?php $url = add_query_arg( array('filter' => 'ungrouped', 'group_id' => false), $url_orginal ); ?>
                 <a class="button button-second" href="<?php echo $url; ?>"><?php _e( 'Show Ungrouped', 'email-newsletter' ); ?></a>
-                <?php $url = add_query_arg( array('filter' => 'bounced'), $url_orginal ); ?>
+                <?php $url = add_query_arg( array('filter' => 'bounced', 'group_id' => false), $url_orginal ); ?>
                 <a class="button button-second" href="<?php echo $url; ?>"><?php _e( 'Show Bounced', 'email-newsletter' ); ?></a>
-                <?php $url = add_query_arg( array('filter' => 'unsubscribed'), $url_orginal ); ?>
+                <?php $url = add_query_arg( array('filter' => 'unsubscribed', 'group_id' => false), $url_orginal ); ?>
                 <a class="button button-second" href="<?php echo $url; ?>"><?php _e( 'Show Unsubscribed', 'email-newsletter' ); ?></a>
             </p>
             <p style="float:right;">
@@ -410,25 +408,24 @@
                     </td>
                     <td style="vertical-align: middle;">
                     <?php
-                        if ( "" != $member['unsubscribe_code'] ) {
-                            $groups_id = $this->get_memeber_groups( $member['member_id'] );
-                            if ( $groups_id ) {
-                                $memeber_groups = "";
-                                foreach ( $groups_id as $group_id) {
-                                    $group  = $this->get_group_by_id( $group_id );
-                                    if ( isset( $_REQUEST['group_id'] ) && $group_id == $_REQUEST['group_id'] )
-                                        $memeber_groups .= '<span style="color: green;" >' . $group['group_name'] . '</span>, ';
-                                    else {
-                                        $url = add_query_arg( array('filter' => 'group', 'group_id' => $group['group_id']), $url_orginal );
-                                        $memeber_groups .= '<a href="'.$url.'" >' . $group['group_name'] . '</a>, ';
-                                    }
-                                }
-                                echo substr( $memeber_groups, 0, strlen( $memeber_groups )-2 );
-                            }
-                        } else {
-                            $url = add_query_arg( array('filter' => 'unsubscribed' ), $url_orginal );
-                            echo '<a href="'.$url.'"><span class="red" >' . __( 'Unsubscribed', 'email-newsletter' ) . '</span></a>';
+                        $memeber_groups = "";
+                        if ( "" == $member['unsubscribe_code'] ) {
+                            $url = add_query_arg( array('filter' => 'unsubscribed', 'group_id' => false ), $url_orginal );
+                            $memeber_groups .= '<a href="'.$url.'"><span class="red" >' . __( 'Unsubscribed', 'email-newsletter' ) . '</span></a>, ';
                         }
+                        $groups_id = $this->get_memeber_groups( $member['member_id'] );
+                        if ( $groups_id ) {
+                            foreach ( $groups_id as $group_id) {
+                                $group  = $this->get_group_by_id( $group_id );
+                                if ( isset( $_REQUEST['group_id'] ) && $group_id == $_REQUEST['group_id'] )
+                                    $memeber_groups .= '<span style="color: green;" >' . $group['group_name'] . '</span>, ';
+                                else {
+                                    $url = add_query_arg( array('filter' => 'group', 'group_id' => $group['group_id']), $url_orginal );
+                                    $memeber_groups .= '<a href="'.$url.'" >' . $group['group_name'] . '</a>, ';
+                                }
+                            }
+                        }
+                        echo substr( $memeber_groups, 0, strlen( $memeber_groups )-2 );
                     ?>
                     </td>
                     <td style="vertical-align: middle;">
@@ -471,9 +468,15 @@
                     <?php if ( $groups ): ?>
                     <select name="list_group_id" id="list_group_id" style="display: none;">
                         <option selected="selected" value="-1"> <?php _e( 'Group List', 'email-newsletter' ) ?> </option>
+                            <option value="subscribed">
+                                <?php _e( 'Subscribed', 'email-newsletter' ); ?>
+                            </option>
+                            <option value="unsubscribed">
+                                <?php _e( 'Unsubscribed', 'email-newsletter' ); ?>
+                            </option>
                         <?php foreach( $groups as $group ) : ?>
                             <option value="<?php echo $group['group_id'];?>">
-                            <?php echo ( $group['public'] ) ? $group['group_name'] .' (public)' : $group['group_name']; ?>
+                            <?php echo ( $group['public'] ) ? $group['group_name'] .' ('.__( 'Public', 'email-newsletter' ).')' : $group['group_name']; ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
