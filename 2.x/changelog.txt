@@ -1,9 +1,15 @@
 === e-newsletter ===
-Authors: Cole / Andrey (Incsub), Maniu (Incsub)
+Authors: 
 Plugin Page: http://premium.wpmudev.org/project/e-newsletter
+Author: WPMUDEV
+Lead developer: Maniu
+Contributors: Cole, Andrey
 
 
 == Changelog ==
+
+= 2.6.6 =
+* Fixed bug that allowed to send emails to unsubscribed members of groups
 
 = 2.6.5 =
 * Added ability to add first name of receiver to newsletter by using "{FIRST_NAME}"

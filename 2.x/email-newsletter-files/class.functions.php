@@ -254,22 +254,29 @@ class Email_Newsletter_functions {
     function get_members_by_wp_user_id( $wp_user_id, $blog_id = '', $subscribed = 0 ) {
         global $wpdb;
 
+        if ( 1 < $blog_id )
+            $tb_prefix = $wpdb->base_prefix . $blog_id . '_';
+        else
+            $tb_prefix = $wpdb->base_prefix;
+
         if($subscribed)
             $subscribed = " AND unsubscribe_code != ''";
         else
             $subscribed = "";
 
-        $member = $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$this->tb_prefix}enewsletter_members WHERE wp_user_id = %d".$subscribed, $wp_user_id ), "ARRAY_A" );
+        $member = $wpdb->get_row( $wpdb->prepare( "SELECT member_id FROM {$tb_prefix}enewsletter_members WHERE wp_user_id = %d".$subscribed, $wp_user_id ), "ARRAY_A" );
         return $member['member_id'];
     }
 
     /**
      * Get all members of Group
      **/
-    function get_members_of_group( $group_id, $limit = '' ) {
+    function get_members_of_group( $group_id, $limit = '', $unsubscribed = '' ) {
         global $wpdb;
         $members = NULL;
-        $results = $wpdb->get_results( $wpdb->prepare( "SELECT A.member_id FROM {$this->tb_prefix}enewsletter_member_group A INNER JOIN {$this->tb_prefix}enewsletter_members B ON A.member_id = B.member_id WHERE A.group_id = %d" . $limit , $group_id ), "ARRAY_A" );
+        if($unsubscribed)
+            $unsubscribed = " AND B.unsubscribe_code != ''";
+        $results = $wpdb->get_results( $wpdb->prepare( "SELECT A.member_id FROM {$this->tb_prefix}enewsletter_member_group A INNER JOIN {$this->tb_prefix}enewsletter_members B ON A.member_id = B.member_id WHERE A.group_id = %d" . $unsubscribed . $limit , $group_id ), "ARRAY_A" );
         foreach( $results as $member ){
             $members[] = $member['member_id'];
         }
@@ -588,7 +595,7 @@ class Email_Newsletter_functions {
             $groups = $this->get_groups();
 
             foreach ($groups as $group) {
-                $count = count( $this->get_members_of_group( $group['group_id'] ) );
+                $count = count( $this->get_members_of_group( $group['group_id'], '', 1 ) );
                 if($count) {
                     $targets['groups']['name'] = __( 'eNewsletter Groups', 'email-newsletter' );
                     $targets['groups'][] = '<label><input type="checkbox" name="target[groups][]" value="'.$group['group_id'].'"> '.$group['group_name'].' ('.$count.')</input></label>';

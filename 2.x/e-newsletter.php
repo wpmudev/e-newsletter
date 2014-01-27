@@ -3,9 +3,9 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.6.5
+Version: 2.6.6
 Text Domain: email-newsletter
-Author: Cole / Andrey (Incsub), Maniu (Incsub)
+Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
 WDP ID: 233
 
@@ -1408,7 +1408,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             //Get ids for eNewsletter group members
             if ( isset( $_REQUEST["target"]["groups"] ) && is_array($_REQUEST["target"]["groups"]) )
                 foreach ( $_REQUEST["target"]["groups"] as $group_id ) {
-                    $members_id = array_merge ( $members_id,  $this->get_members_of_group( $group_id ) );
+                    $members_id = array_merge ( $members_id,  $this->get_members_of_group( $group_id, '', 1 ) );
                 }
 
             //Get ids for Membership levels being subscribed eNewsletter members
