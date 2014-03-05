@@ -41,7 +41,6 @@ class Email_Newsletter_Builder  {
 					set_transient('builder_email_id_'.$current_user->ID, $builder_id);
 
 					$return = (isset($_REQUEST['return'])) ? $_GET['return'] : false;
-					//var_dump($this->generate_builder_link($builder_id, false, $return));
 					wp_redirect( $this->generate_builder_link($builder_id, false, $return) );
 					exit();
 				break;
@@ -68,7 +67,7 @@ class Email_Newsletter_Builder  {
 
 			//fix customizer capabilities users without possibility to use customizer
 			if(!current_user_can( 'edit_theme_options' )) {
-				add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 10, 1);
+				add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 999, 1);
 			}
 		}
 	}
@@ -114,10 +113,12 @@ class Email_Newsletter_Builder  {
 	}
 	function customize_controls_print_scripts() {
 		do_action('admin_enqueue_scripts');
+		do_action('admin_print_scripts');
+		do_action('admin_head');
 		do_action('email_newsletter_template_builder_print_scripts');
 	}
 	function customize_controls_print_footer_scripts() {
-		global $email_newsletter;
+		global $email_newsletter, $wp_version, $selector;
 
 		// Collect other theme info so we can allow changes
 		$themes = wp_get_themes();
@@ -126,7 +127,8 @@ class Email_Newsletter_Builder  {
 			if($theme->theme_root != $email_newsletter->template_directory && $theme->theme_root != $email_newsletter->template_custom_directory )
 				unset($themes[$key]);
 		}
-		global $wp_version, $selector;
+
+
 		if(version_compare($wp_version, "3.6", ">="))
 			$selector = 'accordion';
 		else
@@ -144,7 +146,7 @@ class Email_Newsletter_Builder  {
 				<?php foreach($themes as $theme): ?>
 				{	"name": <?php echo json_encode($theme->get('Name')); ?>,
 					"description": <?php echo json_encode($theme->get('Description')); ?>,
-					"screenshot": <?php echo json_encode($theme->get_screenshot()); ?>,
+					"screenshot": <?php $template = $email_newsletter->get_theme_dir_url($theme, $theme->stylesheet); echo json_encode($template['url'].'screenshot.jpg'); ?>,
 					"stylesheet": <?php echo json_encode($theme->stylesheet); ?>,
 				},
 				<?php endforeach; ?>
@@ -174,6 +176,7 @@ class Email_Newsletter_Builder  {
 					var current_name = jQuery('#customize-info .preview-notice .theme-name');
 					jQuery('#customize-info .preview-notice').html("<?php _e('Choose template','email-newsletter'); ?>").prepend(current_name);
 					current.data('theme',e);
+					current.find('img.theme-screenshot').attr('src',e.screenshot);
 
 					current.addClass('current_theme');
 

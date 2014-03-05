@@ -8,6 +8,16 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.6.7 =
+* Added domain name to message id
+* Added ability to set default from email when using PHP method
+* Modified sending of welcome newsletter so it no longer uses CRON
+* Improved compatibility with other plugins
+* Increased text limit for contact information field
+* Fixed possible database error when sending newsletter
+* Fixed template screenshot preview on some hosts
+* Other small improvements
+
 = 2.6.6 =
 * Fixed bug that allowed to send emails to unsubscribed members of groups
 

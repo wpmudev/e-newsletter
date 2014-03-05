@@ -105,8 +105,8 @@
                                     <label for="settings[double_opt_in]"><?php _e( 'Enable:', 'email-newsletter' ) ?></label>
                                     <input type="checkbox" name="settings[double_opt_in]" value="1" <?php checked('1',$this->settings['double_opt_in']); ?> />
                                     <label for="settings[double_opt_in]"><?php _e( 'Subject:', 'email-newsletter' ) ?></label>
-                                    <input type="text" class="regular-text" name="settings[double_opt_in_subject]" value="<?php echo isset($this->settings['double_opt_in_subject']) ? esc_attr($this->settings['double_opt_in_subject']) : ''; ?>" />
-                                    <span class="description"><?php _e( 'If enabled, members will get confirmation email with configured subject to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?></span>
+                                    <input type="text" class="regular-text" name="settings[double_opt_in_subject]" value="<?php echo (isset($this->settings['double_opt_in_subject']) && !empty($this->settings['double_opt_in_subject'])) ? esc_attr($this->settings['double_opt_in_subject']) : __( 'Please confirm your email', 'email-newsletter' ).' ('.get_bloginfo('name').')'; ?>" />
+                                    <span class="description"><?php _e( 'If enabled, members will get confirmation email with configured subject to subscribe to newsletters (only for not registered users)', 'email-newsletter' ) ?>. <?php _e( 'Do not leave subject blank.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
 
@@ -116,7 +116,7 @@
                                 </th>
                                 <td>
                                     <?php
-                                    $groups = $this->get_groups();
+                                    $groups = ($mode != 'install') ? $this->get_groups() : 0;
 
                                     if ( $groups ) {
                                         $this->settings['subscribe_groups'] = isset($this->settings['subscribe_groups']) ? explode(',', $this->settings['subscribe_groups']) : array();
@@ -148,7 +148,7 @@
                                     <select name="settings[subscribe_newsletter]">
                                         <option value=""><?php _e( 'Disable', 'email-newsletter' ) ?></option>
                                         <?php
-                                        $newsletters = $this->get_newsletters();
+                                        $newsletters = ($mode != 'install') ? $this->get_newsletters() : 0;
 
                                         if($newsletters)
                                             foreach( $newsletters as $key => $newsletter ) {
@@ -158,7 +158,7 @@
                                             }
                                         ?>
                                     </select>
-                                    <span class="description"><?php _e( 'Default newsletter that will be sent on user subscription. Keep in mind that cron email sending must be enabled.', 'email-newsletter' ) ?></span>
+                                    <span class="description"><?php _e( 'Default newsletter that will be sent on user subscription.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
 
@@ -218,30 +218,25 @@
 										<?php $tips->bind_tip(__("The SMTP method allows you to use your SMTP server (or Gmail, Yahoo, Hotmail etc. ) for sending newsletters and emails. It's usually the best choice, especially if your host has restrictions on sending email and to help you to avoid being blacklisted as a SPAM sender",'email-newsletter'), '#tip_smtp'); ?>
 
                                         <label id="tip_php">
-                                            <input type="radio" name="settings[outbound_type]" value="mail" class="email_out_type" <?php echo (isset($this->settings['outbound_type']) && $this->settings['outbound_type'] == 'mail') ? 'checked="checked"' : '';?> /><?php echo _e( 'php mail', 'email-newsletter' );?>
+                                            <input type="radio" name="settings[outbound_type]" value="mail" class="email_out_type" <?php echo (isset($this->settings['outbound_type']) && $this->settings['outbound_type'] == 'mail') ? 'checked="checked"' : '';?> /><?php echo _e( 'PHP mail', 'email-newsletter' );?>
                                         </label>
 										<?php $tips->bind_tip(__( "This method uses php functions for sending newsletters and emails. Be careful because some hosts may set restrictions on using this method. If you can't edit settings of your server, we recommend to use the SMTP method for optimal results!", 'email-newsletter' ), '#tip_php'); ?>
                                     </td>
                                 </tr>
-                            </tbody>
-
-                            <tbody class="email_out email_out_smtp">
                                 <tr valign="top">
                                     <th scope="row">
                                         <?php _e( 'From email:', 'email-newsletter' ) ?>
                                     </th>
                                     <td>
-                                        <input type="text" id="smtp_from" class="regular-text" name="settings[from_email]" value="<?php echo esc_attr( isset($this->settings['from_email']) ? $this->settings['from_email'] : get_option( 'admin_email' ) );?>" />
-                                        <span class="description"><?php _e( 'Default "from" email address when sending newsletters.', 'email-newsletter' ) ?></span>
+                                        <input type="text" id="smtp_from" class="regular-text" name="settings[from_email]" value="<?php $default_domain = parse_url(home_url()); echo esc_attr( (isset($this->settings['from_email']) && !empty($this->settings['from_email'])) ? $this->settings['from_email'] : 'newsletter@'.$default_domain['host'] );?>" />
+                                        <span class="description"><?php _e( 'Default "from" email address when sending newsletters.', 'email-newsletter' ) ?></span><br/>
+                                        <span class="red description"><?php _e( 'Note: for SMTP method - in "From email" you should only use email related with your SMTP server!', 'email-newsletter' ) ?></span><br/>
+                                        <span class="red description"><?php _e( 'Note2: for PHP mail method - in "From email" you should only use email with domain configured for your server!', 'email-newsletter' ) ?></span>
                                     </td>
                                 </tr>
-                                <tr valign="top">
-                                    <th scope="row">
-                                    </th>
-                                    <td>
-                                        <span class="red description"><?php _e( 'Note: for SMTP method - in "From email" you should use only emails which related with your SMTP server!', 'email-newsletter' ) ?></span>
-                                    </td>
-                                </tr>
+                            </tbody>
+
+                            <tbody class="email_out email_out_smtp">
                                 <tr valign="top">
                                     <th scope="row"><?php _e( 'SMTP Outgoing Server', 'email-newsletter' ) ?>:</th>
                                     <td>

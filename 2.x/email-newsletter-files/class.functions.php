@@ -615,6 +615,13 @@ class Email_Newsletter_functions {
             }
         }
 
+        if(1 == $wpdb->blogid && class_exists('ProSites') && 0 == 1) {
+            $psts_levels = get_site_option( 'psts_levels' );
+            foreach ($psts_levels as $psts_level_id => $psts_level) {
+                $targets['psts_levels'][] = '<label><input type="checkbox" name="target[prosite_levels][]" value="'.$psts_level_id.'"> '.$psts_level['name'].'</input></label>';
+            }
+        }
+
         if($roles) {
             $roles = $this->get_roles();
             foreach ($roles as $role_id => $role) {
@@ -628,14 +635,6 @@ class Email_Newsletter_functions {
             $count = count($count);
             if($count) {
                 $targets['site_admins'][] = '<label><input type="checkbox" name="target[site_admins]" value="yes"> <strong>'.__( 'Admins of all sites', 'email-newsletter' ).'</strong> ('.$count.')</input></label>';
-            }
-        }
-
-
-        if(1 == $wpdb->blogid && class_exists('ProSites') && 0 == 1) {
-            $psts_levels = get_site_option( 'psts_levels' );
-            foreach ($psts_levels as $psts_level_id => $psts_level) {
-                $targets['psts_levels'][] = '<label><input type="checkbox" name="target[prosite_levels][]" value="'.$psts_level_id.'"> '.$psts_level['name'].': Admins</input></label>';
             }
         }
 
@@ -914,7 +913,7 @@ class Email_Newsletter_functions {
 
         $email_body = $this->make_email_body( $newsletter_id );
 
-        $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send SET newsletter_id = %d, start_time = %d, end_time = '', email_body = '%s'", $newsletter_id, $start_time, $email_body ) );
+        $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send SET newsletter_id = %d, start_time = %d, end_time = 0, email_body = '%s'", $newsletter_id, $start_time, $email_body ) );
         $send_id = $wpdb->insert_id;
 
         if(!is_array($members_id) && is_numeric($members_id))
@@ -1261,34 +1260,37 @@ class Email_Newsletter_functions {
 
         $theme = wp_get_theme($theme_name);
         if($theme) {
-            $theme_root_dir = $theme->theme_root.'/';
-
-            if(strpos($theme_root_dir, 'enewsletter-custom-themes') !== FALSE) {
-                $upload_dir = wp_upload_dir();
-                $theme_root_url = $upload_dir['baseurl'].'/enewsletter-custom-themes/';
-            }
-            else
-                $theme_root_url = $this->plugin_url . "email-newsletter-files/templates/";
-
-            $template_dir  = $theme_root_dir.$theme_name.'/';
-            $template_url  = $theme_root_url.$theme_name.'/';
+            $template = $this->get_theme_dir_url($theme, $theme_name);
 
             //load theme options
-            if($this->loaded_theme_options != $template_dir) {
-                $this->loaded_theme_options = $template_dir;
-                if(file_exists($template_dir . 'functions.php'))
+            if($this->loaded_theme_options != $template['dir']) {
+                $this->loaded_theme_options = $template['dir'];
+                if(file_exists($template['dir'] . 'functions.php'))
                     include($template_dir . 'functions.php');
-                elseif(file_exists($template_dir . 'index.php'))
-                    include($template_dir . 'index.php');
+                elseif(file_exists($template['dir'] . 'index.php'))
+                    include($template['dir'] . 'index.php');
             }
 
-            $styles = $this->get_contents_elements($template_dir, 0);
+            $styles = $this->get_contents_elements($template['dir'], 0);
 
-            $return = array('url' => $template_url, 'dir' => $template_dir, 'Stylesheet' => $theme['Stylesheet'], 'Template' => $theme['Template'], 'Status' => $theme['Status'], 'Style' => $styles['default_style'].$styles['style']);
+            $return = array('url' => $template['url'], 'dir' => $template['dir'], 'Stylesheet' => $theme['Stylesheet'], 'Template' => $theme['Template'], 'Status' => $theme['Status'], 'Style' => $styles['default_style'].$styles['style']);
             return $return;
         }
         else
             return false;
+    }
+
+    function get_theme_dir_url($theme, $theme_name) {
+        $theme_root_dir = $theme->theme_root.'/';
+
+        if(strpos($theme_root_dir, 'enewsletter-custom-themes') !== FALSE) {
+            $upload_dir = wp_upload_dir();
+            $theme_root_url = $upload_dir['baseurl'].'/enewsletter-custom-themes/';
+        }
+        else
+            $theme_root_url = $this->plugin_url . "email-newsletter-files/templates/";
+
+        return array('dir' => $theme_root_dir.$theme_name.'/', 'url' => $theme_root_url.$theme_name.'/');
     }
 
     /**
@@ -1893,7 +1895,7 @@ class Email_Newsletter_functions {
                     `from_name` varchar(255) NOT NULL,
                     `from_email` varchar(255) NOT NULL,
                     `content` text NOT NULL,
-                    `contact_info` varchar(255) NOT NULL,
+                    `contact_info` text NOT NULL,
                     `bounce_email` varchar(255) NOT NULL,
                     PRIMARY KEY (`newsletter_id`)
                 ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
@@ -2090,6 +2092,12 @@ class Email_Newsletter_functions {
                         $result = $wpdb->query( "ALTER TABLE  `{$tb_prefix}enewsletter_members` ADD  `opened` INT( 11 ) NULL AFTER `join_date`" );
                     if ( !$wpdb->get_var( "SHOW COLUMNS FROM `{$tb_prefix}enewsletter_members` LIKE 'sent'" ))
                         $result = $wpdb->query( "ALTER TABLE  `{$tb_prefix}enewsletter_members` ADD  `sent` INT( 11 ) NULL AFTER `join_date`" );
+                }
+            }
+            if($prev < 2.67) {
+                if($wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_newsletters'" ) == $tb_prefix.'enewsletter_newsletters') {
+                    //allow for longer texts
+                    $result = $wpdb->query("ALTER TABLE {$tb_prefix}enewsletter_newsletters MODIFY contact_info text");
                 }
             }
 		}

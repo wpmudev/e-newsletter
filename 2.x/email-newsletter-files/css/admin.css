@@ -165,7 +165,7 @@ vertical-align: middle !important;
 #test_bounce_loading, #test_smtp_loading  {
     width: 15px;
     height: 15px;
-    background: url("images/loading-publish.gif") #fff no-repeat center center;
+    background: url("../images/loading-publish.gif") #fff no-repeat center center;
     display: none;
     float: right;
     margin: 3px 0px 0px 0px;

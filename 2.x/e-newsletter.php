@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.6.6
+Version: 2.6.7
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -60,7 +60,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $wpmudev_notices[] = array( 'id'=> 233,'name'=> 'E-Newsletter', 'screens' => array( 'edit-funder', 'funder', 'edit-donation', 'funder_page_wdf_settings', 'funder_page_wdf' ) );
         include_once('email-newsletter-files/external/dash-notice/wpmudev-dash-notification.php');
 
-        $this->plugin_ver = 2.65;
+        $this->plugin_ver = 2.67;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -435,8 +435,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     if ( is_array( $member_data['future_groups_id'] ) )
                         $this->add_members_to_groups( $member_id, $member_data['future_groups_id'] );
 
-                    if($this->settings['subscribe_newsletter'])
-                        $this->add_send_email_info( $this->settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
+                    if($this->settings['subscribe_newsletter']) {
+                        $send_details = $this->add_send_email_info( $this->settings['subscribe_newsletter'], $member_id, 0, 'waiting_send' );
+                        $this->send_email_to_member($send_details['send_id']);
+                    }
 
                     $subscribed = 1;
                     $message = __( 'Successful subscription!', 'email-newsletter' );
@@ -960,8 +962,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $this->add_members_to_groups( $member_id, $member_data['groups_id'] );
 
             //set sending welcome newsletter if necessary
-            if($this->settings['subscribe_newsletter'])
-                $this->add_send_email_info( $this->settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
+            if($this->settings['subscribe_newsletter']) {
+                $send_details = $this->add_send_email_info( $this->settings['subscribe_newsletter'], $member_id, 0, 'waiting_send' );
+                $this->send_email_to_member($send_details['send_id']);
+            }
         }
 
         return array('action' => 'member_added', 'error' => false, 'message' => __( 'The new member is added!', 'email-newsletter' ));
@@ -990,8 +994,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $subscribe_groups = array_merge($_REQUEST['e_newsletter_auto_groups_id'], $subscribe_groups);
             $subscribe_groups = array_unique($subscribe_groups);
 
-            if($this->settings['subscribe_newsletter'])
-                $this->add_send_email_info( $this->settings['subscribe_newsletter'], $member_id, 0, 'by_cron' );
+            if($this->settings['subscribe_newsletter']) {
+                $send_details = $this->add_send_email_info( $this->settings['subscribe_newsletter'], $member_id, 0, 'waiting_send' );
+                $this->send_email_to_member($send_details['send_id']);
+            }
 
             return array('action' => 'subscribed', 'error' => false, 'message' => __( 'You are subscribed successfully!', 'email-newsletter' ), 'data' => array('member_id' => $member_id, 'unsubscribe_code' => $result['unsubscribe_code']));
         }
@@ -1100,8 +1106,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if($member_id) {
             global $wpdb;
 
-            if($this->settings['subscribe_newsletter'] && $subscribe)
-                $this->add_send_email_info( $this->settings['subscribe_newsletter'], array($member_id), 0, 'by_cron' );
+            if($this->settings['subscribe_newsletter']) {
+                $send_details = $this->add_send_email_info( $this->settings['subscribe_newsletter'], $member_id, 0, 'waiting_send' );
+                $this->send_email_to_member($send_details['send_id']);
+            }
 
             //creating new list of groups for user
             $subscribe_groups = isset($this->settings['subscribe_groups']) ? explode(',', $this->settings['subscribe_groups']) : 0;
@@ -1481,14 +1489,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
     /**
      * Send email to member
      **/
-    function send_email_to_member() {
+    function send_email_to_member($send_id = 0) {
         global $wpdb;
 
-        if ( ! wp_verify_nonce( $_REQUEST['check_key'], 'newsletter_send' ) )
+        if ( defined(DOING_AJAX) && !wp_verify_nonce( $_REQUEST['check_key'], 'newsletter_send' ) )
              die( 'Security check' );
 
-
-        $send_id = $_REQUEST['send_id'];
+        if(!$send_id)
+            $send_id = $_REQUEST['send_id'];
 
         do_action( 'enewsletter_before_send_newsletter', $send_id );
 
@@ -1502,68 +1510,76 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 wp_schedule_single_event( time() + 60*2, 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
             }
 
-            die('end');
+            $message = 'end';
+            do_action( 'enewsletter_after_send_newsletter', $send_id );
         }
+        else{
+            //configure correct bounce hash to detect if standard user or wp only user
+            if($send_member['member_id']) {
+                $member_data = $this->get_member( $send_member['member_id'] );
+                $bounce_id = $send_member['member_id'];
+                $bounce_hash = md5( 'Hash of bounce member_id='. $bounce_id . ', send_id='. $send_id );
+            }
+            elseif($send_member['wp_only_user_id']) {
+                $member_data = $this->get_wp_user_only( $send_member['wp_only_user_id'] );
+                $bounce_id = $send_member['wp_only_user_id'];
+                $bounce_hash = md5( 'Hash of bounce wp_only_user_id='. $bounce_id . ', send_id='. $send_id );
+            }
 
-        if($send_member['member_id']) {
-            $member_data = $this->get_member( $send_member['member_id'] );
-            $bounce_id = $send_member['member_id'];
-            $bounce_hash = md5( 'Hash of bounce member_id='. $bounce_id . ', send_id='. $send_id );
-        }
-        elseif($send_member['wp_only_user_id']) {
-            $member_data = $this->get_wp_user_only( $send_member['wp_only_user_id'] );
-            $bounce_id = $send_member['wp_only_user_id'];
-            $bounce_hash = md5( 'Hash of bounce wp_only_user_id='. $bounce_id . ', send_id='. $send_id );
-        }
+            if( !empty($member_data["member_email"]) && is_email($member_data["member_email"]) ) {
+                //get data of newsletter
+                $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_id ), "ARRAY_A");
+                $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
 
-        if( !empty($member_data["member_email"]) && is_email($member_data["member_email"]) ) {
-            //get data of newsletter
-            $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_id ), "ARRAY_A");
-            $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
+                $contents = $send_data['email_body'];
 
-            $contents = $send_data['email_body'];
+                //Replace some content inside the email body
+                $user_name = $this->get_nicename($member_data['wp_user_id'], $member_data['member_nicename']);
+                $first_name = $this->get_firstname($member_data['wp_user_id'], $member_data['member_nicename']);
+                $contents = $this->personalise_email_body($contents, $send_member['member_id'], $send_member['wp_only_user_id'], $member_data['join_date'], $member_data['unsubscribe_code'], $send_data['start_time'], array('user_name' => $user_name, 'first_name' => $first_name, 'to_email' => $member_data["member_email"]));
 
-            //Replace some content inside the email body
-            $user_name = $this->get_nicename($member_data['wp_user_id'], $member_data['member_nicename']);
-            $first_name = $this->get_firstname($member_data['wp_user_id'], $member_data['member_nicename']);
-            $contents = $this->personalise_email_body($contents, $send_member['member_id'], $send_member['wp_only_user_id'], $member_data['join_date'], $member_data['unsubscribe_code'], $send_data['start_time'], array('user_name' => $user_name, 'first_name' => $first_name, 'to_email' => $member_data["member_email"]));
+                if((isset($newsletter_data['bounce_email']) && !empty($newsletter_data['bounce_email'])) || (isset($this->settings['bounce_email']) && !empty($this->settings['bounce_email'])))
+                    $options['bounce_email'] = (isset($newsletter_data['bounce_email']) && !empty($newsletter_data['bounce_email'])) ? $newsletter_data['bounce_email'] : $this->settings['bounce_email'];
 
-            if((isset($newsletter_data['bounce_email']) && !empty($newsletter_data['bounce_email'])) || (isset($this->settings['bounce_email']) && !empty($this->settings['bounce_email'])))
-                $options['bounce_email'] = (isset($newsletter_data['bounce_email']) && !empty($newsletter_data['bounce_email'])) ? $newsletter_data['bounce_email'] : $this->settings['bounce_email'];
+                $from_domain = explode('@',$newsletter_data['from_email']);
+                $from_domain = isset($from_domain[1]) ? '@'.$from_domain : '';
+                $options['message_id'] = 'Newsletters-' . $bounce_id . '-' . $send_id . '-'. $bounce_hash.$from_domain;
 
-            $options['message_id'] = 'Newsletters-' . $bounce_id . '-' . $send_id . '-'. $bounce_hash;
-
-            $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
-            $this->write_log( 'Send status: '.$sent_status);
-            if( $sent_status == true ) {
-                //write info of Sent in DB
-                $result = $this->set_send_email_status('sent', $send_id, $send_member['member_id'], $send_member['wp_only_user_id']);
-                if ( $result )
-                    die('ok');
-                else
-                    die( __( 'Error when updating DB.', 'email-newsletter' ) );
-            } else {
-                if( $sent_status == 'recipients_failed' || $sent_status == 'invalid_address' ) {
-                    $result = $this->set_send_email_status('bounced', $send_id, $send_member['member_id'], $send_member['wp_only_user_id']);
+                $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
+                $this->write_log( 'Send status: '.$sent_status);
+                if( $sent_status == true ) {
+                    //write info of Sent in DB
+                    $result = $this->set_send_email_status('sent', $send_id, $send_member['member_id'], $send_member['wp_only_user_id']);
                     if ( $result )
-                        die('ok');
+                        $message = 'ok';
                     else
-                        die( __( 'Error when updating DB.', 'email-newsletter' ) );
-                }
-                else {
-                    die(__( 'Error sending email. Please check outgoing email settings.', 'email-newsletter' ) );
+                        $message = __( 'Error when updating DB.', 'email-newsletter' );
+                } else {
+                    if( $sent_status == 'recipients_failed' || $sent_status == 'invalid_address' ) {
+                        $result = $this->set_send_email_status('bounced', $send_id, $send_member['member_id'], $send_member['wp_only_user_id']);
+                        if ( $result )
+                            $message = 'ok';
+                        else
+                            $message = __( 'Error when updating DB.', 'email-newsletter' );
+                    }
+                    else {
+                        $message = __( 'Error sending email. Please check outgoing email settings.', 'email-newsletter' );
+                    }
                 }
             }
-        }
-        else {
-            $result = $this->set_send_email_status('bounced', $send_id, $send_member['member_id'], $send_member['wp_only_user_id']);
-            if ( $result )
-                die('ok');
-            else
-                die( __( 'Error when updating DB.', 'email-newsletter' ) );
+            else {
+                $result = $this->set_send_email_status('bounced', $send_id, $send_member['member_id'], $send_member['wp_only_user_id']);
+                if ( $result )
+                    $message = 'ok';
+                else
+                    $message = __( 'Error when updating DB.', 'email-newsletter' );
+            }
         }
 
-        do_action( 'enewsletter_after_send_newsletter', $send_id );
+        if( defined(DOING_AJAX) )
+            die($message);
+        else
+            return $message;
     }
 
     /**
@@ -1685,6 +1701,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
                             if((isset($newsletter_data['bounce_email']) && !empty($newsletter_data['bounce_email'])) || (isset($this->settings['bounce_email']) && !empty($this->settings['bounce_email'])))
                                 $options['bounce_email'] = (isset($newsletter_data['bounce_email']) && !empty($newsletter_data['bounce_email'])) ? $newsletter_data['bounce_email'] : $this->settings['bounce_email'];
 
+                            $from_domain = explode('@',$newsletter_data['from_email']);
+                            $from_domain = isset($from_domain[1]) ? '@'.$from_domain : '';
                             $options['message_id'] = 'Newsletters-' . $bounce_id . '-' . $send_id . '-'. $bounce_hash;
 
                             $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
