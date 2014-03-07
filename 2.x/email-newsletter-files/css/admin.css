@@ -51,7 +51,7 @@ Email-Newsletter CSS Styles
 }
 
 .enewsletter_progressbar .ui-progressbar-value {
-    background-image: url(images/pbar-ani.gif);
+    background-image: url('../images/pbar-ani.gif');
 }
 
 .enewsletter_progressbar #progressbar {

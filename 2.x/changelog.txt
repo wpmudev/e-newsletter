@@ -9,6 +9,10 @@ Contributors: Cole, Andrey
 == Changelog ==
 
 = 2.6.7 =
+* Fix for "0" message when sending newsletter
+* More compatibility improvements
+
+= 2.6.7 =
 * Added domain name to message id
 * Added ability to set default from email when using PHP method
 * Modified sending of welcome newsletter so it no longer uses CRON

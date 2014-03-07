@@ -44,7 +44,7 @@
  * @package PHPMailer
  */
 
-class SMTP {
+class eSMTP {
   /**
    *  SMTP server port
    *  @var int

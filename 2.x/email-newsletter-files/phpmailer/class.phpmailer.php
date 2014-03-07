@@ -1051,7 +1051,7 @@ class ePHPMailer {
    */
   public function SmtpConnect() {
     if(is_null($this->smtp)) {
-      $this->smtp = new SMTP;
+      $this->smtp = new eSMTP;
     }
 
     $this->smtp->Timeout = $this->Timeout;
