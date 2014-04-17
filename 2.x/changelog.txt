@@ -8,12 +8,15 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
-= 2.6.9 =
+= 2.7 =
 * Added compatibility with WordPress 3.9
 * Improved resizing of TinyMCE editor
 * Fixed compatibility with bbPress
 * Fixed welcome message for AJAX forms
 * Other small improvements
+
+= 2.6.9 =
+* Fixed warning message
 
 = 2.6.8 =
 * Fixed warning message
