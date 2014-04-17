@@ -239,6 +239,21 @@ class Email_Newsletter_Builder  {
 			body {
 				background: #fff;
 			}
+			#content_tinymce_ifr {
+				min-height: 200px;
+			}
+			#customize-control-email_content {
+				width:auto;
+			}
+			.wp-full-overlay-sidebar {
+				min-width:550px;
+			}
+			.wp-full-overlay.collapsed .wp-full-overlay-sidebar {
+				margin-left: -550px;
+			}
+			.wp-full-overlay.expanded {
+				margin-left: 550px;
+			}
 			#customize-info .<?php echo $selector; ?>-section-content {
 				text-align: center;
 				position: relative;
@@ -267,7 +282,10 @@ class Email_Newsletter_Builder  {
 		</style>
 		<?php
 		// We need to call this action for the tinyMCE editor to work properly
-		do_action('admin_print_footer_scripts');
+		global $wp_version;
+		if($wp_version<3.9)
+			do_action('admin_print_footer_scripts');
+
 		do_action('admin_footer');
 	}
 
@@ -283,10 +301,10 @@ class Email_Newsletter_Builder  {
 	function get_builder_theme($newsletter_id = '') {
 		global $builder_id, $email_newsletter;
 
-		$newsletter_id = ($newsletter_id != '' ? $newsletter_id : $builder_id);
 		if( isset($_GET['theme']) ) {
 			return $_GET['theme'];
 		} else {
+            $newsletter_id = ($newsletter_id != '' ? $newsletter_id : $builder_id);
 			$data = $email_newsletter->get_newsletter_data($newsletter_id);
 			if(isset($data['template']))
 				$theme = $data['template'];

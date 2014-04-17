@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.6.8
+Version: 2.6.9
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -118,7 +118,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_filter( 'rewrite_rules_array', array( &$this, 'insert_rewrite_rules' ) );
         add_filter( 'query_vars', array( &$this, 'insert_query_vars' ) );
 
-        add_action('plugins_loaded',array(&$this,'set_current_user'), 1);
+        add_action('plugins_loaded',array(&$this,'set_current_user'), 998);
         add_action('plugins_loaded',array(&$this,'upgrade_check'));
 
         add_action( 'email_newsletter_upgrade_cron',array( &$this, 'upgrade_cron' ) );
@@ -1492,7 +1492,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function send_email_to_member($send_id = 0) {
         global $wpdb;
 
-        if ( defined('DOING_AJAX') && !wp_verify_nonce( $_REQUEST['check_key'], 'newsletter_send' ) )
+        if ( isset($_REQUEST['action']) && $_REQUEST['action'] == 'send_email_to_member' && defined('DOING_AJAX') && !wp_verify_nonce( $_REQUEST['check_key'], 'newsletter_send' ) )
              die( 'Security check' );
 
         if(!$send_id)
@@ -1576,7 +1576,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             }
         }
 
-        if( defined('DOING_AJAX') )
+        if( isset($_REQUEST['action']) && $_REQUEST['action'] == 'send_email_to_member' && defined('DOING_AJAX') )
             die($message);
         else
             return $message;

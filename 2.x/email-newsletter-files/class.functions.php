@@ -1266,7 +1266,7 @@ class Email_Newsletter_functions {
             if($this->loaded_theme_options != $template['dir']) {
                 $this->loaded_theme_options = $template['dir'];
                 if(file_exists($template['dir'] . 'functions.php'))
-                    include($template_dir . 'functions.php');
+                    include($template['dir'] . 'functions.php');
                 elseif(file_exists($template['dir'] . 'index.php'))
                     include($template['dir'] . 'index.php');
             }

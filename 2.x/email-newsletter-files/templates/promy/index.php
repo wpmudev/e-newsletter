@@ -13,7 +13,7 @@ define('BUILDER_DEFAULT_BODY_COLOR', '#ffffff');
 
 define('BUILDER_DEFAULT_ALTERNATIVE_COLOR', '#007491');
 
-define('BUILDER_DEFAULT_TITLE_COLOR', '#ffffff');
+define('BUILDER_DEFAULT_TITLE_COLOR', '#007491');
 
 define('BUILDER_DEFAULT_EMAIL_TITLE', 'Default Email Title');
 
