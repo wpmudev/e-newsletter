@@ -1145,7 +1145,7 @@ class Email_Newsletter_functions {
         $contents = $this->make_email_values($visuals_prepare, $contents, $newsletter_id);
 
         //dom walker to add classes to ensure compability
-        $dom = new DOMDocument();
+        $dom = new DOMDocument('1.0', 'UTF-8');
         $dom->loadHTML($contents);
         $imgs = $dom->getElementsByTagName('img');
         $ps = $dom->getElementsByTagName('p');

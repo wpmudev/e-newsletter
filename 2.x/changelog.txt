@@ -8,6 +8,11 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.0.1 =
+* Fixed stats counting issue on reports page
+* Fixed security compatibility with some new server configs
+* Other small improvements
+
 = 2.7 =
 * Added compatibility with WordPress 3.9
 * Improved resizing of TinyMCE editor

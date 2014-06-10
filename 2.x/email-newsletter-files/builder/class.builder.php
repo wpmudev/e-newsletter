@@ -504,15 +504,15 @@ class Email_Newsletter_Builder  {
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'from_name', array(
-			'default' => $email_newsletter->settings['from_name'],
+			'default' => (isset($email_newsletter->settings['from_name'])) ? $email_newsletter->settings['from_name'] : '',
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'from_email', array(
-			'default' => $email_newsletter->settings['from_email'],
+			'default' => (isset($email_newsletter->settings['from_email'])) ? $email_newsletter->settings['from_email'] : '',
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'bounce_email', array(
-			'default' => $email_newsletter->settings['bounce_email'],
+			'default' => (isset($email_newsletter->settings['bounce_email'])) ? $email_newsletter->settings['bounce_email'] : '',
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'email_content', array(
@@ -681,14 +681,14 @@ class Email_Newsletter_Builder  {
             $sql    = "INSERT INTO {$email_newsletter->tb_prefix}enewsletter_newsletters SET create_date = " . time() . " ";
             $where  = '';
         }else{
-            $sql    = "UPDATE {$email_newsletter->tb_prefix}enewsletter_newsletters SET newsletter_id = '".mysql_real_escape_string( $builder_id )."' ";
-            $where  = " WHERE newsletter_id = '".mysql_real_escape_string( $builder_id )."' LIMIT 1";
+            $sql    = $wpdb->prepare("UPDATE {$email_newsletter->tb_prefix}enewsletter_newsletters SET newsletter_id = %d", $builder_id);
+            $where  = $wpdb->prepare(" WHERE newsletter_id = %d LIMIT 1", $builder_id);
         }
 
         foreach( $fields as $key=>$val ) {
             $val = trim( $val );
 
-            $sql .= ", `".$key."` = '".mysql_real_escape_string( $val )."'";
+            $sql .= $wpdb->prepare(", `".$key."` = %s", $val);
         }
         $sql .= $where;
 
@@ -821,7 +821,7 @@ class Email_Newsletter_Builder  {
 		if(isset($data['bounce_email']) && is_email($data['bounce_email']))
 			return $data['bounce_email'];
 		else
-			return $email_newsletter->settings['bounce_email'];
+			return isset($email_newsletter->settings['bounce_email']) ? $email_newsletter->settings['bounce_email'] : $email_newsletter->settings['from_email'];
 	}
 	function get_builder_from_name($default) {
 		global $builder_id, $email_newsletter;

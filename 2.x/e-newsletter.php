@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7
+Version: 2.7.0.1
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -475,11 +475,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         //Force caps for admin
         $admin_role = get_role('administrator');
-        foreach($this->capabilities as $key => $cap) {
-            if(!isset($admin_role->capabilities[$key]) || $admin_role->capabilities[$key] == false ) {
-                $admin_role->add_cap($key,true);
+        if(is_object($admin_role))
+            foreach($this->capabilities as $key => $cap) {
+                if(!isset($admin_role->capabilities[$key]) || $admin_role->capabilities[$key] == false ) {
+                    $admin_role->add_cap($key,true);
+                }
             }
-        }
 
         //private actions of the plugin
         if ( isset( $_REQUEST['newsletter_action'] ) ) {
@@ -1380,10 +1381,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function check_email_opened_ajax() {
         global $wpdb;
 
-        $this->plus_one_member_stats($_REQUEST['member_id'], 'opened');
+        
         //write opened time to table
         $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members a LEFT JOIN {$this->tb_prefix}enewsletter_send b ON (a.send_id = b.send_id) SET opened_time = %d WHERE (a.send_id = %d OR b.start_time = %d) AND a.member_id = %d AND a.wp_only_user_id = %d AND a.opened_time = 0" , time(), $_REQUEST['send_id'], $_REQUEST['send_id'], $_REQUEST['member_id'], $_REQUEST['wp_only_user_id'] ) );
-
+        if($result)
+            $this->plus_one_member_stats($_REQUEST['member_id'], 'opened');
+        
         //show blank image 1x1
         header('Content-Type: image/jpeg');
         $filename = $this->plugin_dir . "email-newsletter-files/images/spacer.gif";

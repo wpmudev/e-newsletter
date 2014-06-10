@@ -37,7 +37,7 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 						if(check_content != content && check_content != '<p><br data-mce-bogus="1"></p>') {
 							content = check_content;
 
-							jQuery('#<?php echo $this->id; ?>').html(content).trigger('change');
+							jQuery('#<?php echo $this->id; ?>').val(content).trigger('change');
 						}
 				}, 2000);
 
@@ -59,9 +59,14 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 						emce_width = jQuery('#content_tinymce_ifr').width()+65;
 						
 						if(emce_width >= '490' && emce_width != prev_emce_width) {
+						    jQuery('#customize-controls').css("-webkit-animation", "none");
+						    jQuery('#customize-controls').css("-moz-animation", "none");
+						    jQuery('#customize-controls').css("-ms-animation", "none");
+						    jQuery('#customize-controls').css("animation", "none");
 							prev_emce_width = emce_width;
 							jQuery('#customize-controls').css("width", emce_width+"px");
 							jQuery('.wp-full-overlay').css("margin-left", emce_width+"px");
+							jQuery('.wp-full-overlay-sidebar').css("margin-left", "-"+emce_width+"px");
 						}
 				    },50);	
 				}
