@@ -157,28 +157,36 @@ class Email_Newsletter_Builder  {
 				return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
 			});
 
-			var current = jQuery('#customize-info .'+selector+'-section-content');
+			var current = jQuery('#customize-info .'+selector+'-section-content').html('');
 			var copy = current.clone();
 
 			jQuery.each(email_templates, function(i,e) {
 				var clone = copy.clone();
 
 				if( e.stylesheet != current_theme ) {
-					clone.prepend('<h3>'+e.name+"</h3>");
-					clone.prepend('<input type="button" value="'+activate_theme+'" id="activate_theme" class="button button-primary save">');
+					clone.append('<h3>'+e.name+"</h3>");
+					clone.append('<input type="button" value="'+activate_theme+'" id="activate_theme" class="button button-primary save">');
+					clone.append('<img src="" class="theme-screenshot" />');
+					clone.append('<div class="theme-description"></div>');
 
 					clone.find('img.theme-screenshot').attr('src',e.screenshot);
 					clone.find('.theme-description').text(e.description);
 					clone.data('theme',e);
+
 					jQuery('#customize-info').append(clone);
 				} else {
 					// Use this opportunity to change the theme preview area
-					var current_name = jQuery('#customize-info .preview-notice .theme-name');
-					jQuery('#customize-info .preview-notice').html("<?php _e('Choose template','email-newsletter'); ?>").prepend(current_name);
-					current.data('theme',e);
-					current.find('img.theme-screenshot').attr('src',e.screenshot);
+					var theme_name = jQuery('#customize-info .preview-notice .theme-name').text(e.name);
+					jQuery('#customize-info .preview-notice').html("<?php _e('Choose template','email-newsletter'); ?>").prepend(theme_name);
 
 					current.addClass('current_theme');
+					current.append('<h3>'+e.name+"</h3>");
+					current.append('<img src="" class="theme-screenshot" />');
+					current.append('<div class="theme-description"></div>');
+
+					current.find('img.theme-screenshot').attr('src',e.screenshot);
+					current.find('.theme-description').text(e.description);
+					current.data('theme',e);
 
 					jQuery('#customize-info .'+selector+'-section-title').after(current);
 				}
@@ -257,6 +265,7 @@ class Email_Newsletter_Builder  {
 			#customize-info .<?php echo $selector; ?>-section-content {
 				text-align: center;
 				position: relative;
+				min-height: 360px;
 			}
 			.theme-screenshot {
 				min-height:258px;
@@ -588,7 +597,7 @@ class Email_Newsletter_Builder  {
 			$instance->get_setting($setting)->transport='postMessage';
 
 		// Add all the filters we need for all the settings to save and be retreived
-		add_action( 'customize_save_subject', array( &$this, 'save_builder') );
+		add_action( 'customize_save_subject', array( &$this, 'save_builder'), 10, 0 );
 
 		foreach ($customize_values as $value)
 			add_filter( 'customize_value_'.$value, array( &$this, 'get_builder_'.$value) );
@@ -610,6 +619,7 @@ class Email_Newsletter_Builder  {
 
 		if(!$new_values && isset($_POST['customized']))
 			$new_values = json_decode(stripslashes($_POST['customized']), true);
+
 
 		if(isset($new_values['template']) ) {
 			$data['newsletter_template'] = $new_values['template'];

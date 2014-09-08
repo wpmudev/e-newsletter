@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.0.1
+Version: 2.7.0.2
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -60,7 +60,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $wpmudev_notices[] = array( 'id'=> 233,'name'=> 'E-Newsletter', 'screens' => array( 'edit-funder', 'funder', 'edit-donation', 'funder_page_wdf_settings', 'funder_page_wdf' ) );
         include_once('email-newsletter-files/external/dash-notice/wpmudev-dash-notification.php');
 
-        $this->plugin_ver = 2.67;
+        $this->plugin_ver = 2.68;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -559,7 +559,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                     $result = $this->add_member( $_REQUEST['member'] );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) ) : $redirect;
                     wp_redirect( $redirect );
                     exit();
                 break;
@@ -571,7 +571,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                     $result = $this->edit_member( $_REQUEST['member_id'], $_REQUEST['edit_member_nicename'], $_REQUEST['edit_member_email'] );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) ) : $redirect;
                     wp_redirect( $redirect );
                     exit();
                 break;
@@ -584,7 +584,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $member_id = array($_REQUEST['member_id']);
                     $result = $this->delete_members( $member_id );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) ) : $redirect;
                     wp_redirect( $redirect );
                     exit;
                 break;
@@ -596,7 +596,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                     $result = $this->delete_members( $_REQUEST['members_id'] );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) ) : $redirect;
                     wp_redirect( $redirect );
                     exit();
                 break;
@@ -625,7 +625,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     else
                         $result = $this->add_members_to_groups( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are added to the group!', 'email-newsletter' ) ) ), 'admin.php' ) : $redirect;
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are added to the group!', 'email-newsletter' ) ) ) ) : $redirect;
                     wp_redirect( $redirect );
                     exit();
                 break;
@@ -653,7 +653,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $groups_id = ( isset( $_REQUEST['groups_id'] ) ) ? $_REQUEST['groups_id'] : array();
                     $result = $this->add_members_to_groups( $_REQUEST['member_id'], $groups_id, 1 );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Groups are changed!', 'email-newsletter' ) ) ), 'admin.php' ) : $redirect;
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Groups are changed!', 'email-newsletter' ) ) ) ) : $redirect;
                     wp_redirect( $redirect );
                     exit;
                 break;
@@ -666,7 +666,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                     $result = $this->delete_members_group( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are deleted from the group!', 'email-newsletter' ) ) ), 'admin.php' ) : $redirect;
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are deleted from the group!', 'email-newsletter' ) ) ) ) : $redirect;
                     wp_redirect( $redirect );
                     exit();
                 break;
@@ -1381,12 +1381,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function check_email_opened_ajax() {
         global $wpdb;
 
-        
+
         //write opened time to table
         $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members a LEFT JOIN {$this->tb_prefix}enewsletter_send b ON (a.send_id = b.send_id) SET opened_time = %d WHERE (a.send_id = %d OR b.start_time = %d) AND a.member_id = %d AND a.wp_only_user_id = %d AND a.opened_time = 0" , time(), $_REQUEST['send_id'], $_REQUEST['send_id'], $_REQUEST['member_id'], $_REQUEST['wp_only_user_id'] ) );
         if($result)
             $this->plus_one_member_stats($_REQUEST['member_id'], 'opened');
-        
+
         //show blank image 1x1
         header('Content-Type: image/jpeg');
         $filename = $this->plugin_dir . "email-newsletter-files/images/spacer.gif";
