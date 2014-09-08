@@ -181,11 +181,11 @@
 
                            <tr valign="top">
                                 <th scope="row">
-                                    <?php _e( 'Subscribe Page ID:', 'email-newsletter' ) ?>
+                                    <?php _e( 'Subscribed Page ID:', 'email-newsletter' ) ?>
                                 </th>
                                 <td>
                                     <input class="small-text" type="number" name="settings[subscribe_page_id]" value="<?php echo isset($this->settings['subscribe_page_id']) ? esc_attr($this->settings['subscribe_page_id']) : '';?>" />
-                                    <span class="description"><?php _e( 'Add ID of page that you want to use as subscribe page. You can use [enewsletter_subscribe_message] shortcode inside it to display subscribe message. Leave blank to disable.', 'email-newsletter' ) ?></span>
+                                    <span class="description"><?php _e( 'Add ID of page that you want to display after user subscribes. You can use [enewsletter_subscribe_message] shortcode inside it to display subscribe status message. Leave blank to disable.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
 
@@ -195,7 +195,7 @@
                                 </th>
                                 <td>
                                     <input class="small-text" type="number" name="settings[unsubscribe_page_id]" value="<?php echo isset($this->settings['unsubscribe_page_id']) ? esc_attr($this->settings['unsubscribe_page_id']) : '';?>" />
-                                    <span class="description"><?php _e( 'Add ID of page that you want to use as unsubscribe page. You can use [enewsletter_unsubscribe_message] shortcode inside it to display unsubscribe message. Leave blank to disable.', 'email-newsletter' ) ?></span>
+                                    <span class="description"><?php _e( 'Add ID of page that you want to display after user unsubscribes. You can use [enewsletter_unsubscribe_message] shortcode inside it to display unsubscribe status message. Leave blank to disable.', 'email-newsletter' ) ?></span>
                                 </td>
                             </tr>
                         </table>
