@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.0.2
+Version: 2.7.0.3
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -60,7 +60,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $wpmudev_notices[] = array( 'id'=> 233,'name'=> 'E-Newsletter', 'screens' => array( 'edit-funder', 'funder', 'edit-donation', 'funder_page_wdf_settings', 'funder_page_wdf' ) );
         include_once('email-newsletter-files/external/dash-notice/wpmudev-dash-notification.php');
 
-        $this->plugin_ver = 2.68;
+        $this->plugin_ver = 2.703;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -1354,8 +1354,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $result = $wpdb->query( $wpdb->prepare( "
             INSERT INTO {$this->tb_prefix}enewsletter_newsletters
-            (create_date, template, subject, from_name, from_email, content, contact_info, bounce_email)
-            SELECT %d, template, subject, from_name, from_email, content, contact_info, bounce_email
+            (create_date, template, subject, from_name, from_email, content, contact_info, bounce_email, sent, opened, bounced)
+            SELECT %d, template, subject, from_name, from_email, content, contact_info, bounce_email, 0, 0, 0
             FROM {$this->tb_prefix}enewsletter_newsletters
             WHERE newsletter_id = %d
             "
@@ -1381,11 +1381,21 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function check_email_opened_ajax() {
         global $wpdb;
 
-
         //write opened time to table
         $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members a LEFT JOIN {$this->tb_prefix}enewsletter_send b ON (a.send_id = b.send_id) SET opened_time = %d WHERE (a.send_id = %d OR b.start_time = %d) AND a.member_id = %d AND a.wp_only_user_id = %d AND a.opened_time = 0" , time(), $_REQUEST['send_id'], $_REQUEST['send_id'], $_REQUEST['member_id'], $_REQUEST['wp_only_user_id'] ) );
-        if($result)
+        if($result) {
             $this->plus_one_member_stats($_REQUEST['member_id'], 'opened');
+            $newsletter = $wpdb->get_row( $wpdb->prepare( 
+                "SELECT b.newsletter_id AS newsletter_id
+                FROM {$this->tb_prefix}enewsletter_send_members a 
+                LEFT JOIN {$this->tb_prefix}enewsletter_send b ON (a.send_id = b.send_id)
+                WHERE (a.send_id = %d OR b.start_time = %d)", 
+                $_REQUEST['send_id'], $_REQUEST['send_id'] 
+            ), "ARRAY_A" );
+
+            if(isset($newsletter['newsletter_id']) && $newsletter['newsletter_id'])
+                $this->plus_one_newsletter_stats($newsletter['newsletter_id'], 'opened');
+        }
 
         //show blank image 1x1
         header('Content-Type: image/jpeg');
@@ -1529,9 +1539,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $bounce_hash = md5( 'Hash of bounce wp_only_user_id='. $bounce_id . ', send_id='. $send_id );
             }
 
+            $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_id ), "ARRAY_A");
+
             if( !empty($member_data["member_email"]) && is_email($member_data["member_email"]) ) {
                 //get data of newsletter
-                $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_id ), "ARRAY_A");
+                
                 $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
 
                 $contents = $send_data['email_body'];
@@ -1545,21 +1557,21 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $options['bounce_email'] = (isset($newsletter_data['bounce_email']) && !empty($newsletter_data['bounce_email'])) ? $newsletter_data['bounce_email'] : $this->settings['bounce_email'];
 
                 $from_domain = explode('@',$newsletter_data['from_email']);
-                $from_domain = isset($from_domain[1]) ? '@'.$from_domain : '';
+                $from_domain = isset($from_domain[1]) ? '@'.$from_domain[1] : '';
                 $options['message_id'] = 'Newsletters-' . $bounce_id . '-' . $send_id . '-'. $bounce_hash.$from_domain;
 
                 $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
                 $this->write_log( 'Send status: '.$sent_status);
                 if( $sent_status == true ) {
                     //write info of Sent in DB
-                    $result = $this->set_send_email_status('sent', $send_id, $send_member['member_id'], $send_member['wp_only_user_id']);
+                    $result = $this->set_send_email_status('sent', $send_id, $send_member['member_id'], $send_member['wp_only_user_id'], $send_data['newsletter_id'] );
                     if ( $result )
                         $message = 'ok';
                     else
                         $message = __( 'Error when updating DB.', 'email-newsletter' );
                 } else {
                     if( $sent_status == 'recipients_failed' || $sent_status == 'invalid_address' ) {
-                        $result = $this->set_send_email_status('bounced', $send_id, $send_member['member_id'], $send_member['wp_only_user_id']);
+                        $result = $this->set_send_email_status( 'bounced', $send_id, $send_member['member_id'], $send_member['wp_only_user_id'], $send_data['newsletter_id'] );
                         if ( $result )
                             $message = 'ok';
                         else
@@ -1571,7 +1583,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 }
             }
             else {
-                $result = $this->set_send_email_status('bounced', $send_id, $send_member['member_id'], $send_member['wp_only_user_id']);
+                $result = $this->set_send_email_status( 'bounced', $send_id, $send_member['member_id'], $send_member['wp_only_user_id'], $send_data['newsletter_id'] );
                 if ( $result )
                     $message = 'ok';
                 else
@@ -1684,9 +1696,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
                         $bounce_hash = md5( 'Hash of bounce wp_only_user_id='. $bounce_id . ', send_id='. $send_id );
                     }
 
+                    $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_member['send_id'] ), "ARRAY_A");
                     if( !empty($member_data["member_email"]) && is_email($member_data["member_email"]) ) {
                         //get data of newsletter
-                        $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_member['send_id'] ), "ARRAY_A");
                         $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
 
                         if( !empty($newsletter_data) ) {
@@ -1711,7 +1723,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                             $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
                             if( $sent_status == true ) {
                                 //write info of Sent in DB
-                                $result = $this->set_send_email_status('sent', $send_member['send_id'], $send_member['member_id'], $send_member['wp_only_user_id']);
+                                $result = $this->set_send_email_status('sent', $send_member['send_id'], $send_member['member_id'], $send_member['wp_only_user_id'], $send_data['newsletter_id']);
 
                                 //writing some information in the plugin log file
                                 $this->write_log( $process_id . " 09 - send OK" );
@@ -1729,13 +1741,13 @@ class Email_Newsletter extends Email_Newsletter_functions {
                             }
                         }
                         else {
-                            $result = $this->set_send_email_status('bounced', $send_member['send_id'], $send_member['member_id'], $send_member['wp_only_user_id']);
+                            $result = $this->set_send_email_status('bounced', $send_member['send_id'], $send_member['member_id'], $send_member['wp_only_user_id'], $send_data['newsletter_id']);
 
                             $this->write_log( $process_id . " 08 - send_errors:" . " newsletter data empty" );
                         }
                     }
                     else {
-                        $result = $this->set_send_email_status('bounced', $send_member['send_id'], $send_member['member_id'], $send_member['wp_only_user_id']);
+                        $result = $this->set_send_email_status('bounced', $send_member['send_id'], $send_member['member_id'], $send_member['wp_only_user_id'], $send_data['newsletter_id']);
 
                         $this->write_log( $process_id . " 08 - send_errors:" . " no_email" );
                     }
@@ -1824,7 +1836,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
                             $wp_only_user_id = 0;
                         }
 
-                        $result = $this->set_send_email_status('bounced', $send_id, $member_id, $wp_only_user_id);
+                        $newsletter = $wpdb->get_row( $wpdb->prepare( "SELECT newsletter_id FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d LIMIT 1",  $send_id ), "ARRAY_A");
+                        if(isset($newsletter['newsletter_id']) && $newsletter['newsletter_id'])
+                            $result = $this->set_send_email_status('bounced', $send_id, $member_id, $wp_only_user_id, $newsletter['newsletter_id']);
                         imap_delete( $mbox, $mail->msgno );
                         echo 'ok';
                     } else {

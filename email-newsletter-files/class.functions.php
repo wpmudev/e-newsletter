@@ -367,6 +367,7 @@ class Email_Newsletter_functions {
             $select =
             "SELECT A.*";
 
+        //this seems to only be used to migrate
         if($details == 1) {
             $details = ",
             SUM(if(B.status = 'bounced', 1, 0)) AS 'count_bounced',
@@ -840,11 +841,11 @@ class Email_Newsletter_functions {
         }
 
         if ( isset( $arg['inner_join'] ) ) {
-            $inner_join= "INNER JOIN ". $arg['inner_join'];
+            $inner_join = "INNER JOIN ". $arg['inner_join'];
         }
 
         if ( isset( $arg['left_join'] ) ) {
-            $inner_join= "LEFT JOIN ". $arg['left_join'];
+            $left_join = "LEFT JOIN ". $arg['left_join'];
         }
 
         if ( isset( $arg['limit'] ) ) {
@@ -862,31 +863,63 @@ class Email_Newsletter_functions {
             "SELECT COUNT(*)";
         else
             $select =
-            "SELECT A.*";
+            "SELECT A.*, A.sent AS 'count_sent', A.opened AS 'count_opened', A.bounced AS 'count_bounced'";
 
-        if($details == 1) {
-            $select .=
-            ", S.start_time AS 'last_sent_time'";
-
-            $details = ",
-            SUM(if(SM.status = 'bounced', 1, 0)) AS 'count_bounced',
-            SUM(if(SM.status = 'sent', 1, 0)) AS 'count_sent',
-            SUM(if(SM.opened_time > 0, 1, 0)) AS 'count_opened'
-            ";
-            $left_join = "
-            LEFT JOIN {$this->tb_prefix}enewsletter_send S ON (A.newsletter_id = S.newsletter_id)
-            LEFT JOIN {$this->tb_prefix}enewsletter_send_members SM ON (S.send_id = SM.send_id)";
-        }
-        else
-            $details = "";
-
-        $query = $select." ".$details." FROM {$this->tb_prefix}enewsletter_newsletters A ".$left_join." ".$inner_join." " .$where." GROUP BY A.newsletter_id ".$orderby." " .$limit;
+        $query = $select." FROM {$this->tb_prefix}enewsletter_newsletters A ".$left_join." ".$inner_join." " .$where." GROUP BY A.newsletter_id ".$orderby." " .$limit;
         $results = $wpdb->get_results($query, "ARRAY_A");
+
+        //lets check if we need to transfer details for newsletter
+        if(!$count && $details == 1)
+            $results = $this->migrate_newsletters_stats( $results );
 
         if($count == 1)
             return count($results);
         else
             return $results;
+    }
+
+    function migrate_newsletters_stats( $results ) {
+        global $wpdb;
+
+        foreach ($results as $key => $result)
+            if($result['sent'] === NULL) {
+                $query = $wpdb->prepare(
+                "SELECT SUM(if(SM.status = 'bounced', 1, 0)) AS 'count_bounced',
+                SUM(if(SM.status = 'sent', 1, 0)) AS 'count_sent',
+                SUM(if(SM.opened_time > 0, 1, 0)) AS 'count_opened'
+                FROM {$this->tb_prefix}enewsletter_send S
+                LEFT JOIN {$this->tb_prefix}enewsletter_send_members SM ON (S.send_id = SM.send_id)
+                WHERE S.newsletter_id = %d", $result['newsletter_id']);
+                $details = $wpdb->get_row($query, "ARRAY_A");
+
+                $query = $wpdb->prepare(
+                    "UPDATE {$this->tb_prefix}enewsletter_newsletters 
+                    SET sent = %d, opened = %d, bounced = %d
+                    WHERE newsletter_id = %d",
+                    $details['count_sent'], $details['count_opened'], $details['count_bounced'], $result['newsletter_id']
+                );
+                $wpdb->query($query);
+
+                $results[$key] = array_merge($result, $details);
+            }
+        
+        return $results;
+    }
+
+    function plus_one_newsletter_stats($newsletter_id, $type) {
+        global $wpdb;
+
+        $allowed_types = array('sent', 'bounced', 'opened');
+        if(in_array($type, $allowed_types)){
+
+            $query = $wpdb->prepare(
+                "UPDATE {$this->tb_prefix}enewsletter_newsletters SET
+                {$type} = {$type} + 1
+                WHERE newsletter_id = %d",
+                $newsletter_id
+            );
+            $result = $wpdb->query($query);
+        }
     }
 
     /**
@@ -930,7 +963,6 @@ class Email_Newsletter_functions {
             $wp_only_users_id = array($wp_only_users_id);
         if ( $wp_only_users_id && 0 < count( $wp_only_users_id ) )
             foreach ( $wp_only_users_id as $wp_only_user_id ) {
-
                 if ( !( "1" == $dont_send_duplicate && $this->check_duplicate_send($newsletter_id, '', $wp_only_user_id) ) || ( "1" == $send_to_bounced && $this->check_bounced_send($newsletter_id, '', $wp_only_user_id) ) ) {
                     $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$this->tb_prefix}enewsletter_send_members SET send_id = %d, member_id = 0, wp_only_user_id = %d, status = '%s' ", $send_id, $wp_only_user_id, $status ) );
                     if($result)
@@ -941,7 +973,7 @@ class Email_Newsletter_functions {
         return array('count' => $count, 'send_id' => $send_id);
     }
 
-    function set_send_email_status($status, $send_id, $member_id = 0, $wp_only_user_id = 0) {
+    function set_send_email_status($status, $send_id, $member_id = 0, $wp_only_user_id = 0, $newsletter_id = 0) {
         global $wpdb;
         $extra = '';
 
@@ -950,8 +982,11 @@ class Email_Newsletter_functions {
         elseif($status == 'bounced')
             $extra = $wpdb->prepare(", bounce_time = %d", time());
 
-        if($member_id)
+        if($member_id) {
             $this->plus_one_member_stats($member_id, $status);
+            if($newsletter_id)
+                $this->plus_one_newsletter_stats($newsletter_id, $status);
+        }
 
         return $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = %s".$extra." WHERE send_id = %d AND member_id = %d AND wp_only_user_id = %d", $status, $send_id, $member_id, $wp_only_user_id ) );
     }
@@ -1897,6 +1932,9 @@ class Email_Newsletter_functions {
                     `content` text NOT NULL,
                     `contact_info` text NOT NULL,
                     `bounce_email` varchar(255) NOT NULL,
+                    `sent` int(11) DEFAULT '0',
+                    `opened` int(11) DEFAULT '0',
+                    `bounced` int(11) DEFAULT '0',
                     PRIMARY KEY (`newsletter_id`)
                 ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
 
@@ -1926,7 +1964,8 @@ class Email_Newsletter_functions {
                     `status` varchar(15),
                     `opened_time` int(11) DEFAULT '0',
                     `bounce_time` int(11) DEFAULT '0',
-                    `sent_time` int(11)
+                    `sent_time` int(11),
+                    PRIMARY KEY (`send_id`)
                 ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
 
                 $result = $wpdb->query( $enewsletter_table );
@@ -2098,6 +2137,16 @@ class Email_Newsletter_functions {
                 if($wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_newsletters'" ) == $tb_prefix.'enewsletter_newsletters') {
                     //allow for longer texts
                     $result = $wpdb->query("ALTER TABLE {$tb_prefix}enewsletter_newsletters MODIFY contact_info text");
+                }
+            }
+            if($prev < 2.703) {
+                if($wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_newsletters'" ) == $tb_prefix.'enewsletter_newsletters') {
+                    if ( !$wpdb->get_var( "SHOW COLUMNS FROM `{$tb_prefix}enewsletter_newsletters` LIKE 'bounced'" )) 
+                        $result = $wpdb->query( "ALTER TABLE  `{$tb_prefix}enewsletter_newsletters` ADD  `bounced` INT( 11 ) NULL AFTER `bounce_email`" );
+                    if ( !$wpdb->get_var( "SHOW COLUMNS FROM `{$tb_prefix}enewsletter_newsletters` LIKE 'opened'" ))
+                        $result = $wpdb->query( "ALTER TABLE  `{$tb_prefix}enewsletter_newsletters` ADD  `opened` INT( 11 ) NULL AFTER `bounce_email`" );
+                    if ( !$wpdb->get_var( "SHOW COLUMNS FROM `{$tb_prefix}enewsletter_newsletters` LIKE 'sent'" ))
+                        $result = $wpdb->query( "ALTER TABLE  `{$tb_prefix}enewsletter_newsletters` ADD  `sent` INT( 11 ) NULL AFTER `bounce_email`" );
                 }
             }
 		}

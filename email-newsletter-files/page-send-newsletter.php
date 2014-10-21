@@ -241,13 +241,13 @@
                         <?php _e( 'Waiting send (cron)', 'email-newsletter' ) ?>
                     </th>
                     <th>
-                        <?php _e( 'Bounced', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
                         <?php _e( 'Sent To', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Opened', 'email-newsletter' ) ?>
+                    </th>
+                    <th>
+                        <?php _e( 'Bounced', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Actions', 'email-newsletter' ) ?>
@@ -285,12 +285,6 @@
                 </td>
                 <td style="vertical-align: middle;">
                     <?php
-                        echo $send['count_bounced'];
-                        $total['bounced'] += $send['count_bounced'];
-                    ?>
-                </td>
-                <td style="vertical-align: middle;">
-                    <?php
                         echo $send['count_sent'];
                         $total['sent'] += $send['count_sent'];
                     ?>
@@ -299,6 +293,12 @@
                     <?php
                         echo $send['count_opened'];
                         $total['opened'] += $send['count_opened'];
+                    ?>
+                </td>
+                <td style="vertical-align: middle;">
+                    <?php
+                        echo $send['count_bounced'];
+                        $total['bounced'] += $send['count_bounced'];
                     ?>
                 </td>
                 <td style="vertical-align: middle; width: 250px;">
@@ -335,13 +335,13 @@
                        <?php echo $total['cron']; ?>
                     </th>
                     <th>
-                        <?php echo $total['bounced']; ?>
-                    </th>
-                    <th>
                         <?php echo $total['sent']; ?>
                     </th>
                     <th>
                         <?php echo $total['opened']; ?>
+                    </th>
+                    <th>
+                        <?php echo $total['bounced']; ?>
                     </th>
                     <th>
                     </th>

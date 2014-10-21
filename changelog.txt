@@ -6,6 +6,10 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.0.3 =
+* Performance improvements
+* Other small improvements
+
 = 2.7.0.2 =
 * Improved editing members so user stays on the same page after saving
 * Fixed compatibility issues with WordPress 4.0

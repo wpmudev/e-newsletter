@@ -1,11 +1,10 @@
 <?php
 	global $email_builder;
 
-    $arg['where'] = 'S.start_time > 0';
     $arg['limit'] = 'LIMIT 0,5';
-    $arg['orderby'] = 'start_time';
+    $arg['orderby'] = 'newsletter_id';
     $arg['order'] = 'desc';
-    $newsletters_sent = $this->get_newsletters($arg);
+    $newsletters = $this->get_newsletters($arg);
 
     $arg = array();
     $arg['limit'] = 'LIMIT 0,5';
@@ -87,29 +86,26 @@
         </table>
 
         <?php
-        if ( $newsletters_sent ) {
+        if ( $newsletters ) {
         ?>
-        <h3><?php _e( '5 Latest Sent Newsletters:', 'email-newsletter' ) ?></h3>
+        <h3><?php _e( '5 Latest Newsletters:', 'email-newsletter' ) ?></h3>
         <table class="widefat post newsletter_table_center">
             <thead>
                 <tr>
                     <th>
-                        <?php _e( 'Date of Last Sent', 'email-newsletter' ) ?>
+                        <?php _e( 'Create Date', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Email Subject', 'email-newsletter' ) ?>
                     </th>
                     <th>
-                        <?php _e( 'Sent From', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
                         <?php _e( 'Sent To', 'email-newsletter' ) ?>
                     </th>
                     <th>
-                        <?php _e( 'Bounced', 'email-newsletter' ) ?>
+                        <?php _e( 'Opened', 'email-newsletter' ) ?>
                     </th>
                     <th>
-                        <?php _e( 'Opened', 'email-newsletter' ) ?>
+                        <?php _e( 'Bounced', 'email-newsletter' ) ?>
                     </th>
                     <th class="newsletters_actions">
                         <?php _e( 'Actions', 'email-newsletter' ) ?>
@@ -119,7 +115,7 @@
         <?php
             $i = 0;
 
-            foreach( $newsletters_sent as $one_sent ) {
+            foreach( $newsletters as $newsletter ) {
                 if ( $i % 2 == 0 )
                     echo "<tr class='alternate'>";
                 else
@@ -127,33 +123,30 @@
 
                 $i++;
         ?>
-                <td>
-                   <?php echo get_date_from_gmt(date('Y-m-d H:i:s', $one_sent['last_sent_time'])); ?>
-                </td>
                 <td style="text-align: left;">
-                    <?php echo $one_sent['subject']; ?>
-                </td>
+                    <?php echo get_date_from_gmt(date('Y-m-d H:i:s', $newsletter['create_date'])); ?>
+                </td>        
                 <td style="text-align: left;">
-                    &lt;<?php echo $one_sent['from_name']; ?>&gt;
-                    <?php echo $one_sent['from_email']; ?>
+                    <?php echo $newsletter['subject']; ?>
+                </td>
+
+                <td>
+                     <?php echo $newsletter['count_sent']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
                 <td>
-                     <?php echo $one_sent['count_sent']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
+                     <?php echo $newsletter['count_bounced']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
                 <td>
-                     <?php echo $one_sent['count_bounced']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
-                </td>
-                <td>
-                     <?php echo $one_sent['count_opened']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
+                     <?php echo $newsletter['count_opened']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                 </td>
                 <td style="width: 180px;">
-                    <a href="?page=newsletters-dashboard&amp;newsletter_action=delete_newsletter&amp;newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
+                    <a href="?page=newsletters-dashboard&amp;newsletter_action=delete_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
                         <input class="button button-secondary" type="button" value="<?php _e( 'Delete', 'email-newsletter' ) ?>" />
                     </a>
-                    <a href="<?php echo $email_builder->generate_builder_link($one_sent['newsletter_id']); ?>">
+                    <a href="<?php echo $email_builder->generate_builder_link($newsletter['newsletter_id']); ?>">
                         <input class="button button-secondary" type="button" value="<?php _e( 'Edit', 'email-newsletter' ) ?>" />
                     </a>
-                    <a href="?page=newsletters-dashboard&amp;newsletter_action=send_newsletter&amp;newsletter_id=<?php echo $one_sent['newsletter_id'];?>">
+                    <a href="?page=newsletters-dashboard&amp;newsletter_action=send_newsletter&amp;newsletter_id=<?php echo $newsletter['newsletter_id'];?>">
                         <input class="button button-primary" type="button" value="<?php _e( 'Send', 'email-newsletter' ) ?>" />
                     </a>
                 </td>

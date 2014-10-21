@@ -73,13 +73,13 @@
                         </a>
                     </th>
                     <th>
-                        <span><?php _e( 'Bounced', 'email-newsletter' ) ?>
-                    </th>
-                    <th>
                         <span><?php _e( 'Sent To', 'email-newsletter' ) ?>
                     </th>
                     <th>
                         <?php _e( 'Opened', 'email-newsletter' ) ?>
+                    </th>
+                    <th>
+                        <span><?php _e( 'Bounced', 'email-newsletter' ) ?>
                     </th>
                     <th class="newsletters_actions">
                         <?php _e( 'Actions', 'email-newsletter' ) ?>
@@ -117,13 +117,13 @@
                         <?php echo $newsletter['template']; ?>
                     </td>
                     <td>
-                        <?php echo $newsletter['count_bounced']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
-                    </td>
-                    <td>
                         <?php echo $newsletter['count_sent']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                     </td>
                     <td>
                         <?php echo $newsletter['count_opened']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
+                    </td>
+                    <td>
+                        <?php echo $newsletter['count_bounced']; ?> <?php _e( 'members', 'email-newsletter' ) ?>
                     </td>
                     <td>
                         <?php if(current_user_can('delete_newsletter')) { ?>

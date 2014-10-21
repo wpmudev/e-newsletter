@@ -614,6 +614,9 @@ class Email_Newsletter_Builder  {
 			'from_name' => $email_newsletter->settings['from_name'],
 			'from_email' => $email_newsletter->settings['from_email'],
 			'bounce_email' => $email_newsletter->settings['bounce_email'],
+			'sent' => 0,
+			'opened' => 0,
+			'bounced' => 0,
 			'meta' => array('branding_html' => base64_encode($email_newsletter->settings['branding_html'])),
 		);
 

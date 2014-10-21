@@ -76,17 +76,6 @@ Email-Newsletter CSS Styles
     padding: 8px 10px;
 }
 
-
-.updated {
-    background-color: #FFFFE0;
-    border-color: #E6DB55;
-    margin: 5px 0 15px;
-    -moz-border-radius: 3px 3px 3px 3px;
-    border-style: solid;
-    border-width: 1px;
-    padding: 0 0.6em;
-}
-
 /* Add member block */
 
 .panel {
