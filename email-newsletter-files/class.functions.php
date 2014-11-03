@@ -1964,8 +1964,7 @@ class Email_Newsletter_functions {
                     `status` varchar(15),
                     `opened_time` int(11) DEFAULT '0',
                     `bounce_time` int(11) DEFAULT '0',
-                    `sent_time` int(11),
-                    PRIMARY KEY (`send_id`)
+                    `sent_time` int(11)
                 ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
 
                 $result = $wpdb->query( $enewsletter_table );
@@ -2147,6 +2146,49 @@ class Email_Newsletter_functions {
                         $result = $wpdb->query( "ALTER TABLE  `{$tb_prefix}enewsletter_newsletters` ADD  `opened` INT( 11 ) NULL AFTER `bounce_email`" );
                     if ( !$wpdb->get_var( "SHOW COLUMNS FROM `{$tb_prefix}enewsletter_newsletters` LIKE 'sent'" ))
                         $result = $wpdb->query( "ALTER TABLE  `{$tb_prefix}enewsletter_newsletters` ADD  `sent` INT( 11 ) NULL AFTER `bounce_email`" );
+                }
+            }
+            if($prev < 2.704) {
+                if($wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_send_members'" ) == $tb_prefix.'enewsletter_send_members') {
+                    $result = $wpdb->query( "ALTER TABLE  `{$tb_prefix}enewsletter_send_members` DROP PRIMARY KEY" );
+                }
+            }
+            if($prev < 2.705) {
+                if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_members'" ) != "{$tb_prefix}enewsletter_members" ) {
+
+                    $enewsletter_table = "CREATE TABLE `{$tb_prefix}enewsletter_members` (
+                        `member_id` int(11) NOT NULL auto_increment,
+                        `wp_user_id` int(11) DEFAULT '0',
+                        `member_fname` varchar(255),
+                        `member_lname` varchar(255),
+                        `member_email` varchar(255) NOT NULL,
+                        `join_date` int(11) NOT NULL,
+                        `member_info` text,
+                        `sent` int(11) DEFAULT '0',
+                        `opened` int(11) DEFAULT '0',
+                        `bounced` int(11) DEFAULT '0',
+                        `unsubscribe_code` varchar(20),
+                        PRIMARY KEY (`member_id`)
+                    ) DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
+                    $result = $wpdb->query( $enewsletter_table );
+
+                    //Sync exist wp users
+                    $arg = array (
+                        'blog_id' => $blog_id
+                    );
+                    $users = get_users( $arg );
+                    if ( $users )
+                        foreach( $users as $user ) {
+                            $unsubscribe_code = $this->gen_unsubscribe_code();
+                            $result = $wpdb->query( $wpdb->prepare( "INSERT INTO {$tb_prefix}enewsletter_members SET
+                                wp_user_id = %d,
+                                member_fname = %s,
+                                member_email = %s,
+                                join_date = %d,
+                                unsubscribe_code = '%s'
+                             ", $user->ID, $user->user_nicename, $user->user_email, time(), $unsubscribe_code ) );
+                        }
+
                 }
             }
 		}

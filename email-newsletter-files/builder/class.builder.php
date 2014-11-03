@@ -69,6 +69,10 @@ class Email_Newsletter_Builder  {
 			if(!current_user_can( 'edit_theme_options' )) {
 				add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 999, 1);
 			}
+
+			//fix for known compatibility problems
+			remove_action('media_buttons', 'new_im_media_buttons',11);
+			remove_action('init', 'new_im_tinymce_addbuttons');
 		}
 	}
 	function fix_capabilities($allcaps) {

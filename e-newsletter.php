@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.0.3
+Version: 2.7.0.5
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -60,7 +60,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $wpmudev_notices[] = array( 'id'=> 233,'name'=> 'E-Newsletter', 'screens' => array( 'edit-funder', 'funder', 'edit-donation', 'funder_page_wdf_settings', 'funder_page_wdf' ) );
         include_once('email-newsletter-files/external/dash-notice/wpmudev-dash-notification.php');
 
-        $this->plugin_ver = 2.703;
+        $this->plugin_ver = 2.705;
 
         //enable or disable debugging
         $this->debug = 0;

@@ -6,8 +6,16 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+
+= 2.7.0.5 =
+* Fixed possible issue of members table not being created
+
+= 2.7.0.4 =
+* Fixed possible issue of being able to send to just first member
+
 = 2.7.0.3 =
 * Performance improvements
+* Fixed compatibility with "Nextend Image Magnifier"
 * Other small improvements
 
 = 2.7.0.2 =
