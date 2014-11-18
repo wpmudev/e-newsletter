@@ -855,7 +855,7 @@ class Email_Newsletter_functions {
         $allowed_order_by = array('create_date', 'subject', 'template', 'start_time', 'newsletter_id');
         if ( isset( $arg['orderby'] ) && in_array($arg['orderby'], $allowed_order_by) ) {
             $orderby = "ORDER BY ". $arg['orderby'];
-            if ( $arg['order'] == 'asc' || $arg['order'] == 'desc' )
+            if ( isset($arg['order']) && ($arg['order'] == 'asc' || $arg['order'] == 'desc') )
                 $orderby .= " ". $arg['order'];
         }
         if($count == 1)

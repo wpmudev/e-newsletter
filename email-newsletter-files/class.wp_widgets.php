@@ -13,9 +13,9 @@ class e_newsletter_subscribe extends WP_Widget {
 
         extract( $args );
 
-        $show_name      = apply_filters( 'widget_title', $instance['name'] );
+        $title = apply_filters( 'widget_title', $instance['title'] );
+        $show_name      = $instance['name'];
         $show_groups    = $instance['groups'];
-        $title = $instance['title'];
         $subscribe_to_groups = isset($instance['auto_groups']) ? $instance['auto_groups'] : array();
 
         echo $before_widget;

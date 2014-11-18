@@ -6,6 +6,9 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.0.6 =
+* Added POST hook for new subscriptions
+* Fixed name field widget problem
 
 = 2.7.0.5 =
 * Fixed possible issue of members table not being created

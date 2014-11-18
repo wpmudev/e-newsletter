@@ -116,7 +116,7 @@
                                 </th>
                                 <td>
                                     <?php
-                                    $groups = ($mode != 'install') ? $this->get_groups() : 0;
+                                    $groups = !isset($mode) ? $this->get_groups() : 0;
 
                                     if ( $groups ) {
                                         $this->settings['subscribe_groups'] = isset($this->settings['subscribe_groups']) ? explode(',', $this->settings['subscribe_groups']) : array();

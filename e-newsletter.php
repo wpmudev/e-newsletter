@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.0.5
+Version: 2.7.0.6
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -776,13 +776,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $redirect = $_REQUEST['redirect_to'];
 
             switch( $_REQUEST['newsletter_action'] ) {
-                //action for save selected groups of subscribe
-                case "save_subscribes":
-                    $result = $this->save_subscribes();
+                //action for subscribe
+                case "new_subscribe":
+                    $result = $this->subscribe();
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
-                    wp_redirect( $redirect );
-                    exit();
+                    $redirect = isset($redirect) ? $redirect : (isset($result['data']['redirect']) ? $result['data']['redirect'] : 0);
+                    if($redirect) {
+                        wp_redirect( $redirect );
+                        exit();
+                    }
                 break;
 
                 //action for subscribe
@@ -790,6 +792,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $result = $this->subscribe();
 
                     $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'message' => urlencode( $result['message'] )), 'admin.php' ) : $redirect;
+                    wp_redirect( $redirect );
+                    exit();
+                break;
+
+                //action for save selected groups of subscribe
+                case "save_subscribes":
+                    $result = $this->save_subscribes();
+
+                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-subscribes', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ), 'admin.php' ) : $redirect;
                     wp_redirect( $redirect );
                     exit();
                 break;
@@ -820,6 +831,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $data['message'] = $result['message'];
                     $data['view'] = 'manage_subscriptions';
                     $data['hide'] = '';
+
                     echo json_encode($data);
                     die();
                 break;
@@ -857,48 +869,19 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $data['message'] = $result['message'];
                     $data['view'] = 'subscribe';
                     $data['hide'] = 'manage_subscriptions';
+
                     echo json_encode($data);
                     die();
                 break;
 
                 //action for Subscribe of public member (not user of site)
                 case "new_subscribe":
-                    if(!is_email($_REQUEST['e_newsletter_email'])) {
-                        $data['message'] = __( 'Please use correct email!', 'email-newsletter' );
-                        echo json_encode($data);
-                        die();
-                    }
+                    $result = $this->new_subscribe();
 
-                    $settings = $this->get_settings();
+                    $data = array('message' => $result['message']);
+                    if(isset($result['data']['redirect']))
+                        $data['redirect'] = $result['data']['redirect'];
 
-                    //Sets up groups to subscribe to on the beginning
-                    $subscribe_groups = (isset($settings['subscribe_groups'])) ? explode(',', $settings['subscribe_groups']) : array();
-                    if(isset($_REQUEST['e_newsletter_groups_id']))
-                        $subscribe_groups = array_merge($_REQUEST['e_newsletter_groups_id'], $subscribe_groups);
-                    if(isset($_REQUEST['e_newsletter_auto_groups_id']))
-                        $subscribe_groups = array_merge($_REQUEST['e_newsletter_auto_groups_id'], $subscribe_groups);
-                    $subscribe_groups = array_unique($subscribe_groups);
-
-                    //set up if double opt in is on
-                    $double_opt_in = ( isset( $this->settings['double_opt_in'] ) && $this->settings['double_opt_in'] ) ? 1 : 0;
-
-                    $member_data['email']       =  ( isset( $_REQUEST['e_newsletter_email'] ) ) ? $_REQUEST['e_newsletter_email'] : '';
-                    $member_data['fname']       =  ( isset( $_REQUEST['e_newsletter_name'] ) ) ? $_REQUEST['e_newsletter_name'] : '';
-                    $member_data['lname']       =  '';
-                    $member_data['groups_id']   =  $subscribe_groups;
-
-                    $result = $this->add_member( $member_data, $double_opt_in );
-                    if(!$result['error']) {
-                        if($result['action'] != 'optin_sent' && isset($this->settings['subscribe_page_id']) && is_numeric($this->settings['subscribe_page_id']) && get_post($this->settings['subscribe_page_id']))
-                            $data['redirect'] = add_query_arg(array('message' => urlencode($result['message']), 'enewsletter_subscribed' => 1), get_permalink($this->settings['subscribe_page_id']));
-
-                        if($result['action'] == 'optin_sent')
-                            $data['message'] = $result['message'];
-                        else
-                            $data['message'] = __( 'You have been successfully subscribed!', 'email-newsletter' );
-                    }
-                    else
-                        $data['message'] = $result['message'];
                     echo json_encode($data);
                     die();
                 break;
@@ -970,6 +953,54 @@ class Email_Newsletter extends Email_Newsletter_functions {
         }
 
         return array('action' => 'member_added', 'error' => false, 'message' => __( 'The new member is added!', 'email-newsletter' ));
+    }
+
+    /**
+     *  Public Subscribe on Newsletters
+     **/
+    function new_subscribe() {
+        global $wpdb, $current_user;
+
+        if(!is_email($_REQUEST['e_newsletter_email'])) {
+            $data['message'] = __( 'Please use correct email!', 'email-newsletter' );
+            
+            return array('action' => 'new_subscribed', 'error' => true, 'message' => $data['message']);
+        }
+
+        $settings = $this->get_settings();
+
+        //Sets up groups to subscribe to on the beginning
+        $subscribe_groups = (isset($settings['subscribe_groups'])) ? explode(',', $settings['subscribe_groups']) : array();
+        if(isset($_REQUEST['e_newsletter_groups_id']))
+            $subscribe_groups = array_merge($_REQUEST['e_newsletter_groups_id'], $subscribe_groups);
+        if(isset($_REQUEST['e_newsletter_auto_groups_id']))
+            $subscribe_groups = array_merge($_REQUEST['e_newsletter_auto_groups_id'], $subscribe_groups);
+        $subscribe_groups = array_unique($subscribe_groups);
+
+        //set up if double opt in is on
+        $double_opt_in = ( isset( $this->settings['double_opt_in'] ) && $this->settings['double_opt_in'] ) ? 1 : 0;
+
+        $member_data['email']       =  ( isset( $_REQUEST['e_newsletter_email'] ) ) ? $_REQUEST['e_newsletter_email'] : '';
+        $member_data['fname']       =  ( isset( $_REQUEST['e_newsletter_name'] ) ) ? $_REQUEST['e_newsletter_name'] : '';
+        $member_data['lname']       =  '';
+        $member_data['groups_id']   =  $subscribe_groups;
+
+        $result = $this->add_member( $member_data, $double_opt_in );
+        if(!$result['error']) {
+            if($result['action'] != 'optin_sent' && isset($this->settings['subscribe_page_id']) && is_numeric($this->settings['subscribe_page_id']) && get_post($this->settings['subscribe_page_id']))
+                $data['redirect'] = add_query_arg(array('message' => urlencode($result['message']), 'enewsletter_subscribed' => 1), get_permalink($this->settings['subscribe_page_id']));
+            else
+                $data['redirect'] = 0;
+
+            if($result['action'] == 'optin_sent')
+                $data['message'] = $result['message'];
+            else
+                $data['message'] = __( 'You have been successfully subscribed!', 'email-newsletter' );
+
+            return array('action' => 'new_subscribed', 'error' => false, 'message' => $data['message'], 'data' => array('redirect' => $data['redirect']));  
+        }
+        else
+            return array('action' => 'new_subscribed', 'error' => true, 'message' => $result['message']);  
     }
 
     /**
@@ -2202,7 +2233,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     }
 
     function email_newsletter_widgets_scripts() {
-        wp_register_script( 'email-newsletter-widget-scripts', plugins_url( '/email-newsletter-files/js/widget_script.js', __FILE__ ), array( 'jquery' ) );
+        wp_register_script( 'email-newsletter-widget-scripts', plugins_url( '/email-newsletter-files/js/widget_script.js', __FILE__ ), array( 'jquery' ), 2 );
         wp_enqueue_script( 'email-newsletter-widget-scripts' );
 
         $protocol = isset( $_SERVER["HTTPS"] ) ? 'https://' : 'http://'; //This is used to set correct adress if secure protocol is used so ajax calls are working

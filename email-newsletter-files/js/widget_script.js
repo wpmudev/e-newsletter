@@ -46,9 +46,10 @@ jQuery( document ).ready( function() {
             };
 
             jQuery.post(email_newsletter_widget_scripts.ajax_url, data, function(data){ //post data to specified action trough special WP ajax page
+                console.log(data);
                 data = jQuery.parseJSON(data);
 
-                if(typeof data.redirect !== 'undefined')
+                if(typeof data.redirect !== 'undefined' && data.redirect)
                     window.location = data.redirect;
                 else {
                     parent.find("#message").slideUp('fast', function() {
