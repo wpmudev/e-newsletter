@@ -6,6 +6,9 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.0.7 =
+* Fixed POST hook for new subscriptions
+
 = 2.7.0.6 =
 * Added POST hook for new subscriptions
 * Fixed name field widget problem

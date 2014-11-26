@@ -766,6 +766,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * init for all users
      **/
     function init() {
+
         //load translation files
         load_plugin_textdomain( 'email-newsletter', false, dirname( plugin_basename( __FILE__ ) ) . '/email-newsletter-files/languages/' );
 
@@ -778,7 +779,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             switch( $_REQUEST['newsletter_action'] ) {
                 //action for subscribe
                 case "new_subscribe":
-                    $result = $this->subscribe();
+                    $result = $this->new_subscribe();
 
                     $redirect = isset($redirect) ? $redirect : (isset($result['data']['redirect']) ? $result['data']['redirect'] : 0);
                     if($redirect) {
