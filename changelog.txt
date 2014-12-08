@@ -6,6 +6,10 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.0.8 =
+* Fixed column labaling
+* Added possible compatibility with TinyMce plugins 
+
 = 2.7.0.7 =
 * Fixed POST hook for new subscriptions
 

@@ -16,6 +16,7 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 			'textarea_rows' => 25,
 			'drag_drop_upload' => true,
 			'tinymce' => array(
+				'wp_skip_init' => false,
 				'theme_advanced_disable' => '',
 				'theme_advanced_buttons1_add' => 'code',
 				'theme_advanced_resize_horizontal' => true,
