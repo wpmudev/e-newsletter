@@ -36,7 +36,7 @@ class Email_Newsletter_Builder  {
 						wp_die('You do not have permission to do that');
 
 					$builder_id = false;
-					$builder_id = $this->save_builder(array('template' => $this->get_builder_theme()));
+					$builder_id = $this->create_newsletter(array('template' => $this->get_builder_theme()));
 					delete_transient('builder_email_id_'.$current_user->ID);
 					set_transient('builder_email_id_'.$current_user->ID, $builder_id);
 
@@ -62,6 +62,9 @@ class Email_Newsletter_Builder  {
 			add_action( 'customize_register', array( &$this, 'init_newsletter_builder'),9999 );
 			add_action( 'setup_theme' , array( &$this, 'setup_builder_header_footer' ), 999 );
 			add_filter( 'wp_default_editor', array( &$this, 'force_default_editor' ) );
+
+			//fix for tinymce load problem on wp 4.1 and up?
+			add_action( 'admin_head', array( &$this, 'prepare_tinymce' ), 1 );
 
 			add_action( 'template_redirect', array( &$this, 'enable_customizer') );
 
@@ -115,6 +118,31 @@ class Email_Newsletter_Builder  {
 
 		return $current_content.$captured;
 	}
+	function prepare_tinymce() {
+		global $enewsletter_tinymce;
+		ob_start();
+
+		$tinymce_options = array(
+			'teeny' => false,
+			'media_buttons' => true,
+			'quicktags' => false,
+			'textarea_rows' => 25,
+			'drag_drop_upload' => true,
+			'tinymce' => array(
+				'wp_skip_init' => false,
+				'theme_advanced_disable' => '',
+				'theme_advanced_buttons1_add' => 'code',
+				'theme_advanced_resize_horizontal' => true,
+				'add_unload_trigger' => false,
+				'resize' => 'both'
+			),
+			'editor_css' => '<style type="text/css">body { background: #000; }</style>',
+		);
+		$email_content = $this->get_builder_email_content('');
+		wp_editor($email_content, 'content_tinymce', $tinymce_options);
+
+		$enewsletter_tinymce = ob_get_clean();
+	}
 	function customize_controls_print_scripts() {
 		do_action('admin_enqueue_scripts');
 		do_action('admin_print_scripts');
@@ -122,7 +150,7 @@ class Email_Newsletter_Builder  {
 		do_action('email_newsletter_template_builder_print_scripts');
 	}
 	function customize_controls_print_footer_scripts() {
-		global $email_newsletter, $wp_version, $selector;
+		global $email_newsletter, $wp_version;
 
 		// Collect other theme info so we can allow changes
 		$themes = wp_get_themes();
@@ -132,20 +160,13 @@ class Email_Newsletter_Builder  {
 				unset($themes[$key]);
 		}
 
-
-		if(version_compare($wp_version, "3.6", ">="))
-			$selector = 'accordion';
-		else
-			$selector = 'customize';
-
 		?>
 		<script type="text/javascript">
 			_wpCustomizeControlsL10n.save = "<?php _e('Save Newsletter','email-newsletter'); ?>";
-			ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
-			selector = "<?php echo $selector; ?>";
-			activate_theme = "<?php _e('Activate Theme','email-newsletter'); ?>";
+			var activate_theme = "<?php _e('Activate Theme','email-newsletter'); ?>";
 
 			var current_theme = "<?php echo $_GET['theme']; ?>";
+
 			email_templates = [
 				<?php foreach($themes as $theme): ?>
 				{	"name": <?php echo json_encode($theme->get('Name')); ?>,
@@ -161,7 +182,7 @@ class Email_Newsletter_Builder  {
 				return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
 			});
 
-			var current = jQuery('#customize-info .'+selector+'-section-content').html('');
+			var current = jQuery('#customize-info .accordion-section-content').html('');
 			var copy = current.clone();
 
 			jQuery.each(email_templates, function(i,e) {
@@ -192,20 +213,12 @@ class Email_Newsletter_Builder  {
 					current.find('.theme-description').text(e.description);
 					current.data('theme',e);
 
-					jQuery('#customize-info .'+selector+'-section-title').after(current);
+					jQuery('#customize-info .accordion-section-title').after(current);
 				}
 
 			});
 
-			jQuery('#customize-info').on('click', '.'+selector+'-section-title', function() {
-				var fix = setInterval(function() {
-							var attr = jQuery('.'+selector+'-section-content[style]');
-							if (typeof attr !== 'undefined' && attr !== false) {
-								jQuery('.'+selector+'-section-content').removeAttr('style');
-								clearInterval(fix);
-							}
-						}, 150);
-
+			jQuery('#customize-info').on('click', '.accordion-section-title', function() {
 				var new_theme;
 
 				jQuery('#customize-info #activate_theme').on('click', function(event) {
@@ -217,7 +230,6 @@ class Email_Newsletter_Builder  {
 
 						// Use string replace to redirect the url
 						jQuery('[data-customize-setting-link="template"]').val(new_theme);
-
 						jQuery('[data-customize-setting-link="template"]').trigger('change');
 
 						//make sure it is set
@@ -233,12 +245,8 @@ class Email_Newsletter_Builder  {
 				wp.customize.bind( 'saved', function() {
 					var new_theme = jQuery('[data-customize-setting-link="template"]').val();
 					if(current_theme != new_theme)
-						window.location.href = window.location.href.replace('theme='+current_theme,'theme='+new_theme)
+						window.location.href = window.location.href.replace('theme='+current_theme,'theme='+new_theme);
 				});
-			});
-
-			jQuery(document).ready(function() {
-				jQuery("#save").click();
 			});
 
 			window.onbeforeunload = function() {
@@ -266,7 +274,7 @@ class Email_Newsletter_Builder  {
 			.wp-full-overlay.expanded {
 				margin-left: 550px;
 			}
-			#customize-info .<?php echo $selector; ?>-section-content {
+			#customize-info .accordion-section-content {
 				text-align: center;
 				position: relative;
 				min-height: 360px;
@@ -295,7 +303,6 @@ class Email_Newsletter_Builder  {
 		</style>
 		<?php
 		// We need to call this action for the tinyMCE editor to work properly
-		global $wp_version;
 		if($wp_version<3.9)
 			do_action('admin_print_footer_scripts');
 
@@ -594,20 +601,21 @@ class Email_Newsletter_Builder  {
 			'section' => 'builder_preview',
 		) ) );
 
-		$customize_values = array('subject', 'from_name', 'from_email', 'bounce_email', 'email_title', 'branding_html', 'contact_info', 'email_content', 'bg_color', 'link_color', 'body_color', 'alternative_color', 'title_color', 'bg_image', 'header_image');
+		$customize_values = array('template', 'subject', 'from_name', 'from_email', 'bounce_email', 'email_title', 'branding_html', 'contact_info', 'email_content', 'bg_color', 'link_color', 'body_color', 'alternative_color', 'title_color', 'bg_image', 'header_image');
 		$instance_settings = array_merge($customize_values, array('email_preview'));
 
 		foreach ($instance_settings as $setting)
 			$instance->get_setting($setting)->transport='postMessage';
 
-		// Add all the filters we need for all the settings to save and be retreived
-		add_action( 'customize_save_subject', array( &$this, 'save_builder'), 10, 0 );
-
+		// Add all the filters we need for all the settings to be retreived
 		foreach ($customize_values as $value)
 			add_filter( 'customize_value_'.$value, array( &$this, 'get_builder_'.$value) );
+
+		add_action( 'customize_save', array( &$this, 'save_builder'), 10, 0 );
 	}
 
-	function save_builder($new_values = false) {
+	//this function needs cleaning up - its encoding and decoding for no good reason
+	function create_newsletter($new_values) {
 		global $email_newsletter, $builder_id, $wpdb;
 
 		$data = array();
@@ -623,10 +631,6 @@ class Email_Newsletter_Builder  {
 			'bounced' => 0,
 			'meta' => array('branding_html' => base64_encode($email_newsletter->settings['branding_html'])),
 		);
-
-		if(!$new_values && isset($_POST['customized']))
-			$new_values = json_decode(stripslashes($_POST['customized']), true);
-
 
 		if(isset($new_values['template']) ) {
 			$data['newsletter_template'] = $new_values['template'];
@@ -677,13 +681,22 @@ class Email_Newsletter_Builder  {
             "contact_info"  => $contact_info,
         );
 
-        $meta = $data['meta'];
+        $sql    = "INSERT INTO {$email_newsletter->tb_prefix}enewsletter_newsletters SET create_date = " . time() . " ";
 
+        foreach( $fields as $key=>$val )
+            $sql .= $wpdb->prepare(", `".$key."` = %s", trim( $val ));
+
+        $result = $wpdb->query( $sql );
+
+        if( ! $builder_id )
+            $builder_id = $wpdb->insert_id;
+
+
+        $meta = $data['meta'];
         $meta['branding_html'] = base64_decode( str_replace( "-", "+", (isset($meta['branding_html']) ? $meta['branding_html'] : '' ) ) );
 
-
-        if($data['newsletter_template'] != $current_theme) {
-            $exclude = array();
+        if($builder_id && $data['newsletter_template'] != $current_theme) {
+            $exclude = array('branding_html');
             if($meta['email_title'] != BUILDER_DEFAULT_EMAIL_TITLE)
                 $exclude[] = 'email_title';
 
@@ -694,29 +707,72 @@ class Email_Newsletter_Builder  {
                 $email_newsletter->update_newsletter_meta($builder_id, $meta_key, $meta_value);
             }
 
-        if( ! $builder_id ) {
-            $sql    = "INSERT INTO {$email_newsletter->tb_prefix}enewsletter_newsletters SET create_date = " . time() . " ";
-            $where  = '';
-        }else{
-            $sql    = $wpdb->prepare("UPDATE {$email_newsletter->tb_prefix}enewsletter_newsletters SET newsletter_id = %d", $builder_id);
-            $where  = $wpdb->prepare(" WHERE newsletter_id = %d LIMIT 1", $builder_id);
-        }
+        do_action( 'enewsletter_newsletter_saved', $builder_id, $data, $meta);
 
-        foreach( $fields as $key=>$val ) {
-            $val = trim( $val );
+        return $builder_id;
+	}
 
-            $sql .= $wpdb->prepare(", `".$key."` = %s", $val);
+	function save_builder() {
+		global $email_newsletter, $builder_id, $wpdb;
+
+		$data = $meta = array();
+
+		$new_values = json_decode(stripslashes($_POST['customized']), true);
+
+		$possible_vaules = array(
+			'default' => array('template', 'subject', 'from_name', 'from_email', 'bounce_email', array('content', 'email_content'), 'contact_info'),
+			'meta' => array('email_title', 'branding_html', 'bg_color', 'link_color', 'body_color', 'title_color', 'alternative_color', 'bg_image', 'header_image'),
+			'default_encode' => array(),
+			'meta_encode' => array(),
+		);
+		foreach ($possible_vaules as $type => $values) {
+			foreach ($values as $value) {
+				if(is_array($value)) {
+					$value_target = $value[0];
+					$value = $value[1];
+				}
+				else
+					$value_target = $value;
+
+				if(isset($new_values[$value])) {
+					if($type == 'default_encode')
+						$data[$value_target] = base64_encode($new_values[$value]);
+					elseif($type == 'default')
+						$data[$value_target] = $new_values[$value];
+					elseif($type == 'meta')
+						$meta[$value_target] = $new_values[$value];
+					elseif($type == 'meta_encode') 
+						$meta[$value_target] = base64_encode($new_values[$value]);
+				}
+			}
+		}
+
+        $current_theme = $this->get_builder_theme($builder_id);
+
+        if(isset($data['template']) && $data['template'] != $current_theme) {
+            $exclude = array('branding_html');
+            if($meta['email_title'] != BUILDER_DEFAULT_EMAIL_TITLE)
+                $exclude[] = 'email_title';
+
+            $email_newsletter->delete_newsletter_meta($builder_id, $exclude, 1 );
         }
-        $sql .= $where;
+        else
+            foreach($meta as $meta_key => $meta_value) {
+                $email_newsletter->update_newsletter_meta($builder_id, $meta_key, $meta_value);
+            }
+
+        $sql = "UPDATE {$email_newsletter->tb_prefix}enewsletter_newsletters SET ";
+
+        $update = array();
+        foreach( $data as $key=>$val )
+            $update[] = $wpdb->prepare("`".$key."` = %s", trim( $val ));
+
+        $sql .= implode(', ', $update);
+        $sql .= $wpdb->prepare(" WHERE newsletter_id = %d LIMIT 1", $builder_id);
 
         $result = $wpdb->query( $sql );
 
-        if( ! $builder_id )
-            $builder_id = $wpdb->insert_id;
-
-        do_action( 'enewsletter_newsletter_saved', $builder_id, $data);
-
-        return $builder_id;
+        do_action( 'enewsletter_newsletter_saved', $builder_id, $data, $meta);
 	}
 
 	// Anything that isnt a text input has to have its own function because

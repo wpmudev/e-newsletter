@@ -6,8 +6,11 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.0.9 =
+* Fixed compability with WP 4.1
+
 = 2.7.0.8 =
-* Fixed column labaling
+* Fixed column labeling
 * Added possible compatibility with TinyMce plugins 
 
 = 2.7.0.7 =

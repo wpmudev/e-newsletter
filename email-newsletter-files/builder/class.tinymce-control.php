@@ -4,28 +4,12 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 	
 	
 	public function render_content() {
-		$rich_editing = user_can_richedit();
+		global $enewsletter_tinymce;
 		?>
 		<span class="customize-control-title"><?php echo $this->label; ?></span>
 		<textarea id="<?php echo $this->id; ?>" style="display:none" <?php echo $this->link(); ?>><?php echo esc_textarea($this->value()); ?></textarea>
 		<?php
-		$tinymce_options = array(
-			'teeny' => false,
-			'media_buttons' => true,
-			'quicktags' => false,
-			'textarea_rows' => 25,
-			'drag_drop_upload' => true,
-			'tinymce' => array(
-				'wp_skip_init' => false,
-				'theme_advanced_disable' => '',
-				'theme_advanced_buttons1_add' => 'code',
-				'theme_advanced_resize_horizontal' => true,
-				'add_unload_trigger' => false,
-				'resize' => 'both'
-			),
-			'editor_css' => '<style type="text/css">body { background: #000; }</style>',
-		);
-		
+		echo $enewsletter_tinymce;
 		?>
 		
 		<script type="text/javascript">
@@ -74,18 +58,6 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 			});
 		</script>
 		<?php
-		
-		wp_editor(esc_textarea( $this->value() ),'content_tinymce', $tinymce_options);
-		
-	}
-	public function enqueue() {
-		wp_enqueue_script('jquery');
-		wp_enqueue_script('editor');
-		wp_enqueue_script('thickbox');
-		wp_enqueue_script('media-upload');
-		wp_enqueue_script('wplink');
-		wp_enqueue_script('wpdialogs-popup');
-		wp_enqueue_style('wp-jquery-ui-dialog');
 	}
 }
 ?>
