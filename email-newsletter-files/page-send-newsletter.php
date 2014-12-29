@@ -303,13 +303,21 @@
                 </td>
                 <td style="vertical-align: middle; width: 250px;">
                 <?php
+                    if ( 0 < $send['count_send_cron'] ) :
+                ?>
+                        <a href="?page=<?php echo $_REQUEST['page']; ?>&newsletter_action=send_newsletter&cron=remove_from_cron&newsletter_id=<?php echo $newsletter_data["newsletter_id"];?>&send_id=<?php echo $send['send_id'];?>">
+                            <input class="button button-secondary" type="button" value="<?php echo _e( "Remove from CRON list", 'email-newsletter' ) ?>" />
+                        </a>
+                <?php
+                    endif;
+
                     if ( 0 < $send['count_send_members'] ) :
                 ?>
                         <a href="?page=<?php echo $_REQUEST['page']; ?>&newsletter_action=send_newsletter&cron=add_to_cron&newsletter_id=<?php echo $newsletter_data["newsletter_id"];?>&send_id=<?php echo $send['send_id'];?>">
                             <input class="button button-secondary" type="button" value="<?php echo _e( "Add to CRON list", 'email-newsletter' ) ?>" />
                         </a>
                         <a href="?page=<?php echo $_REQUEST['page']; ?>&newsletter_action=send_newsletter&newsletter_id=<?php echo $newsletter_data["newsletter_id"];?>&send_id=<?php echo $send['send_id'];?>&check_key=<?php echo $check_key; ?>">
-                            <input class="button button-secondary" type="button" value="<?php _e( 'Continue Send', 'email-newsletter' ) ?>" />
+                            <input class="button button-primary" type="button" value="<?php _e( 'Continue Send', 'email-newsletter' ) ?>" />
                         </a>
                 <?php
                     endif;

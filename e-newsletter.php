@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.0.9
+Version: 2.7.1.1
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -706,6 +706,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     //Handles sending ajax sent stopped newsletters
                     if ( isset( $_REQUEST['cron'] ) && 'add_to_cron' == $_REQUEST['cron'] )
                         $this->add_to_cron( $_REQUEST['newsletter_id'], $_REQUEST['send_id'] );
+                    elseif ( isset( $_REQUEST['cron'] ) && 'remove_from_cron' == $_REQUEST['cron'] )
+                        $this->remove_from_cron( $_REQUEST['newsletter_id'], $_REQUEST['send_id'] );
                     //handles main send buttons
                     else if ( isset( $_REQUEST['action'] ) && 'send' == $_REQUEST["action"] )
                         $this->send_newsletter( $_REQUEST['newsletter_id'] );
@@ -1524,9 +1526,20 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'by_cron' WHERE send_id = %d AND status = 'waiting_send'", $send_id ) );
 
-        $count_send_members = mysql_affected_rows();
+        wp_redirect( add_query_arg( array( 'page' => $_REQUEST['page'], 'newsletter_action' => 'send_newsletter', 'newsletter_id' => $newsletter_id, 'updated' => 'true', 'message' => urlencode( __( 'Members are added to CRON list', 'email-newsletter' ) ) ), 'admin.php' ) );
 
-        wp_redirect( add_query_arg( array( 'page' => $_REQUEST['page'], 'newsletter_action' => 'send_newsletter', 'newsletter_id' => $newsletter_id, 'updated' => 'true', 'message' => urlencode( $count_send_members . ' ' . __( 'Members are added to CRON list', 'email-newsletter' ) ) ), 'admin.php' ) );
+        exit;
+    }
+
+    /**
+     * Remove from CRON list
+     **/
+    function remove_from_cron( $newsletter_id, $send_id ) {
+        global $wpdb;
+
+        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'waiting_send' WHERE send_id = %d AND status = 'by_cron'", $send_id ) );
+
+        wp_redirect( add_query_arg( array( 'page' => $_REQUEST['page'], 'newsletter_action' => 'send_newsletter', 'newsletter_id' => $newsletter_id, 'updated' => 'true', 'message' => urlencode( __( 'Members are removed from CRON list', 'email-newsletter' ) ) ), 'admin.php' ) );
 
         exit;
     }
