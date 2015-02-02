@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.1.1
+Version: 2.7.1.2
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -839,6 +839,30 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     die();
                 break;
 
+                //action for forcing into groups
+                case "subscribe_to_groups":
+                    $result = $this->save_subscribes('add');
+
+                    $data['message'] = $result['message'];
+                    $data['view'] = 'unsubscribe_from_groups';
+                    $data['hide'] = 'subscribe_to_groups';
+
+                    echo json_encode($data);
+                    die();
+                break;
+
+                //action for forcing out off groups
+                case "unsubscribe_from_groups":
+                    $result = $this->save_subscribes('remove');
+
+                    $data['message'] = $result['message'];
+                    $data['view'] = 'subscribe_to_groups';
+                    $data['hide'] = 'unsubscribe_from_groups';
+
+                    echo json_encode($data);
+                    die();
+                break;
+
                 //action for subscribe
                 case "subscribe":
                     $result = $this->subscribe();
@@ -1043,11 +1067,19 @@ class Email_Newsletter extends Email_Newsletter_functions {
     /**
      * Save Subscribes
      **/
-    function save_subscribes() {
+    function save_subscribes($type = 'both') {
         global $current_user;
         $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
-        $groups_id = (isset($_REQUEST['e_newsletter_groups_id'])) ? $_REQUEST['e_newsletter_groups_id'] : array();
-        $result = $this->add_members_to_groups( $member_id, $groups_id, 1 );
+        $remove_old = $type == 'both' ? 1 : 0;
+
+        if($type == 'both' || $type == 'add') {
+            $groups_id = (($type == 'both' && isset($_REQUEST['e_newsletter_groups_id'])) ? $_REQUEST['e_newsletter_groups_id'] : (($type == 'add' && isset($_REQUEST['e_newsletter_add_groups_id'])) ? $_REQUEST['e_newsletter_add_groups_id'] : array()));
+            $result = $this->add_members_to_groups( $member_id, $groups_id, $remove_old );
+        }
+        elseif($type == 'remove') {
+            $groups_id = (isset($_REQUEST['e_newsletter_remove_groups_id'])) ? $_REQUEST['e_newsletter_remove_groups_id'] : array();
+            $result = $this->delete_members_group( $member_id, $groups_id );
+        }
 
         do_action( 'enewsletter_user_save_subscribe', $member_id, $groups_id );
 
@@ -1348,11 +1380,23 @@ class Email_Newsletter extends Email_Newsletter_functions {
     /**
      * Bulk option -  delete member from group
      **/
-    function delete_members_group( $members_id, $group_id ) {
+    function delete_members_group( $members_id, $groups_id ) {
         global $wpdb;
 
-        foreach( $members_id as $member_id )
-            $result = $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d AND group_id = %d", $member_id, $group_id ) );
+        if(!is_array($members_id))
+            $members_id = array($members_id);
+        if(!is_array($groups_id))
+            $groups_id = array($groups_id);
+
+        if ( count($members_id) > 0 )
+            foreach( $members_id as $member_id ) {
+                foreach( $groups_id as $group_id ) {
+                    if(!$this->get_group_by_id( $group_id ))
+                        continue;
+
+                    $result = $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d AND group_id = %d", $member_id, $group_id ) );
+                }
+            }
 
         return $result;
     }
@@ -2247,7 +2291,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     }
 
     function email_newsletter_widgets_scripts() {
-        wp_register_script( 'email-newsletter-widget-scripts', plugins_url( '/email-newsletter-files/js/widget_script.js', __FILE__ ), array( 'jquery' ), 2 );
+        wp_register_script( 'email-newsletter-widget-scripts', plugins_url( '/email-newsletter-files/js/widget_script.js', __FILE__ ), array( 'jquery' ), 3 );
         wp_enqueue_script( 'email-newsletter-widget-scripts' );
 
         $protocol = isset( $_SERVER["HTTPS"] ) ? 'https://' : 'http://'; //This is used to set correct adress if secure protocol is used so ajax calls are working
@@ -2265,25 +2309,34 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $groups = $this->get_groups(1);
 
-        if ( $current_user->data && 0 < $current_user->data->ID ) {
+        if ( isset($current_user->data->ID) ) {
             $member_id      = $this->get_members_by_wp_user_id( $current_user->data->ID );
             $member_data    = $this->get_member( $member_id );
             $only_public = (isset($this->settings['non_public_group_access']) && $this->settings['non_public_group_access'] == 'nobody') ? 1 : 0;
-            $groups = $this->get_groups($only_public);
+            $groups = $this->get_groups();
 
             if ( "" != $member_data['unsubscribe_code'] ) {
                 $member_groups = $this->get_memeber_groups( $member_id );
                 if ( ! is_array( $member_groups ) )
                     $member_groups = array();
+
+
             }
 
-            $show_groups = true;
+            if(!$subscribe_to_groups) 
+                $show_groups = true;         
         }
         else
             $groups = $this->get_groups(1);
 
-        if ( ! $current_user->data || 0 == $current_user->data->ID ) {
+        if ( !isset($current_user->data->ID) ) {
             $view = "add_member";
+        } else if ( $current_user->data && $subscribe_to_groups && !$show_groups ) {
+            var_dump(array_diff($subscribe_to_groups, $member_groups));
+            if( !array_diff($subscribe_to_groups, $member_groups) )
+                $view = "unsubscribe_from_groups";
+            else
+                $view = "subscribe_to_groups";
         } else if ( isset( $member_data['unsubscribe_code'] ) && "" != $member_data['unsubscribe_code'] && 0 < $current_user->data->ID ) {
             $view = "manage_subscriptions";
         } else if ( $current_user->data && 0 < $current_user->data->ID ) {
@@ -2304,10 +2357,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         if($view != 'add_member')
             $return .= '
-                <div id="add_member" style="display:none;">';
+                <div id="add_member" class="e-newsletter-widget-screen" style="display:none;">';
         else
             $return .=
-                '<div id="add_member">';
+                '<div id="add_member" class="e-newsletter-widget-screen">';
         $return .= '
                     <p>
                         <label for="e_newsletter_email">'.__( 'Your Email:', 'email-newsletter' ).'</label>
@@ -2346,16 +2399,66 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     </p>
 
                 </div>';
-        if($view != 'manage_subscriptions')
+
+
+
+        if($view != 'subscribe_to_groups')
             $return .= '
-                <div id="manage_subscriptions" style="display:none;">';
+                <div id="subscribe_to_groups" class="e-newsletter-widget-screen" style="display:none;">';
         else
             $return .='
-                <div id="manage_subscriptions">';
+                <div id="subscribe_to_groups" class="e-newsletter-widget-screen">';
+
+        if( count($groups) > 0 )
+            foreach( (array) $subscribe_to_groups as $subscribe_to_group_id )
+                $return .= '
+                    <input type="hidden" name="e_newsletter_add_groups_id[]" value="'.$subscribe_to_group_id.'"/>';
+
+        $return .= '
+                    <p>
+                        <input type="button" id="subscribe_to_groups" class="enewletter_widget_submit" value="'.__( 'Subscribe', 'email-newsletter' ).'" />
+                    </p>';
+        $return .= '
+                </div>';
+
+        if($view != 'unsubscribe_from_groups')
+            $return .= '
+                <div id="unsubscribe_from_groups" class="e-newsletter-widget-screen" style="display:none;">';
+        else
+            $return .='
+                <div id="unsubscribe_from_groups" class="e-newsletter-widget-screen">';
+
+        if( count($groups) > 0 )
+            foreach( (array) $subscribe_to_groups as $subscribe_to_group_id )
+                $return .= '
+                    <input type="hidden" name="e_newsletter_remove_groups_id[]" value="'.$subscribe_to_group_id.'"/>';
+
+        $return .= '
+                    <p>
+                        <input type="button" id="unsubscribe_from_groups" class="enewletter_widget_submit" value="'.__( 'Unsubscribe', 'email-newsletter' ).'" />
+                    </p>';
+        $return .= '
+                </div>';
+
+
+
+        if($view != 'manage_subscriptions')
+            $return .= '
+                <div id="manage_subscriptions" class="e-newsletter-widget-screen" style="display:none;">';
+        else
+            $return .='
+                <div id="manage_subscriptions" class="e-newsletter-widget-screen">';
         $unsubscribe_code = isset( $member_data['unsubscribe_code'] ) ? $member_data['unsubscribe_code'] : '';
         $return .='
                     <input type="hidden" name="unsubscribe_code" id="unsubscribe_code" value="'.$unsubscribe_code.'" />';
-        if( $groups ) {
+
+        if( $show_groups && count($groups) > 0 ) {
+            if( isset($only_public) && $only_public == 1 )
+                foreach( (array) $groups as $group )
+                    if (!$group['public'] && in_array($group['group_id'], $member_groups) )
+                        $return .= '
+                        <input type="hidden" name="e_newsletter_groups_id[]" value="'.$group['group_id'].'"/>';
+
             $return .= '
                         <h3>'.__( 'Subscribe to:', 'email-newsletter' ).'</h3>
                         <p>
@@ -2365,7 +2468,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $checked = 'checked="checked"';
                 else
                     $checked = '';
-            $return .= '
+                if(!isset($only_public) || ($only_public && $group['public']) || !$only_public)
+                    $return .= '
                                     <li>
                                         <input type="checkbox" name="e_newsletter_groups_id[]" value="'.$group['group_id'].'" '.$checked.' id="e_newsletter_groups_id_'.$group['group_id'].'" />
                                         <label for="e_newsletter_groups_id_'.$group['group_id'].'">'.$group['group_name'].'</label>
@@ -2379,16 +2483,17 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     </p>';
         }
         $return .= '
-                    <p>
-                        <a href="#" id="unsubscribe" class="enewletter_widget_submit" >'.__( 'Unsubscribe', 'email-newsletter' ).'</a>
-                    </p>
+                <p>
+                    <a href="#" id="unsubscribe" class="enewletter_widget_submit" >'.__( 'Unsubscribe', 'email-newsletter' ).'</a>
+                </p>';
+        $return .= '
                 </div>';
         if($view != 'subscribe')
             $return .= '
-                <div id="subscribe" style="display:none;">';
+                <div id="subscribe" class="e-newsletter-widget-screen" style="display:none;">';
         else
             $return .= '
-                <div id="subscribe">';
+                <div id="subscribe" class="e-newsletter-widget-screen">';
         $return .= '
                     <input type="submit" id="subscribe" class="enewletter_widget_submit" value="'.__( 'Subscribe to Newsletters', 'email-newsletter' ).'" />
                 </div>
@@ -2407,6 +2512,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         if(!empty($subscribe_to_groups))
             $subscribe_to_groups = explode(',',$subscribe_to_groups);
+        if($show_groups == 'false')
+            $show_groups = false;
 
         $subscribe = $this->subscribe_widget($show_name, $show_groups, $subscribe_to_groups);
 
