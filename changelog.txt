@@ -6,6 +6,9 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.1.3 =
+* Fixed problems with groups subscribe behavior
+
 = 2.7.1.2 =
 * Added new behavior for widget/shortcode ([enewsletter_subscribe subscribe_to_groups="X" show_groups="0"]) that makes it simple for logged in users to subscribe and unsubscribe from defined groups
 
