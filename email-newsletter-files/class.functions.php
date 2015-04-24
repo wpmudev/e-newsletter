@@ -176,10 +176,11 @@ class Email_Newsletter_functions {
         $query = $wpdb->prepare(
                     "SELECT
                     A.*,
+                    MIN(B.status) AS 'status',
                     SUM(if(B.status = 'bounced', 1, 0)) AS 'count_bounced',
                     SUM(if(B.status = 'sent', 1, 0)) AS 'count_sent',
                     SUM(if(B.status = 'waiting_send', 1, 0)) AS 'count_send_members',
-                    SUM(if(B.status = 'by_cron', 1, 0)) AS 'count_send_cron',
+                    SUM(if(B.status = 'by_cron'  OR concat('',B.status * 1) = B.status, 1, 0)) AS 'count_send_cron',
                     SUM(if(B.opened_time > 0, 1, 0)) AS 'count_opened'
                     FROM {$this->tb_prefix}enewsletter_send A
                     LEFT JOIN {$this->tb_prefix}enewsletter_send_members B

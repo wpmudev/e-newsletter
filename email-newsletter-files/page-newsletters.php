@@ -10,7 +10,7 @@
     }
     $args = array('order' => $order, 'orderby' => false);
 
-    $url_orginal = add_query_arg( $args );
+    $url_orginal = esc_url(add_query_arg( $args ));
 
     if ( isset( $_REQUEST['orderby'] ) )
         $arg['orderby'] = $_REQUEST['orderby'];

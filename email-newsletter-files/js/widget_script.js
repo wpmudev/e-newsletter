@@ -68,6 +68,12 @@ jQuery( document ).ready( function() {
                         jQuery(this).text(data.message).slideDown('fast');
                     });
 
+                    if(typeof data.subscribe_groups !== "undefined") {
+                        jQuery.each(data.subscribe_groups, function(index, value) {
+                            console.log(parent.find('#e_newsletter_groups_id_'+value), parent.find('#e_newsletter_groups_id_'+value).attr("checked", true));
+                            parent.find('.e_newsletter_groups_id_'+value).attr("checked", true);
+                        });
+                    }
                     if(typeof data.unsubscribe_code !== "undefined") {
                         parent.find("#unsubscribe_code").val(data.unsubscribe_code);
                     }

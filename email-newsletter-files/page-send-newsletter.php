@@ -280,6 +280,8 @@
                 <td style="vertical-align: middle;">
                     <?php
                         echo $send['count_send_cron'];
+                        if(is_numeric($send['status']))
+                            echo ' <small>('.get_date_from_gmt(date('Y-m-d H:i:s', $send['status'])).')</small>';
                         $total['cron'] += $send['count_send_cron'];
                     ?>
                 </td>
