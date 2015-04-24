@@ -6,6 +6,11 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.1.5 =
+* Added compatibility with WP 4.2
+* Possibly fixed server sending error detecting
+* Fixed XSS security issue
+
 = 2.7.1.4 =
 * Fixed incorrect count for newsletters scheduled to be sent at chosen time
 * Added date info for newsletter scheduled to be sent at chosen time

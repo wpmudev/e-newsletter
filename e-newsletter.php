@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.1.4
+Version: 2.7.1.5
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -486,7 +486,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ( isset( $_REQUEST['newsletter_action'] ) ) {
             //handle custom redirects
             if(isset($_REQUEST['redirect_to']))
-                $redirect = $_REQUEST['redirect_to'];
+                $redirect = esc_url_raw($_REQUEST['redirect_to']);
 
             switch( $_REQUEST[ 'newsletter_action' ] ) {
 
@@ -559,7 +559,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                     $result = $this->add_member( $_REQUEST['member'] );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) ) : $redirect;
+                    $redirect = !isset($redirect) ? esc_url_raw(add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) )) : $redirect;
                     wp_redirect( $redirect );
                     exit();
                 break;
@@ -571,7 +571,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                     $result = $this->edit_member( $_REQUEST['member_id'], $_REQUEST['edit_member_nicename'], $_REQUEST['edit_member_email'] );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) ) : $redirect;
+                    $redirect = !isset($redirect) ? esc_url_raw(add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) ) ) : $redirect;
                     wp_redirect( $redirect );
                     exit();
                 break;
@@ -584,7 +584,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $member_id = array($_REQUEST['member_id']);
                     $result = $this->delete_members( $member_id );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) ) : $redirect;
+                    $redirect = !isset($redirect) ? esc_url_raw(add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) ) ) : $redirect;
                     wp_redirect( $redirect );
                     exit;
                 break;
@@ -596,7 +596,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                     $result = $this->delete_members( $_REQUEST['members_id'] );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) ) : $redirect;
+                    $redirect = !isset($redirect) ? esc_url_raw(add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( $result['message'] ) ) )) : $redirect;
                     wp_redirect( $redirect );
                     exit();
                 break;
@@ -625,7 +625,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     else
                         $result = $this->add_members_to_groups( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are added to the group!', 'email-newsletter' ) ) ) ) : $redirect;
+                    $redirect = !isset($redirect) ? esc_url_raw(add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are added to the group!', 'email-newsletter' ) ) ) )) : $redirect;
                     wp_redirect( $redirect );
                     exit();
                 break;
@@ -653,7 +653,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $groups_id = ( isset( $_REQUEST['groups_id'] ) ) ? $_REQUEST['groups_id'] : array();
                     $result = $this->add_members_to_groups( $_REQUEST['member_id'], $groups_id, 1 );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Groups are changed!', 'email-newsletter' ) ) ) ) : $redirect;
+                    $redirect = !isset($redirect) ? esc_url_raw(add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Groups are changed!', 'email-newsletter' ) ) ) )) : $redirect;
                     wp_redirect( $redirect );
                     exit;
                 break;
@@ -666,7 +666,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                     $result = $this->delete_members_group( $_REQUEST['members_id'], $_REQUEST['list_group_id'] );
 
-                    $redirect = !isset($redirect) ? add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are deleted from the group!', 'email-newsletter' ) ) ) ) : $redirect;
+                    $redirect = !isset($redirect) ? esc_url_raw(add_query_arg( array( 'page' => 'newsletters-members', 'updated' => 'true', 'message' => urlencode( __( 'Members are deleted from the group!', 'email-newsletter' ) ) ) )) : $redirect;
                     wp_redirect( $redirect );
                     exit();
                 break;
@@ -1672,7 +1672,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
                 $this->write_log( 'Send status: '.$sent_status);
-                if( $sent_status == true ) {
+                if( $sent_status === true ) {
                     //write info of Sent in DB
                     $result = $this->set_send_email_status('sent', $send_id, $send_member['member_id'], $send_member['wp_only_user_id'], $send_data['newsletter_id'] );
                     if ( $result )
@@ -1831,7 +1831,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                             $options['message_id'] = 'Newsletters-' . $bounce_id . '-' . $send_id . '-'. $bounce_hash;
 
                             $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
-                            if( $sent_status == true ) {
+                            if( $sent_status === true ) {
                                 //write info of Sent in DB
                                 $result = $this->set_send_email_status('sent', $send_member['send_id'], $send_member['member_id'], $send_member['wp_only_user_id'], $send_data['newsletter_id']);
 
@@ -1983,9 +1983,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
             if( $this->settings['bounce_email'] ) {
                 $options = array('bounce_email' => $this->settings['bounce_email']);
             }
+            else
+                $options = array();
 
             $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $_REQUEST['preview_email'], $subject, $content, $options );
-            if( $sent_status == true )
+            if( $sent_status === true )
                 die( __( 'Your test email has been sent.', 'email-newsletter' ) );
             else
                 die( __( 'Failed to send test email! Make sure that entered email is correct and also check outgoing email settings.', 'email-newsletter' ) );
@@ -2075,7 +2077,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $options            = array ();
 
         $send_status = $this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents, $options );
-        if( $send_status != true )
+        if( $send_status !== true )
             die( __( 'Failed to send test email! Please check your outgoing email settings.', 'email-newsletter' )  );
 
         sleep(10);

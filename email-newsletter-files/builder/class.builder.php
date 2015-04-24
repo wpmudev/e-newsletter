@@ -500,6 +500,7 @@ class Email_Newsletter_Builder  {
 		// Setup Sections
 		$instance->remove_section( 'title_tagline' );
 		$instance->remove_section( 'static_front_page' );
+		$instance->remove_section( 'themes' );
 		$instance->add_section( 'builder_email_settings', array(
 			'title'          => __('Settings','email-newsletter'),
 			'priority'       => 35,

@@ -58,7 +58,6 @@ jQuery( document ).ready( function() {
             };
 
             jQuery.post(email_newsletter_widget_scripts.ajax_url, data, function(data){ //post data to specified action trough special WP ajax page
-                console.log(data);
                 data = jQuery.parseJSON(data);
 
                 if(typeof data.redirect !== 'undefined' && data.redirect)
@@ -70,7 +69,6 @@ jQuery( document ).ready( function() {
 
                     if(typeof data.subscribe_groups !== "undefined") {
                         jQuery.each(data.subscribe_groups, function(index, value) {
-                            console.log(parent.find('#e_newsletter_groups_id_'+value), parent.find('#e_newsletter_groups_id_'+value).attr("checked", true));
                             parent.find('.e_newsletter_groups_id_'+value).attr("checked", true);
                         });
                     }
