@@ -6,6 +6,9 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.1.6 =
+* Fixed issues when subscribing in admin panel of non-main site
+
 = 2.7.1.5 =
 * Added compatibility with WP 4.2
 * Possibly fixed server sending error detecting
