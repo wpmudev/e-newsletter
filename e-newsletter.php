@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.1.6
+Version: 2.7.1.7
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -1663,12 +1663,14 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 $first_name = $this->get_firstname($member_data['wp_user_id'], $member_data['member_nicename']);
                 $contents = $this->personalise_email_body($contents, $send_member['member_id'], $send_member['wp_only_user_id'], $member_data['join_date'], $member_data['unsubscribe_code'], $send_data['start_time'], array('user_name' => $user_name, 'first_name' => $first_name, 'to_email' => $member_data["member_email"]));
 
+                $newsletter_data["subject"] = $this->personalise_email_body($newsletter_data["subject"], $send_member['member_id'], $send_member['wp_only_user_id'], $member_data['join_date'], $member_data['unsubscribe_code'], $send_data['start_time'], array('user_name' => $user_name, 'first_name' => $first_name, 'to_email' => $member_data["member_email"]));
+
                 if((isset($newsletter_data['bounce_email']) && !empty($newsletter_data['bounce_email'])) || (isset($this->settings['bounce_email']) && !empty($this->settings['bounce_email'])))
                     $options['bounce_email'] = (isset($newsletter_data['bounce_email']) && !empty($newsletter_data['bounce_email'])) ? $newsletter_data['bounce_email'] : $this->settings['bounce_email'];
 
                 $from_domain = explode('@',$newsletter_data['from_email']);
                 $from_domain = isset($from_domain[1]) ? '@'.$from_domain[1] : '';
-                $options['message_id'] = 'Newsletters-' . $bounce_id . '-' . $send_id . '-'. $bounce_hash.$from_domain;
+                $options['message_id'] = 'newsletters-' . $bounce_id . '-' . $send_id . '-'. $bounce_hash.$from_domain;
 
                 $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
                 $this->write_log( 'Send status: '.$sent_status);
@@ -1927,7 +1929,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 $this->write_log('bounce: checked email');
 
-                if( preg_match( '/X-Mailer:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) || preg_match( '/Message-ID:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ) {
+                if( preg_match( '/X-Mailer:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) || preg_match( '/Message-ID:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches)  || preg_match( '/Message-ID:\s*<?newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches)  || preg_match( '/Message-ID:\s*<?newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ) {
 
                     $member_id      = ( int ) $matches[1];
                     $send_id        = ( int ) $matches[2];
@@ -2170,6 +2172,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             foreach( $replace as $key=>$val ) {
                 if( is_array( $val ) )continue;
                 $email_contents = preg_replace( '/\{'.strtoupper( preg_quote( $key,'/' ) ).'\}/', $val, $email_contents );
+                $email_subject = preg_replace( '/\{'.strtoupper( preg_quote( $key,'/' ) ).'\}/', $val, $email_subject );
             }
 
             $sent_status = $this->send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents );

@@ -396,7 +396,10 @@ class Email_Newsletter_functions {
         global $wpdb;
         $member_results = array();
 
-        if( ( isset($member_data['member_email']) && is_email($member_data['member_email']) ) || is_numeric($wp_user_id) || ( isset($member_data['member_id']) && is_numeric($member_data['member_id']) ) ) {
+        //remove spaces and tabs from email
+        $member_data['member_email'] = isset($member_data['member_email']) ? str_replace(array("\n", "\r", "\t", " "), "", $member_data['member_email']) : '';
+
+        if( is_email($member_data['member_email']) || is_numeric($wp_user_id) || ( isset($member_data['member_id']) && is_numeric($member_data['member_id']) ) ) {
             $member_possible_data = array('member_id', 'wp_user_id', 'member_fname', 'member_lname', 'member_email', 'unsubscribe_code', 'member_info');
             foreach ($member_possible_data as $data)
                 if(!isset($member_data[$data]))
@@ -471,10 +474,6 @@ class Email_Newsletter_functions {
                 $member_data['unsubscribe_code'] = $this->gen_unsubscribe_code();
             elseif($subscribe === 0)
                 $member_data['unsubscribe_code'] = '';
-
-            //remove spaces and tabs from email
-            $member_data['member_email'] = str_replace(' ', '', $member_data['member_email']);
-            $member_data['member_email'] = str_replace("\t", '', $member_data['member_email']);
 
             //if email - do the magic!
             if(is_email($member_data['member_email'])) {
@@ -1142,6 +1141,17 @@ class Email_Newsletter_functions {
         else
             $contents = $contents.'{OPENED_TRACKER}';
 
+        $default_header = $this->get_default_builder_var('header_image');
+        $default_header = (!empty($default_header)) ? $template_url.$default_header : '';
+        
+        $visuals_prepare =
+        array(
+            'images' => array(
+                'header_image' => $this->get_newsletter_meta($newsletter_id,'header_image', $default_header)
+            )
+        );
+        $contents = $this->make_email_values($visuals_prepare, $contents, $newsletter_id);
+
         //do the inline styling
         $contents = $this->do_inline_styles($contents, $contents_parts['default_style'].$contents_parts['style']);
 
@@ -1159,16 +1169,10 @@ class Email_Newsletter_functions {
         $default_bg = $this->get_default_builder_var('bg_image');
         $default_bg = (!empty($default_bg)) ? $template_url.$default_bg : '';
 
-        $default_header = $this->get_default_builder_var('header_image');
-        $default_header = (!empty($default_header)) ? $template_url.$default_header : '';
-
         $visuals_prepare =
         array(
             'standard' => array(
                 'bg_image' => $this->get_newsletter_meta($newsletter_id,'bg_image', $default_bg)
-            ),
-            'images' => array(
-                'header_image' => $this->get_newsletter_meta($newsletter_id,'header_image', $default_header)
             ),
             'colors' => array(
                 'link_color' => $this->get_newsletter_meta($newsletter_id, 'link_color', $this->get_default_builder_var('link_color')),
@@ -1195,6 +1199,13 @@ class Email_Newsletter_functions {
             foreach ($classes_to_aligns as $class_to_align)
                 if ($img->hasAttribute('class') && strstr($img->getAttribute('class'), 'align'.$class_to_align))
                     $img->setAttribute('align', $class_to_align);
+
+            /*
+            if ($img->hasAttribute('width') )
+                $img->removeAttribute('width');
+            */
+            if ($img->hasAttribute('height'))
+                $img->removeAttribute('height');
 
             if ($img->hasAttribute('class') && strstr($img->getAttribute('class'), 'aligncenter')) {
                 $img_style = $img->getAttribute('style');

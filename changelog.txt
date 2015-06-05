@@ -6,6 +6,11 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.1.7 =
+* Improved handling of emails when subscribing
+* Improved Message-ID compatibility with Gmail
+* Improved E-mail responsiveness
+
 = 2.7.1.6 =
 * Fixed issues when subscribing in admin panel of non-main site
 
