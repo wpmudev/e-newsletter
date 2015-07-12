@@ -62,6 +62,7 @@ class Email_Newsletter_Builder  {
 			add_action( 'customize_register', array( &$this, 'init_newsletter_builder'),9999 );
 			add_action( 'setup_theme' , array( &$this, 'setup_builder_header_footer' ), 999 );
 			add_filter( 'wp_default_editor', array( &$this, 'force_default_editor' ) );
+			add_filter( 'user_can_richedit', array( &$this, 'force_richedit' ) );
 
 			//fix for tinymce load problem on wp 4.1 and up?
 			add_action( 'admin_head', array( &$this, 'prepare_tinymce' ), 1 );
@@ -232,9 +233,13 @@ class Email_Newsletter_Builder  {
 						jQuery('[data-customize-setting-link="template"]').val(new_theme);
 						jQuery('[data-customize-setting-link="template"]').trigger('change');
 
+						console.log(jQuery('[data-customize-setting-link="template"]').val(), 1);
+
 						//make sure it is set
 						var set_val = setInterval(function () {
+							console.log(jQuery('[data-customize-setting-link="template"]').val(), new_theme, 2);
 							if(jQuery('[data-customize-setting-link="template"]').val() == new_theme) {
+								console.log(jQuery('[data-customize-setting-link="template"]').val(), new_theme, 3);
 					        	jQuery("#save").click();
 					        	clearInterval(set_val);
 					        }
@@ -243,6 +248,7 @@ class Email_Newsletter_Builder  {
 				});
 
 				wp.customize.bind( 'saved', function() {
+					console.log(jQuery('[data-customize-setting-link="template"]').val(), new_theme, 4);
 					var new_theme = jQuery('[data-customize-setting-link="template"]').val();
 					if(current_theme != new_theme)
 						window.location.href = window.location.href.replace('theme='+current_theme,'theme='+new_theme);
@@ -311,6 +317,10 @@ class Email_Newsletter_Builder  {
 
 	function force_default_editor() {
     	return 'tinymce';
+	}
+
+	function force_richedit() {
+    	return true;
 	}
 
 	function get_builder_email_id() {

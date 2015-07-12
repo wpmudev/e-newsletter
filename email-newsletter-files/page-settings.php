@@ -221,6 +221,12 @@
                                             <input type="radio" name="settings[outbound_type]" value="mail" class="email_out_type" <?php echo (isset($this->settings['outbound_type']) && $this->settings['outbound_type'] == 'mail') ? 'checked="checked"' : '';?> /><?php echo _e( 'PHP mail', 'email-newsletter' );?>
                                         </label>
 										<?php $tips->bind_tip(__( "This method uses php functions for sending newsletters and emails. Be careful because some hosts may set restrictions on using this method. If you can't edit settings of your server, we recommend to use the SMTP method for optimal results!", 'email-newsletter' ), '#tip_php'); ?>
+
+                                        <label id="tip_wpmail">
+                                            <input type="radio" name="settings[outbound_type]" value="wpmail" class="email_out_type" <?php echo (isset($this->settings['outbound_type']) && $this->settings['outbound_type'] == 'wpmail') ? 'checked="checked"' : '';?> /><?php echo _e( 'WP mail', 'email-newsletter' );?>
+                                        </label>
+                                        <?php $tips->bind_tip(__( "This method uses default WordPress email related functions for sending newsletters and emails. It will let you use other plugins to send emails but may stop bounce checking from working.", 'email-newsletter' ), '#tip_wpmail'); ?>
+ 
                                     </td>
                                 </tr>
                                 <tr valign="top">

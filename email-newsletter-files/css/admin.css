@@ -208,7 +208,7 @@ vertical-align: middle !important;
 .wpmudev-help {
     margin:10px 0;
 }
-#tip_smtp {
+#tip_smtp, #tip_php {
     margin-right: 10px;
 }
 .newsletter-settings-tabs {

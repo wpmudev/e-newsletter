@@ -1012,67 +1012,113 @@ class Email_Newsletter_functions {
      * Send email
      **/
     function send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents,  $options=array() ) {
-        if ( !class_exists( 'ePHPMailer' ) )
-            require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
+    	global $enewsletter_send_options;
 
-        $mail = new ePHPMailer();
-        $mail->CharSet = 'UTF-8';
+    	$enewsletter_send_options = $options;
 
-        //Set Sending Method
-        switch( $this->settings['outbound_type'] ) {
-            case 'smtp':
-                $mail->IsSMTP();
-                $mail->Host = $this->settings['smtp_host'];
+    	if($this->settings['outbound_type'] == 'wpmail') {
+    		add_filter('wp_mail_content_type', create_function('', 'return "text/html"; '));
+    		add_filter( 'wp_mail_from', create_function('', 'return "'.$email_from.'"; ') );
+    		if( $email_from_name )
+    			add_filter( 'wp_mail_from_name', create_function('', 'return "'.$email_from_name.'"; ') );
+    		add_action( 'phpmailer_init', array($this, 'wp_mail_phpmailer_init'));
 
-                if($this->settings['smtp_secure_method'] == 'tls' || $this->settings['smtp_secure_method'] == 'ssl')
-                    $mail->SMTPSecure = $this->settings['smtp_secure_method'];
-                if(!empty($this->settings['smtp_port']))
-                    $mail->Port = $this->settings['smtp_port'];
+    		$this->send_options = $enewsletter_send_options;
 
-                $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
 
-                if( $mail->SMTPAuth ){
-                    $mail->Username = esc_attr($this->settings['smtp_user']);
-                    $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
-                }
-                break;
-            case 'mail':
-                $mail->IsMail();
-                break;
+    		$headers = array();
+    		$headers[] = $email_from_name ? 'From: '.$email_from_name.' <'.$email_from.'>' : 'From: <'.$email_from.'>';
+    		if( isset($options['bounce_email']) )
+    			$headers[] = 'Return-Path: <'.$options['bounce_email'].'>';
+    		if( isset($options['message_id']) ) {
+    			$headers[] = 'X-Mailer: '.$options['message_id'];
+    			$headers[] = 'Message-ID: '.$options['message_id'];
+			}
 
-            case 'sendmail':
-                $mail->IsSendmail();
-                break;
-        }
+    		$sent_status = wp_mail( $email_to, $email_subject, $email_contents, $headers );
 
-        $mail->From = $email_from;
-        if( $email_from_name ) {
-            $mail->FromName = $email_from_name;
-        }
-        $mail->Subject = $email_subject;
-        $mail->isHTML( true );
-        $mail->MsgHTML( $email_contents );
-        $mail->AddAddress( $email_to );
+	        if( !$sent_status ) {
+	            $this->write_log('WP Mail send email error');
+	            return 'WP Mail send email error';
+	        }
+    	}
+    	else {
+	        if ( !class_exists( 'ePHPMailer' ) )
+	            require_once( $this->plugin_dir . "email-newsletter-files/phpmailer/class.phpmailer.php" );
 
-        if( isset($options['bounce_email']) )
-            $mail->Sender = $options['bounce_email'];
-        else
-            $mail->Sender = $email_from;
+	        $mail = new ePHPMailer();
+	        $mail->CharSet = 'UTF-8';
 
-        if( isset($options['message_id']) ) {
-            $mail->XMailer = $options['message_id'];
-            $mail->MessageID = $options['message_id'];
-        }
+	        //Set Sending Method
+	        switch( $this->settings['outbound_type'] ) {
+	            case 'smtp':
+	                $mail->IsSMTP();
+	                $mail->Host = $this->settings['smtp_host'];
 
-        $sent_status = $mail->Send();
-        if( !$sent_status ) {
-            $this->write_log( 'Send email error: '.$mail->ErrorInfo.'['.$mail->ErrorInfoRaw.']');
-            return $mail->ErrorInfoRaw;
-        }
+	                if($this->settings['smtp_secure_method'] == 'tls' || $this->settings['smtp_secure_method'] == 'ssl')
+	                    $mail->SMTPSecure = $this->settings['smtp_secure_method'];
+	                if(!empty($this->settings['smtp_port']))
+	                    $mail->Port = $this->settings['smtp_port'];
+
+	                $mail->SMTPAuth = ( strlen( $this->settings['smtp_user'] ) > 0 );
+
+	                if( $mail->SMTPAuth ){
+	                    $mail->Username = esc_attr($this->settings['smtp_user']);
+	                    $mail->Password = $this->_decrypt( $this->settings['smtp_pass'] );
+	                }
+	                break;
+	            case 'mail':
+	                $mail->IsMail();
+	                break;
+
+	            case 'sendmail':
+	                $mail->IsSendmail();
+	                break;
+	        }
+
+	        $mail->From = $email_from;
+	        if( $email_from_name ) {
+	            $mail->FromName = $email_from_name;
+	        }
+	        $mail->Subject = $email_subject;
+	        $mail->isHTML( true );
+	        $mail->MsgHTML( $email_contents );
+	        $mail->AddAddress( $email_to );
+
+	        if( isset($options['bounce_email']) )
+	            $mail->Sender = $options['bounce_email'];
+	        else
+	            $mail->Sender = $email_from;
+
+	        if( isset($options['message_id']) ) {
+	            $mail->XMailer = $options['message_id'];
+	            $mail->MessageID = $options['message_id'];
+	        }
+
+	        $sent_status = $mail->Send();
+	        if( !$sent_status ) {
+	            $this->write_log( 'Send email error: '.$mail->ErrorInfo.'['.$mail->ErrorInfoRaw.']');
+	            return $mail->ErrorInfoRaw;
+	        }
+	    }
 
         $wait_time = isset($options['wait']) ? $options['wait'] : 1;
         sleep( $wait_time );
         return true;
+    }
+
+    function wp_mail_phpmailer_init($phpmailer) {
+    	$options = $this->send_options;
+
+        if( isset($options['bounce_email']) )
+            $phpmailer->Sender = $options['bounce_email'];
+        else
+            $phpmailer->Sender = $email_from;
+
+        if( isset($options['message_id']) ) {
+            $phpmailer->XMailer = $options['message_id'];
+            $phpmailer->MessageID = $options['message_id'];
+        }
     }
 
     /**
