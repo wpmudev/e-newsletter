@@ -285,7 +285,38 @@ class Email_Newsletter_functions {
     }
 
     /**
+     * Get all subscribers of a M2 Membership.
+     *
+     * M2 stores subscriptions as custom post type using post-meta values.
+     * So we need to have a join to the posts/postmeta tables to fetch details
+     * on active subscriptions.
+     **/
+    function get_members_of_membership2( $membership_id, $count = 0 ) {
+        global $wpdb;
+
+        $arg = array();
+        $membership_id = intval($membership_id);
+
+        $arg['inner_join'] = "
+        wp_2_posts Sub ON Sub.post_author = A.wp_user_id
+        INNER JOIN wp_2_postmeta SubMem ON SubMem.post_id = Sub.Id AND SubMem.meta_key='membership_id'
+        INNER JOIN wp_2_postmeta SubAct ON SubAct.post_id = Sub.Id AND SubAct.meta_key='status'
+        ";
+
+        $arg['where'] = "
+        Sub.post_type = 'ms_relationship'
+        AND SubAct.meta_value = 'active'
+        AND SubMem.meta_value = {$membership_id}
+        ";
+
+        $members = $this->get_members($arg, $count, 0);
+
+        return $members;
+    }
+
+    /**
      * Get all members of membership
+     * @deprecated The Membership plugin was replaced by M2 (above)
      **/
     function get_members_of_membership( $level_id, $count = 0 ) {
         global $wpdb;
@@ -604,14 +635,34 @@ class Email_Newsletter_functions {
             }
         }
 
-        if($membership && function_exists('membership_db_prefix')) {
-            $prefix = membership_db_prefix($wpdb, 'membership_levels');
-            $membership_levels = $wpdb->get_results("SELECT * FROM {$prefix} WHERE level_active = 1", "ARRAY_A");
-            foreach ($membership_levels as $membership_level) {
-                $count = $this->get_members_of_membership($membership_level, 1);
-                if($count) {
-                    $targets['membership_levels']['name'] = __( 'Membership Plugin Levels', 'email-newsletter' );
-                    $targets['membership_levels'][] = '<label><input type="checkbox" name="target[membership_levels][]" value="'.$membership_level['id'].'"> '.$membership_level['level_title'].' ('.$count.')</input></label>';
+        if($membership){
+            if (class_exists('MS_Plugin')) {
+                // Support for the Membership 2 plugin.
+                $api = MS_Plugin::$api;
+                $memberships = $api->list_memberships();
+                if (count($memberships)) {
+                    $targets['m2'] = array();
+                    $targets['m2']['name'] = __( 'Membership 2 Subscribers', 'email-newsletter' );
+                    foreach ($memberships as $membership) {
+                        $count = $this->get_members_of_membership2($membership->id, 1);
+                        $targets['m2'][] = sprintf(
+                            '<label><input type="checkbox" name="target[m2][]" value="%2$s" /> %1$s (%3$s)</label>',
+                            $membership->name,
+                            $membership->id,
+                            $count
+                        );
+                    }
+                }
+            } elseif (function_exists('membership_db_prefix')) {
+                // Support for old Membership1 plugin (deprecated).
+                $prefix = membership_db_prefix($wpdb, 'membership_levels');
+                $membership_levels = $wpdb->get_results("SELECT * FROM {$prefix} WHERE level_active = 1", "ARRAY_A");
+                foreach ($membership_levels as $membership_level) {
+                    $count = $this->get_members_of_membership($membership_level, 1);
+                    if($count) {
+                        $targets['membership_levels']['name'] = __( 'Membership Plugin Levels', 'email-newsletter' );
+                        $targets['membership_levels'][] = '<label><input type="checkbox" name="target[membership_levels][]" value="'.$membership_level['id'].'"> '.$membership_level['level_title'].' ('.$count.')</input></label>';
+                    }
                 }
             }
         }

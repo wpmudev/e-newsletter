@@ -1531,6 +1531,17 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     $members_id = array_merge ( $members_id,  $this->get_members_of_group( $group_id, '', 1 ) );
                 }
 
+            //Get ids for Membership 2 subscribers
+            if ( isset( $_REQUEST["target"]["m2"] ) && is_array($_REQUEST["target"]["m2"]) ) {
+                foreach ( $_REQUEST["target"]["m2"] as $membership_id ) {
+                    $members = $this->get_members_of_membership2($membership_id);
+                    foreach ( $members as $member ) {
+                        $members_id[] = $member['member_id'];
+                    }
+                }
+            }
+
+            // Deprecated: Membership plugin was replaced by M2 (above)
             //Get ids for Membership levels being subscribed eNewsletter members
             if ( isset( $_REQUEST["target"]["membership_levels"] ) && is_array($_REQUEST["target"]["membership_levels"]) )
                 foreach ( $_REQUEST["target"]["membership_levels"] as $membership_level ) {
