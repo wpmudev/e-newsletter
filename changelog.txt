@@ -8,6 +8,7 @@ Contributors: Cole, Andrey
 
 = 2.7.2.1 =
 * Added support for Membership 2 Pro plugin
+* Added possibility to translate opt in email with standard translation files
 
 = 2.7.2 =
 * Added WP mail sending method that can be used for integration with other email sending plugins

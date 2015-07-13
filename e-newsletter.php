@@ -291,7 +291,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             else
                 update_option('email_newsletter_version', $this->plugin_ver);
         }
-        if(!$upgraded_cron) {
+        if(!$upgraded_cron && !wp_next_scheduled('email_newsletter_upgrade_cron')) {
             wp_schedule_single_event(time(), 'email_newsletter_upgrade_cron');
         }
     }
@@ -2169,7 +2169,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
             if( file_exists($this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html') ) {
                 $email_contents     = file_get_contents( $this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html' );
             } else {
-                $email_contents     = file_get_contents( $this->plugin_dir . "email-newsletter-files/emails/double_optin.html" );
+                ob_start();
+                include($this->plugin_dir . "email-newsletter-files/emails/double_optin.php");
+                $email_contents = ob_get_clean();
             }
 
             $replace = array(

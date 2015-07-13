@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: email-newsletter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-06-29 13:03+0100\n"
-"PO-Revision-Date: 2015-06-29 13:03+0100\n"
+"POT-Creation-Date: 2015-07-13 11:56+0100\n"
+"PO-Revision-Date: 2015-07-13 11:56+0100\n"
 "Last-Translator: \n"
 "Language-Team: Incsub\n"
 "Language: en\n"
@@ -401,64 +401,64 @@ msgid "The group has been created."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1576
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1587
 msgid "All members have already received it or no user is subscribed!"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1579
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1594
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1590
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1605
 msgid "Members are added to CRON list"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1607
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1618
 msgid "Members are removed from CRON list"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1683
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1690
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1702
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1694
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1701
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1713
 msgid "Error when updating DB."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1693
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1704
 msgid "Error sending email. Please check outgoing email settings."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1976
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1987
 msgid "No valid newsletter ID supplied."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1993
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2004
 msgid "Your test email has been sent."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1995
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2006
 msgid ""
 "Failed to send test email! Make sure that entered email is correct and also "
 "check outgoing email settings."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:1997
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2008
 msgid "Failed to generate email body."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2057
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2068
 msgid ""
 "Failed to send test email! - Please check your outgoing email settings and "
 "server config to see if selected ports are open. Error details: "
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2060
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2071
 msgid ""
 "Test message successfully sent! Feel free to save your settings. Please keep "
 "in mind that your server may limit the number of allowed messages to be sent "
@@ -466,67 +466,67 @@ msgid ""
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2068
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2079
 msgid "PHP Imap not supported"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2083
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2094
 msgid "Failed to send test email! Please check your outgoing email settings."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2109
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2120
 msgid ""
 "Failed to connect while checking bounces! Please check your bounce settings "
 "and server config to see if selected ports are open. Error details: "
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2130
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2141
 msgid "Successfully connected! Feel free to save your settings."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2138
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2149
 msgid "Bounce test message not found!"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2154
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2165
 msgid "Confirm newsletter subscription"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2217
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2229
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2230
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2242
 msgid "eNewsletter"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2218
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2231
 msgid "Reports"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2219
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2232
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:31
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/page-newsletters.php:31
 msgid "Newsletters"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2220
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2233
 msgid "Create Newsletter"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2221
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2234
 msgid "Member Groups"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2222
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2235
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/page-groups.php:57
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/page-members.php:72
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:34
@@ -534,84 +534,84 @@ msgid "Members"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2223
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:510
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2236
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:515
 msgid "Settings"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2226
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2239
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/page-subscribe.php:29
 msgid "My Subscriptions"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2230
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2243
 msgid "Install Settings"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2282
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2295
 msgid "Select groups for this user:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2287
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2300
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/page-members.php:472
 msgid "Subscribed"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2300
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2313
 msgid "Please create some groups."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2326
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2339
 msgid "Please write your Email!"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2327
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2340
 msgid "Saving..."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2389
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2402
 msgid "Your Email:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2395
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2408
 msgid "Your Name:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2401
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2486
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2414
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2499
 msgid "Subscribe to:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2421
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2442
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2434
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2455
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/page-settings.php:175
 msgid "Subscribe"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2461
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2510
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2474
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2523
 msgid "Unsubscribe"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2505
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2518
 msgid "Save Subscriptions"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2521
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/e-newsletter.php:2534
 msgid "Subscribe to Newsletters"
 msgstr ""
 
@@ -636,106 +636,106 @@ msgid "Choose template"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:255
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:260
 msgid "You have unsaved data in this newsletter."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:394
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:399
 msgid "Images"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:427
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:432
 msgid "Colors"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:437
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:442
 msgid "Background Color"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:449
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:454
 msgid "Body Text Color"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:461
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:466
 msgid "Alternative Text Color"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:474
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:479
 msgid "Title Text Color"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:486
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:491
 msgid "Link Color"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:499
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:504
 msgid "Email Title"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:514
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:519
 msgid "Content"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:518
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:523
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.preview-control.php:11
 msgid "Send Preview"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:566
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:571
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/page-newsletters.php:71
 msgid "Template"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:571
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:576
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/page-newsletters-dashboard.php:99
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/page-newsletters.php:64
 msgid "Email Subject"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:576
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:581
 msgid "From Name"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:581
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:586
 msgid "From Email"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:586
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:591
 msgid "Bounce Email"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:591
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:596
 msgid "Email Content"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:596
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:601
 msgid "Branding HTML/text"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:601
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:606
 msgid "Contact Info"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:606
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/builder/class.builder.php:611
 msgid "Send Preview To Email (Save First)"
 msgstr ""
 
@@ -753,89 +753,94 @@ msgid ""
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:601
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:632
 msgid "eNewsletter Groups"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:613
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:645
+msgid "Membership 2 Subscribers"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:663
 msgid "Membership Plugin Levels"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:629
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:680
 msgid "WordPress User Roles"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:638
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:689
 msgid "Admins of all sites"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:932
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:983
 msgid "every 2 min"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1149
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1200
 msgid "From"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1150
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1201
 msgid "Not interested anymore?"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1151
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1202
 msgid "Unsubscribe Instantly."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1712
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1763
 msgid "Import is finished successfully,"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1712
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1763
 msgid "members are added or subscribed to group(s)."
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1715
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1766
 msgid "These emails already exist in member list:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1723
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1735
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1774
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1786
 msgid "...and "
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1727
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1778
 msgid "These emails are incorrect:"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1747
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1798
 msgid "Import ERROR: Problem with uploading of the file!"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1751
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1802
 msgid ""
 "Import ERROR: Please change permission for the folder /wp-content/uploads/"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1903
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1954
 msgid "The Plugin is installed!"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1907
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.functions.php:1958
 msgid "The Settings are saved!"
 msgstr ""
 
@@ -877,6 +882,35 @@ msgstr ""
 #: C:\Programs
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/class.wp_widgets.php:87
 msgid "Automatically subscribe to following groups:"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/emails/double_optin.php:2
+msgid "Newsletter Subscription"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/emails/double_optin.php:4
+msgid "Hi {FIRST_NAME},<br> Thank you for subscribing to our e-newsletter."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/emails/double_optin.php:7
+msgid ""
+"Please <strong>confirm</strong> your subscription by <a href="
+"\"{CONFIRM_SUBSCRIPTION}\">clicking here</a>."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/emails/double_optin.php:11
+msgid ""
+"If the link doesn't work, you can also copy &amp; paste this link to confirm:"
+"<br/>{CONFIRM_SUBSCRIPTION}"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\e-newsletter/email-newsletter-files/emails/double_optin.php:15
+msgid "For further information or enquiries, please contact our team."
 msgstr ""
 
 #: C:\Programs
