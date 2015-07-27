@@ -1062,10 +1062,12 @@ class Email_Newsletter_functions {
     /**
      * Send email
      **/
-    function send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents,  $options=array() ) {
+    function send_email( $email_from_name, $email_from, $email_to, $email_subject, $email_contents, $options=array() ) {
     	global $enewsletter_send_options;
 
     	$enewsletter_send_options = $options;
+
+        $email_contents = wordwrap($email_contents, 50);
 
     	if($this->settings['outbound_type'] == 'wpmail') {
     		add_filter('wp_mail_content_type', create_function('', 'return "text/html"; '));
