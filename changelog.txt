@@ -6,6 +6,13 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.2.4 =
+* Fixed issues with site theme customizer
+
+= 2.7.2.3 =
+* Removed 'test' string
+* Fixed issues when deleting custom theme used in newsletter
+
 = 2.7.2.2 =
 * Fixed possible problem with unexpected ? or ! when string was too long 
 

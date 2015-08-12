@@ -1387,7 +1387,7 @@ class Email_Newsletter_functions {
     /**
      * Get theme details
      **/
-    function get_selected_theme($theme_name) {
+    function get_selected_theme($theme_name, $newsletter_id = false) {
         global $wp_theme_directories;
 
         $added = 0;
@@ -1405,7 +1405,7 @@ class Email_Newsletter_functions {
             wp_clean_themes_cache();
 
         $theme = wp_get_theme($theme_name);
-        if($theme) {
+        if($theme->exists()) {
             $template = $this->get_theme_dir_url($theme, $theme_name);
 
             //load theme options
@@ -1422,8 +1422,22 @@ class Email_Newsletter_functions {
             $return = array('url' => $template['url'], 'dir' => $template['dir'], 'Stylesheet' => $theme['Stylesheet'], 'Template' => $theme['Template'], 'Status' => $theme['Status'], 'Style' => $styles['default_style'].$styles['style']);
             return $return;
         }
-        else
-            return false;
+        else if($theme_name != 'iletter') {
+            if($newsletter_id) {
+                global $wpdb;
+                $query = $wpdb->prepare(
+                    "UPDATE {$this->tb_prefix}enewsletter_newsletters 
+                    SET template = %s
+                    WHERE newsletter_id = %d",
+                    'iletter', $newsletter_id
+                );
+                $wpdb->query($query);
+            }
+
+            return $this->get_selected_theme('iletter');
+        }
+
+        return false;
     }
 
     function get_theme_dir_url($theme, $theme_name) {
