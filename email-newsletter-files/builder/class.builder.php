@@ -56,7 +56,7 @@ class Email_Newsletter_Builder  {
 			}
 		}
 
-		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $builder_id && $_REQUEST['theme'] === $this->get_builder_theme($builder_id, $_REQUEST['theme']) ) {
+		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $builder_id && $_REQUEST['theme'] == $this->get_builder_theme() ) {
 			add_filter( 'template', array( &$this, 'inject_builder_template'), 999 );
 			add_filter( 'stylesheet', array( &$this, 'inject_builder_stylesheet' ), 999 );
 			add_action( 'customize_register', array( &$this, 'init_newsletter_builder'),9999 );
@@ -86,7 +86,7 @@ class Email_Newsletter_Builder  {
 	}
 	function generate_builder_link($id=false, $theme=false, $return_url=NULL, $url=false) {
 		if(is_numeric($id)) {
-			$theme = $this->get_builder_theme($id, $theme);
+			$theme = $this->get_builder_theme($id, $theme, true);
 			$final = 'customize.php?wp_customize=on&theme='.$theme.'&newsletter_id='.$id;
 			if(empty($return_url))
 				$final .= '&return='.urlencode('admin.php?page=newsletters');
@@ -233,13 +233,9 @@ class Email_Newsletter_Builder  {
 						jQuery('[data-customize-setting-link="template"]').val(new_theme);
 						jQuery('[data-customize-setting-link="template"]').trigger('change');
 
-						console.log(jQuery('[data-customize-setting-link="template"]').val(), 1);
-
 						//make sure it is set
 						var set_val = setInterval(function () {
-							console.log(jQuery('[data-customize-setting-link="template"]').val(), new_theme, 2);
 							if(jQuery('[data-customize-setting-link="template"]').val() == new_theme) {
-								console.log(jQuery('[data-customize-setting-link="template"]').val(), new_theme, 3);
 					        	jQuery("#save").click();
 					        	clearInterval(set_val);
 					        }
@@ -328,7 +324,7 @@ class Email_Newsletter_Builder  {
 
 		return get_transient('builder_email_id_'.$current_user->ID);
 	}
-	function get_builder_theme($newsletter_id = false, $theme = false) {
+	function get_builder_theme($newsletter_id = false, $theme = false, $check = false) {
 		global $builder_id, $email_newsletter;
 
 		if( !$theme ) {
@@ -346,9 +342,12 @@ class Email_Newsletter_Builder  {
 			}
 		}
 
-		$theme_data = $email_newsletter->get_selected_theme($theme, $newsletter_id);
+		if($check) {
+			$theme_data = $email_newsletter->get_selected_theme($theme, $newsletter_id);
+			$theme = $theme_data['Stylesheet'];
+		}
 
-		return $theme_data['Stylesheet'];
+		return $theme;
 
 	}
 	function find_builder_theme($theme = '') {

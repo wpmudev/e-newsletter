@@ -6,6 +6,9 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.2.5 =
+* Fixed second issues with site theme customizer
+
 = 2.7.2.4 =
 * Fixed issues with site theme customizer
 
