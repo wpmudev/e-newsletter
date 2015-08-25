@@ -185,6 +185,7 @@ class Email_Newsletter_Builder  {
 
 			var current = jQuery('#customize-info .accordion-section-content').html('');
 			var copy = current.clone();
+			var copy = jQuery('<div class="accordion-section-content">');
 
 			jQuery.each(email_templates, function(i,e) {
 				var clone = copy.clone();
@@ -203,7 +204,7 @@ class Email_Newsletter_Builder  {
 				} else {
 					// Use this opportunity to change the theme preview area
 					var theme_name = jQuery('#customize-info .preview-notice .theme-name').text(e.name);
-					jQuery('#customize-info .preview-notice').html("<?php _e('Choose template','email-newsletter'); ?>").prepend(theme_name);
+					jQuery('#customize-info .preview-notice').html("<strong class='theme-name panel-title site-title'>"+e.name+"</strong><?php _e('Choose template','email-newsletter'); ?>").prepend(theme_name);
 
 					current.addClass('current_theme');
 					current.append('<h3>'+e.name+"</h3>");
@@ -221,6 +222,12 @@ class Email_Newsletter_Builder  {
 
 			jQuery('#customize-info').on('click', '.accordion-section-title', function() {
 				var new_theme;
+				var parent = jQuery(this).parent();
+
+				if(parent.hasClass('open'))
+					jQuery(this).parent().removeClass('open');
+				else
+					jQuery(this).parent().addClass('open');
 
 				jQuery('#customize-info #activate_theme').on('click', function(event) {
 					data = jQuery(this).parent().data('theme');
@@ -244,7 +251,6 @@ class Email_Newsletter_Builder  {
 				});
 
 				wp.customize.bind( 'saved', function() {
-					console.log(jQuery('[data-customize-setting-link="template"]').val(), new_theme, 4);
 					var new_theme = jQuery('[data-customize-setting-link="template"]').val();
 					if(current_theme != new_theme)
 						window.location.href = window.location.href.replace('theme='+current_theme,'theme='+new_theme);
@@ -301,6 +307,18 @@ class Email_Newsletter_Builder  {
 			.current_theme {
 				border-bottom: 1px solid #fff;
 				box-shadow: inset 0 -1px 0 0 #dfdfdf;
+			}
+			#accordion-panel-nav_menus, .customize-panel-description {
+				display: none !important;
+			}
+			.accordion-section-title {
+				cursor: pointer !important;
+			}
+			#customize-controls .customize-info .accordion-section-title:after {
+				display: block;
+			}
+			.customize-help-toggle {
+				display: none;
 			}
 		</style>
 		<?php
@@ -508,6 +526,9 @@ class Email_Newsletter_Builder  {
 		}
 
 		// Setup Sections
+		$instance->remove_section( 'colors' );
+		//$instance->remove_panel( 'nav_menus' ); //we need it to dont get js error
+		$instance->remove_panel( 'widgets' );
 		$instance->remove_section( 'title_tagline' );
 		$instance->remove_section( 'static_front_page' );
 		$instance->remove_section( 'themes' );

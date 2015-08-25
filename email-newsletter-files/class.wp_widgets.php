@@ -2,9 +2,9 @@
 // Widget for Subscribe
 class e_newsletter_subscribe extends WP_Widget {
     //constructor
-    function e_newsletter_subscribe() {
+    function __construct() {
         $widget_ops = array( 'description' => __( 'Allow people to subscribe to your newsletter database.') );
-        parent::WP_Widget( false, __( 'eNewsletter: Subscribe' ), $widget_ops );
+        parent::__construct( false, __( 'eNewsletter: Subscribe' ), $widget_ops );
     }
 
     /** @see WP_Widget::widget */
