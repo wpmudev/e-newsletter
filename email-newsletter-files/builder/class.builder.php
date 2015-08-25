@@ -165,8 +165,8 @@ class Email_Newsletter_Builder  {
 		<script type="text/javascript">
 			_wpCustomizeControlsL10n.save = "<?php _e('Save Newsletter','email-newsletter'); ?>";
 			var activate_theme = "<?php _e('Activate Theme','email-newsletter'); ?>";
-
 			var current_theme = "<?php echo $_GET['theme']; ?>";
+			var wp_version = <?php echo floatval($wp_version); ?>;
 
 			email_templates = [
 				<?php foreach($themes as $theme): ?>
@@ -203,8 +203,7 @@ class Email_Newsletter_Builder  {
 					jQuery('#customize-info').append(clone);
 				} else {
 					// Use this opportunity to change the theme preview area
-					var theme_name = jQuery('#customize-info .preview-notice .theme-name').text(e.name);
-					jQuery('#customize-info .preview-notice').html("<strong class='theme-name panel-title site-title'>"+e.name+"</strong><?php _e('Choose template','email-newsletter'); ?>").prepend(theme_name);
+					jQuery('#customize-info .preview-notice').html("<strong class='theme-name panel-title site-title'>"+e.name+"</strong><?php _e('Choose template','email-newsletter'); ?>");
 
 					current.addClass('current_theme');
 					current.append('<h3>'+e.name+"</h3>");
@@ -224,10 +223,12 @@ class Email_Newsletter_Builder  {
 				var new_theme;
 				var parent = jQuery(this).parent();
 
-				if(parent.hasClass('open'))
-					jQuery(this).parent().removeClass('open');
-				else
-					jQuery(this).parent().addClass('open');
+				if(wp_version >= 4.3) {
+					if(parent.hasClass('open'))
+						jQuery(this).parent().removeClass('open');
+					else
+						jQuery(this).parent().addClass('open');
+				}
 
 				jQuery('#customize-info #activate_theme').on('click', function(event) {
 					data = jQuery(this).parent().data('theme');
