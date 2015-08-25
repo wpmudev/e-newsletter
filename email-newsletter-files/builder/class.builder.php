@@ -183,9 +183,16 @@ class Email_Newsletter_Builder  {
 				return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
 			});
 
-			var current = jQuery('#customize-info .accordion-section-content').html('');
-			var copy = current.clone();
+			var current = jQuery('#customize-info .accordion-section-content');
 			var copy = jQuery('<div class="accordion-section-content">');
+
+			if(current.length > 0) {
+				current.html('');
+			}
+			else {
+				jQuery('#customize-info').append(copy.clone());
+				current = jQuery('#customize-info .accordion-section-content');
+			}
 
 			jQuery.each(email_templates, function(i,e) {
 				var clone = copy.clone();
