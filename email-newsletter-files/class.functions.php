@@ -298,9 +298,9 @@ class Email_Newsletter_functions {
         $membership_id = intval($membership_id);
 
         $arg['inner_join'] = "
-        wp_2_posts Sub ON Sub.post_author = A.wp_user_id
-        INNER JOIN wp_2_postmeta SubMem ON SubMem.post_id = Sub.Id AND SubMem.meta_key='membership_id'
-        INNER JOIN wp_2_postmeta SubAct ON SubAct.post_id = Sub.Id AND SubAct.meta_key='status'
+        {$this->tb_prefix}posts Sub ON Sub.post_author = A.wp_user_id
+        INNER JOIN {$this->tb_prefix}postmeta SubMem ON SubMem.post_id = Sub.Id AND SubMem.meta_key='membership_id'
+        INNER JOIN {$this->tb_prefix}postmeta SubAct ON SubAct.post_id = Sub.Id AND SubAct.meta_key='status'
         ";
 
         $arg['where'] = "

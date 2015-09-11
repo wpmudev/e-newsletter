@@ -290,6 +290,11 @@ jQuery( document ).ready( function() {
                 error = '0'
         });
 
+        jQuery( "input[name='target[m2][]']" ).each( function() {
+            if ( true == jQuery(this).prop( 'checked' ) )
+                error = '0'
+        });
+
         jQuery( "input[name='target[membership_levels][]']" ).each( function() {
             if ( true == jQuery(this).prop( 'checked' ) )
                 error = '0'

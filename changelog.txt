@@ -6,6 +6,9 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.2.7 =
+* Fixed Membership 2 integration
+
 = 2.7.2.6 =
 * Fixed WP 4.3 compatibility issues
 
