@@ -6,6 +6,9 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.2.8 =
+* Improved possibility to detect bounce message
+
 = 2.7.2.7 =
 * Fixed Membership 2 integration
 

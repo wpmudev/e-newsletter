@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.2.7
+Version: 2.7.2.8
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -1936,39 +1936,66 @@ class Email_Newsletter extends Email_Newsletter_functions {
             $mails  = imap_fetch_overview( $mbox, "1:{$MC->Nmsgs}", 0 );
 
             foreach ( $mails as $mail ) {
-                $body = imap_body ( $mbox, $mail->msgno );
-
                 $this->write_log('bounce: checked email');
 
-                if( preg_match( '/X-Mailer:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) || preg_match( '/Message-ID:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches)  || preg_match( '/Message-ID:\s*<?newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches)  || preg_match( '/Message-ID:\s*<?newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ) {
 
-                    $member_id      = ( int ) $matches[1];
-                    $send_id        = ( int ) $matches[2];
-                    $email_hash     = trim( $matches[3] );
-                    $hash           = md5( 'Hash of bounce member_id='. $member_id . ', send_id='. $send_id );
-                    $hash_wp        = md5( 'Hash of bounce wp_only_user_id='. $member_id . ', send_id='. $send_id );
+                if(
+                    strpos($mail->from,'MAILER-DAEMON') !== FALSE ||
+                    strpos($mail->from,'mailer-daemon') !== FALSE 
+                ){
+                    $body = imap_body ( $mbox, $mail->msgno );
 
-                    $this->write_log('bounce: data: '.$member_id.'/'.$send_id.'/'.$email_hash.'/'.$hash.'/'.$hash_wp);
+                    if( 
+                        preg_match( '/X-Mailer:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ||
+                        preg_match( '/X-Mailer:\s*<?newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ||
+                        preg_match( '/Message-ID:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches)  ||
+                        preg_match( '/Message-ID:\s*<?newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches)
+                    ) {
 
-                    if( $email_hash == $hash || $email_hash == $hash_wp ){
-                        if($email_hash == $hash_wp) {
-                            $wp_only_user_id = $member_id;
-                            $member_id = 0;
+                        $member_id      = ( int ) $matches[1];
+                        $send_id        = ( int ) $matches[2];
+                        $email_hash     = trim( $matches[3] );
+                        $hash           = md5( 'Hash of bounce member_id='. $member_id . ', send_id='. $send_id );
+                        $hash_wp        = md5( 'Hash of bounce wp_only_user_id='. $member_id . ', send_id='. $send_id );
+
+                        $this->write_log('bounce: data: '.$member_id.'/'.$send_id.'/'.$email_hash.'/'.$hash.'/'.$hash_wp);
+
+                        if( $email_hash == $hash || $email_hash == $hash_wp ){
+                            if($email_hash == $hash_wp) {
+                                $wp_only_user_id = $member_id;
+                                $member_id = 0;
+                            }
+                            else {
+                                $wp_only_user_id = 0;
+                            }
+
+                            $newsletter = $wpdb->get_row( $wpdb->prepare( "SELECT newsletter_id FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d LIMIT 1",  $send_id ), "ARRAY_A");
+                            if(isset($newsletter['newsletter_id']) && $newsletter['newsletter_id'])
+                                $result = $this->set_send_email_status('bounced', $send_id, $member_id, $wp_only_user_id, $newsletter['newsletter_id']);
+                            imap_delete( $mbox, $mail->msgno );
+                            echo 'ok';
+                        } else {
+                            echo 'Error: hash';
                         }
-                        else {
-                            $wp_only_user_id = 0;
-                        }
 
-                        $newsletter = $wpdb->get_row( $wpdb->prepare( "SELECT newsletter_id FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d LIMIT 1",  $send_id ), "ARRAY_A");
-                        if(isset($newsletter['newsletter_id']) && $newsletter['newsletter_id'])
-                            $result = $this->set_send_email_status('bounced', $send_id, $member_id, $wp_only_user_id, $newsletter['newsletter_id']);
-                        imap_delete( $mbox, $mail->msgno );
-                        echo 'ok';
-                    } else {
-                        echo 'Error: hash';
+                        $this->write_log('bounce: found bounce:'.$member_id.'/'.$wp_only_user_id);
                     }
+                    else {
+                        preg_match_all("/[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})/i", $body, $possible_emails);
 
-                    $this->write_log('bounce: found bounce:'.$member_id.'/'.$wp_only_user_id);
+                        foreach ($possible_emails as $possible_email) {
+                            if($possible_email[0] != $this->settings['from_email'] && $possible_email[0] != $this->settings['bounce_email']) {
+                                $member_id = $this->get_member_by_email( $possible_email[0] );
+                                if($member_id ) {
+                                    $this->write_log('bounce: found bounce:'.$member_id);
+                                    $this->plus_one_member_stats($member_id, 'bounced');
+
+                                    imap_delete( $mbox, $mail->msgno );
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
             imap_expunge( $mbox );
