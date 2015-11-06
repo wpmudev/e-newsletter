@@ -6,6 +6,11 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.2.9 =
+* Fixed issue with password encoding for newer versions of PHP
+* Fixed removing from cron list for scheduled newsletters
+* Improved opt-in error message fo users that already received it
+
 = 2.7.2.8 =
 * Improved possibility to detect bounce message
 

@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.2.8
+Version: 2.7.2.9
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -60,7 +60,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $wpmudev_notices[] = array( 'id'=> 233,'name'=> 'E-Newsletter', 'screens' => array( 'edit-funder', 'funder', 'edit-donation', 'funder_page_wdf_settings', 'funder_page_wdf' ) );
         include_once('email-newsletter-files/external/dash-notice/wpmudev-dash-notification.php');
 
-        $this->plugin_ver = 2.705;
+        $this->plugin_ver = 2.729;
 
         //enable or disable debugging
         $this->debug = 0;
@@ -968,7 +968,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             if($status)
                 return array('action' => 'optin_sent', 'error' => false, 'message' => __( 'Confirmation email has been sent! Please confirm subscription.', 'email-newsletter' ));
             else
-                return array('action' => 'optin_sent', 'error' => true, 'message' => __( 'Failed to send opt-in email, please contact us and inform about this error.', 'email-newsletter' ));
+                return array('action' => 'optin_sent', 'error' => true, 'message' => __( 'Failed to send opt-in email, please make sure that you dont have it in your inbox already.', 'email-newsletter' ));
         } else {
             //creating new list of groups for user
             if ( isset( $member_data['groups_id'] ) && is_array( $member_data['groups_id'] ) )
@@ -1613,7 +1613,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
     function remove_from_cron( $newsletter_id, $send_id ) {
         global $wpdb;
 
-        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'waiting_send' WHERE send_id = %d AND status = 'by_cron'", $send_id ) );
+        $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members SET status = 'waiting_send' WHERE send_id = %d AND status != 'waiting_send'", $send_id ) );
 
         wp_redirect( add_query_arg( array( 'page' => $_REQUEST['page'], 'newsletter_action' => 'send_newsletter', 'newsletter_id' => $newsletter_id, 'updated' => 'true', 'message' => urlencode( __( 'Members are removed from CRON list', 'email-newsletter' ) ) ), 'admin.php' ) );
 
