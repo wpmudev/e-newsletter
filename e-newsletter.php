@@ -2458,7 +2458,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         }
         $return .='
                     <p>
-                        <input type="button" id="new_subscribe" class="enewletter_widget_submit" value="'.__( 'Subscribe', 'email-newsletter' ).'" />
+                        <input type="submit" id="new_subscribe" class="enewletter_widget_submit" value="'.__( 'Subscribe', 'email-newsletter' ).'" />
                     </p>
 
                 </div>';
@@ -2479,7 +2479,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $return .= '
                     <p>
-                        <input type="button" id="subscribe_to_groups" class="enewletter_widget_submit" value="'.__( 'Subscribe', 'email-newsletter' ).'" />
+                        <input type="submit" id="subscribe_to_groups" class="enewletter_widget_submit" value="'.__( 'Subscribe', 'email-newsletter' ).'" />
                     </p>';
         $return .= '
                 </div>';
@@ -2498,7 +2498,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $return .= '
                     <p>
-                        <input type="button" id="unsubscribe_from_groups" class="enewletter_widget_submit" value="'.__( 'Unsubscribe', 'email-newsletter' ).'" />
+                        <input type="submit" id="unsubscribe_from_groups" class="enewletter_widget_submit" value="'.__( 'Unsubscribe', 'email-newsletter' ).'" />
                     </p>';
         $return .= '
                 </div>';
@@ -2542,7 +2542,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                             </ul>
                         </p>
                     <p>
-                        <input type="button" id="save_subscribes" class="enewletter_widget_submit" value="'.__( 'Save Subscriptions', 'email-newsletter' ).'" />
+                        <input type="submit" id="save_subscribes" class="enewletter_widget_submit" value="'.__( 'Save Subscriptions', 'email-newsletter' ).'" />
                     </p>';
         }
         $return .= '
