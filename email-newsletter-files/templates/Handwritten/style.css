@@ -29,7 +29,10 @@ body, .body_style {
 }
 .content_main {
 	border:1px solid #cccccc;
-	background:url('images/header.jpg') top right no-repeat #ffffff;
+	background-color:#ffffff;
+	background-image:url('images/header.jpg');
+	background-position: top right;
+	background-repeat: no-repeat;
 }
 
 

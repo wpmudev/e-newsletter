@@ -6,6 +6,9 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.3 =
+* Fixed styling compatibility for Handwriten template
+
 = 2.7.2.9 =
 * Improved opt-in error message fo users that already received it
 * Fixed issue with password encoding for newer versions of PHP
