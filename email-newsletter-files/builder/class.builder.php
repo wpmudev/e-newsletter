@@ -330,11 +330,6 @@ class Email_Newsletter_Builder  {
 			}
 		</style>
 		<?php
-		// We need to call this action for the tinyMCE editor to work properly
-		if($wp_version<3.9)
-			do_action('admin_print_footer_scripts');
-
-		do_action('admin_footer');
 	}
 
 	function force_default_editor() {

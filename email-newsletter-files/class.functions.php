@@ -2418,13 +2418,17 @@ class Email_Newsletter_functions {
     function uninstall( $blog_id = '' ) {
         global $wpdb, $wp_roles;
 
-        if ( $this->is_plugin_active_for_network(plugin_basename($this->plugin_main_file)) ) {
+        $remove_from_network = false;
+        $deleting_specific_site = $blog_id ? true : false;
+
+        if ( $remove_from_network ) {
                 $blogids = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
         } else {
-            if ( 0 !== $blog_id )
-                $blogids[] = $wpdb->blogid;
-            else
+            $blogids = array();
+            if ( $deleting_specific_site )
                 $blogids[] = $blog_id;
+            else
+                $blogids[] = $wpdb->blogid;
         }
 
         foreach ( $blogids as $blog_id ) {
@@ -2432,19 +2436,7 @@ class Email_Newsletter_functions {
             if ( 1 < $blog_id )
                 $tb_prefix = $wpdb->base_prefix . $blog_id . '_';
             else
-                $tb_prefix = $wpdb->base_prefix;
-
-            //Delete all CRON actions
-            if ( wp_next_scheduled( $this->cron_send_name ) )
-                wp_clear_scheduled_hook( $this->cron_send_name );
-
-            if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' ) )
-                wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
-
-            if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' ) )
-                wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' );
-
-            delete_option( 'enewsletter_cron_send_run' );
+                $tb_prefix = $wpdb->base_prefix;          
 
             if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_newsletters'" ) == "{$tb_prefix}enewsletter_newsletters" )
                 $wpdb->query("DROP TABLE IF EXISTS {$tb_prefix}enewsletter_newsletters");
@@ -2471,31 +2463,45 @@ class Email_Newsletter_functions {
             if ( $wpdb->get_var( "SHOW TABLES LIKE '{$tb_prefix}enewsletter_meta'" ) == "{$tb_prefix}enewsletter_meta" )
                 $wpdb->query( "DROP TABLE IF EXISTS {$tb_prefix}enewsletter_meta" );
 
-            foreach($wp_roles->get_names() as $name => $obj) {
-                if($name == 'administrator') continue;
-                $role_obj = get_role($name);
-                if($role_obj) {
-                    foreach($this->capabilities as $cap => $label) {
-                        $role_obj->remove_cap($cap);
+            //if we are deleting entire site, we dont need to deal with it.
+            if(!$deleting_specific_site) {
+                foreach($wp_roles->get_names() as $name => $obj) {
+                    if($name == 'administrator') continue;
+                    $role_obj = get_role($name);
+                    if($role_obj) {
+                        foreach($this->capabilities as $cap => $label) {
+                            $role_obj->remove_cap($cap);
+                        }
                     }
                 }
-            }
 
-            delete_option('email_newsletter_install_dismissed');
-            delete_option('email_newsletter_version');
+                //Delete all CRON actions
+                if ( wp_next_scheduled( $this->cron_send_name ) )
+                    wp_clear_scheduled_hook( $this->cron_send_name );
+
+                if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' ) )
+                    wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_1' );
+
+                if ( wp_next_scheduled( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' ) )
+                    wp_clear_scheduled_hook( 'e_newsletter_cron_check_bounces_' . $wpdb->blogid .'_2' );
+
+                delete_option( 'enewsletter_cron_send_run' );
+                delete_option('email_newsletter_install_dismissed');
+                delete_option('email_newsletter_version');
+            }
         }
 
 		//remove folder for custom themes
-		$custom_theme_dir = $this->get_custom_theme_dir();
-		if (is_dir($custom_theme_dir)) {
-			$this->delete_dir($custom_theme_dir);
-		}
+        if($remove_from_network) {
+    		$custom_theme_dir = $this->get_custom_theme_dir();
+    		if (is_dir($custom_theme_dir)) {
+    			$this->delete_dir($custom_theme_dir);
+    		}
+        }
 
         //remove data about site options
-        if($this->is_plugin_active_for_network(plugin_basename($this->plugin_main_file)))
+        if($remove_from_network)
             delete_site_option('email_newsletter_version');
-        else
-            delete_option('email_newsletter_version');
     }
 
     /**

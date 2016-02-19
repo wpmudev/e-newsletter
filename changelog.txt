@@ -6,6 +6,12 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 
+= 2.7.3.2 =
+* Fixed removing wrong data when plugin is network activated
+
+= 2.7.3.1 =
+* Improved compatibility with other plugins
+
 = 2.7.3 =
 * Fixed styling compatibility for Handwriten template
 

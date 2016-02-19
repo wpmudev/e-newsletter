@@ -480,7 +480,7 @@
                         <p><?php _e( 'Here you can delete all data associated with the plugin from the database.', 'email-newsletter' ) ?></p>
                         <p>
                             <input class="button button-secondary" type="button" name="uninstall" id="uninstall" value="<?php _e( 'Delete data', 'email-newsletter' ) ?>" />
-                            <span class="description" style="color: red;"><?php _e( "Delete all plugin's data from DB and remove enewsletter-custom-themes folder.", 'email-newsletter' ) ?></span>
+                            <span class="description" style="color: red;"><?php _e( "Delete all plugin's data from DB.", 'email-newsletter' ) ?></span>
                             <div id="uninstall_confirm" style="display: none;">
 								<p>
 									<span class="description"><?php _e( 'Are you sure?', 'email-newsletter' ) ?></span>
