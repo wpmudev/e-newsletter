@@ -24,7 +24,7 @@
     <div class="wrap">
         <h2><?php echo $page_title; ?></h2>
 
-        <form method="post" name="settings_form" id="settings_form" action"admin_url( 'admin.php?page=newsletters-settings');">
+        <form method="post" name="settings_form" id="settings_form" action="<?php echo admin_url( 'admin.php?page=newsletters-settings'); ?>">
             <input type="hidden" name="newsletter_action" id="newsletter_action" value="" />
             <input type="hidden" name="newsletter_setting_page" id="newsletter_setting_page" value="#tabs-1" />
             <?php if(isset($mode)) echo '<input type="hidden" name="mode"  value="'.$mode.'" />'; ?>

@@ -221,7 +221,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         global $current_user;
 
         if(!$current_user)
-            get_currentuserinfo();
+            wp_get_current_user();
     }
 
     /**
