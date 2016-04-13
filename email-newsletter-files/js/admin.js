@@ -355,7 +355,7 @@ jQuery( document ).ready( function() {
 
     current_tab = '#'+enewsletter.settings_tab;
     jQuery( "#newsletter_setting_page" ).val(current_tab.substring(1));
-    current_menu_link = jQuery('#newsletter-tabs a[href^='+current_tab+']');
+    current_menu_link = jQuery('#newsletter-tabs a[href^="'+current_tab+'"]');
 
     jQuery(current_menu_link).addClass('nav-tab-active').siblings('a').removeClass('nav-tab-active');
     jQuery(current_tab).show().siblings('div').hide();

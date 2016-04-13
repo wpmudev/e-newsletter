@@ -5,6 +5,8 @@ Lead developer: Maniu
 Contributors: Cole, Andrey
 
 == Changelog ==
+= 2.7.3.3 =
+* Fixed conflicts with WP 4.5
 
 = 2.7.3.2 =
 * Fixed removing wrong data when plugin is network activated
