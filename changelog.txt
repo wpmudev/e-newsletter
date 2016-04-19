@@ -5,6 +5,9 @@ Lead developer: Maniu
 Contributors: Cole, Andrey
 
 == Changelog ==
+= 2.7.3.4 =
+* Improved compatibily with other plugins
+
 = 2.7.3.3 =
 * Fixed conflicts with WP 4.5
 

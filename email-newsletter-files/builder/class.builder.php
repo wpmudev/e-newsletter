@@ -111,7 +111,7 @@ class Email_Newsletter_Builder  {
 		global $wp_customize;
 
 		ob_start();
-			do_action('admin_print_footer_scripts');
+			do_action( 'wp_print_footer_scripts' );
 			$wp_customize->customize_preview_settings();
 			$this->email_builder_customize_preview();
 			$captured = ob_get_contents();
@@ -210,7 +210,7 @@ class Email_Newsletter_Builder  {
 					jQuery('#customize-info').append(clone);
 				} else {
 					// Use this opportunity to change the theme preview area
-					jQuery('#customize-info .preview-notice').html("<strong class='theme-name panel-title site-title'>"+e.name+"</strong><?php _e('Choose template','email-newsletter'); ?>");
+					jQuery('#customize-info .preview-notice').html("<strong class='theme-name panel-title'>"+e.name+"</strong><?php _e('Choose template','email-newsletter'); ?>");
 
 					current.addClass('current_theme');
 					current.append('<h3>'+e.name+"</h3>");
