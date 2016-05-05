@@ -7,13 +7,14 @@ class Email_Newsletter_Builder  {
 	var $settings = array();
 
 	function __construct() {
+		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded_early'), 9 );
 		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded'), 999 );
 		add_action( 'wp_ajax_builder_do_shortcodes', array( &$this, 'ajax_do_shortcodes' ) );
 	}
-	function plugins_loaded() {
-		global $current_user, $pagenow, $builder_id, $email_newsletter;
+	function plugins_loaded_early() {
+		global $current_user, $builder_id;
 
-		//Set up builder id global
+		//Set up builder id as global
 		if(isset($_REQUEST['newsletter_id'])) {
 			if(is_numeric($_REQUEST['newsletter_id'])){
 				$builder_id = $_REQUEST['newsletter_id'];
@@ -27,6 +28,7 @@ class Email_Newsletter_Builder  {
 		if(!$builder_id)
 			$builder_id = $this->get_builder_email_id();
 
+		//lets handle newsletter action
 		if ( isset( $_REQUEST['newsletter_builder_action'] ) ) {
 			$mu_cap = (function_exists('is_multisite' && is_multisite()) ? 'manage_network_options' : 'manage_options');
 
@@ -55,6 +57,23 @@ class Email_Newsletter_Builder  {
 				break;
 			}
 		}
+
+		//lets allow customizer on newsletter editing as early as we can
+		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $builder_id && $_REQUEST['theme'] == $this->get_builder_theme() ) {
+			//fix customizer capabilities users without possibility to use customizer
+			if(!current_user_can( 'edit_theme_options' )) {
+				add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 999, 1);
+			}
+
+			//fix for known compatibility problems
+			global $fusion_slider;
+			remove_action( 'after_setup_theme', array( 'Fusion_Core_PageBuilder', 'get_instance' ) );
+			remove_action( 'plugins_loaded', array( 'FusionCore_Plugin', 'get_instance' ) );
+			remove_action( 'init', array( $fusion_slider, 'init' ) );
+		}
+	}
+	function plugins_loaded() {
+		global $current_user, $builder_id;
 
 		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $builder_id && $_REQUEST['theme'] == $this->get_builder_theme() ) {
 			add_filter( 'template', array( &$this, 'inject_builder_template'), 999 );
@@ -327,6 +346,9 @@ class Email_Newsletter_Builder  {
 			}
 			.customize-help-toggle {
 				display: none;
+			}
+			#customize-footer-actions {
+				min-width: 550px;
 			}
 		</style>
 		<?php

@@ -49,7 +49,7 @@ class Builder_TinyMCE_Control extends WP_Customize_Control {
 						    jQuery('#customize-controls').css("-ms-animation", "none");
 						    jQuery('#customize-controls').css("animation", "none");
 							prev_emce_width = emce_width;
-							jQuery('#customize-controls').css("width", emce_width+"px");
+							jQuery('#customize-controls, #customize-footer-actions').css("width", emce_width+"px");
 							jQuery('.wp-full-overlay').css("margin-left", emce_width+"px");
 							jQuery('.wp-full-overlay-sidebar').css("margin-left", "-"+emce_width+"px");
 						}

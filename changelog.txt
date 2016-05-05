@@ -5,6 +5,10 @@ Lead developer: Maniu
 Contributors: Cole, Andrey
 
 == Changelog ==
+= 2.7.3.5 =
+* Improved compatibily with Fusion Core
+* Fixed Editor for other roles than "Admin"
+
 = 2.7.3.4 =
 * Improved compatibily with other plugins
 
