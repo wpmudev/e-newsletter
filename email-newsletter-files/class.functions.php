@@ -550,6 +550,7 @@ class Email_Newsletter_functions {
 
         if($result) {
             $member_data['results'] = $member_results;
+            do_action("enewsletter_create_update_member_user", $member_data);
             return $member_data;
         }
         else
