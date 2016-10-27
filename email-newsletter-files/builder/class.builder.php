@@ -363,7 +363,9 @@ class Email_Newsletter_Builder  {
 	}
 
 	function get_builder_email_id() {
-		global $current_user, $email_newsletter;
+		global $email_newsletter;
+
+		$current_user = wp_get_current_user();
 
 		return get_transient('builder_email_id_'.$current_user->ID);
 	}
