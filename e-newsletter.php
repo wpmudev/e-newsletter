@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.3.6
+Version: 2.7.3.7
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -1435,7 +1435,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_newsletters WHERE newsletter_id = %d", $newsletter_id ) );
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_meta WHERE email_id = %d", $newsletter_id ) );
-        $wpdb->query( $wpdb->prepare( "DELETE A FROM wp_enewsletter_send_members A INNER JOIN wp_enewsletter_send B ON A.send_id = B.send_id WHERE B.newsletter_id = %d", $newsletter_id ) );
+        $wpdb->query( $wpdb->prepare( "DELETE A FROM {$this->tb_prefix}enewsletter_send_members A INNER JOIN wp_enewsletter_send B ON A.send_id = B.send_id WHERE B.newsletter_id = %d", $newsletter_id ) );
         //$wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_send WHERE newsletter_id = %d", $newsletter_id ) );
 
         $this->delete_newsletter_meta($newsletter_id);
@@ -1693,7 +1693,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     else
                         $message = __( 'Error when updating DB.', 'email-newsletter' );
                 } else {
-                    if( $sent_status == 'recipients_failed' || $sent_status == 'invalid_address' ) {
+                    if( $sent_status == 'recipients_failed' || $sent_status == 'invalid_address' || strpos($sent_status, 'Recipient address rejected') !== false ) {
                         $result = $this->set_send_email_status( 'bounced', $send_id, $send_member['member_id'], $send_member['wp_only_user_id'], $send_data['newsletter_id'] );
                         if ( $result )
                             $message = 'ok';

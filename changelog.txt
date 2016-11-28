@@ -5,6 +5,11 @@ Lead developer: Maniu
 Contributors: Cole, Andrey
 
 == Changelog ==
+= 2.7.3.7 =
+* Mail server error handling improvements
+* Cron wait time fix
+* Missing DB table prefix fix
+
 = 2.7.3.6 =
 * Hustle integration support
 

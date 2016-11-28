@@ -1093,7 +1093,7 @@ class Email_Newsletter_functions {
 
 	        if( !$sent_status ) {
 	            $this->write_log('WP Mail send email error');
-	            return 'WP Mail send email error';
+	            //return 'WP Mail send email error';
 	        }
     	}
     	else {
@@ -1156,7 +1156,7 @@ class Email_Newsletter_functions {
 	        }
 	    }
 
-        $wait_time = isset($options['wait']) ? $options['wait'] : 1;
+        $wait_time = isset($options['cron_wait']) ? $options['cron_wait'] : 1;
         sleep( $wait_time );
         return true;
     }
