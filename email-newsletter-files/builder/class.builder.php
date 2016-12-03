@@ -773,9 +773,7 @@ class Email_Newsletter_Builder  {
 
 	function save_builder() {
 		global $email_newsletter, $builder_id, $wpdb;
-echo "<pre>";
-print_r($_REQUEST['newsletter_id']);
-echo "</pre>";
+
 		$data = $meta = array();
 
 		$new_values = json_decode(stripslashes($_POST['customized']), true);
