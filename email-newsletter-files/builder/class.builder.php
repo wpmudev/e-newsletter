@@ -18,8 +18,8 @@ class Email_Newsletter_Builder  {
 		if(isset($_REQUEST['newsletter_id'])) {
 			if(is_numeric($_REQUEST['newsletter_id'])){
 				$builder_id = $_REQUEST['newsletter_id'];
-				delete_transient('builder_email_id_'.$current_user->ID);
-				set_transient('builder_email_id_'.$current_user->ID, $builder_id);
+				delete_transient('builder_email_id_'. get_current_user_id() );
+				set_transient('builder_email_id_'. get_current_user_id(), $builder_id);
 			}
 			else
 				die(__('Something is wrong, we can not determine what your trying to do.','email-newsletter'));
@@ -773,7 +773,9 @@ class Email_Newsletter_Builder  {
 
 	function save_builder() {
 		global $email_newsletter, $builder_id, $wpdb;
-
+echo "<pre>";
+print_r($_REQUEST['newsletter_id']);
+echo "</pre>";
 		$data = $meta = array();
 
 		$new_values = json_decode(stripslashes($_POST['customized']), true);
