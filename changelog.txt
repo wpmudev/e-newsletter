@@ -9,6 +9,7 @@ Contributors: Cole, Andrey
 * Mail server error handling improvements
 * Cron wait time fix
 * Missing DB table prefix fix
+* Builder issues fix
 
 = 2.7.3.6 =
 * Hustle integration support

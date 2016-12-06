@@ -8,10 +8,17 @@
 	font-weight: normal;
 	font-style: normal;
 }
-#adminmenu #toplevel_page_newsletters-dashboard div.wp-menu-image:before, #adminmenu #toplevel_page_newsletters-subscribes div.wp-menu-image:before {
+#adminmenu #toplevel_page_newsletters-settings div.wp-menu-image:before, 
+#adminmenu #toplevel_page_newsletters-dashboard div.wp-menu-image:before, 
+#adminmenu #toplevel_page_newsletters-subscribes div.wp-menu-image:before, 
+#adminmenu #toplevel_page_newsletters div.wp-menu-image:before {
   font-family: 'custom_dashicons_enewsletter' !important;
   content: "\e600";
 }
-#adminmenu #toplevel_page_newsletters-dashboard div.wp-menu-image img, #adminmenu #toplevel_page_newsletters-subscribes div.wp-menu-image img, #add_wdf img {
+#adminmenu #toplevel_page_newsletters-settings div.wp-menu-image img, 
+#adminmenu #toplevel_page_newsletters-dashboard div.wp-menu-image img, 
+#adminmenu #toplevel_page_newsletters-subscribes div.wp-menu-image img, 
+#adminmenu #toplevel_page_newsletters div.wp-menu-image img, 
+#add_wdf img {
   display: none;
 }

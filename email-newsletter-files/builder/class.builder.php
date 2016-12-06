@@ -7,26 +7,29 @@ class Email_Newsletter_Builder  {
 	var $settings = array();
 
 	function __construct() {
-		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded_early'), 9 );
+		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded_early'), 10 );
 		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded'), 999 );
 		add_action( 'wp_ajax_builder_do_shortcodes', array( &$this, 'ajax_do_shortcodes' ) );
 	}
 	function plugins_loaded_early() {
-		global $current_user, $builder_id;
+		global $builder_id;
+
+		$current_user = wp_get_current_user();
 
 		//Set up builder id as global
 		if(isset($_REQUEST['newsletter_id'])) {
 			if(is_numeric($_REQUEST['newsletter_id'])){
 				$builder_id = $_REQUEST['newsletter_id'];
-				delete_transient('builder_email_id_'. get_current_user_id() );
-				set_transient('builder_email_id_'. get_current_user_id(), $builder_id);
+				delete_transient('builder_email_id_'.$current_user->ID);
+				set_transient('builder_email_id_'.$current_user->ID, $builder_id);
 			}
 			else
 				die(__('Something is wrong, we can not determine what your trying to do.','email-newsletter'));
 		}
 
-		if(!$builder_id)
+		if(!$builder_id) {
 			$builder_id = $this->get_builder_email_id();
+		}
 
 		//lets handle newsletter action
 		if ( isset( $_REQUEST['newsletter_builder_action'] ) ) {
@@ -60,38 +63,37 @@ class Email_Newsletter_Builder  {
 
 		//lets allow customizer on newsletter editing as early as we can
 		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $builder_id && $_REQUEST['theme'] == $this->get_builder_theme() ) {
-			//fix customizer capabilities users without possibility to use customizer
+
+			//fix customizer capabilities users without possibility to use customizer - this is for tinymce
 			if(!current_user_can( 'edit_theme_options' )) {
 				add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 999, 1);
 			}
 
 			//fix for known compatibility problems
 			global $fusion_slider;
+			remove_action( 'plugins_loaded', array( 'FusionCore_Plugin', 'get_instance' ) ); //it might be too late
 			remove_action( 'after_setup_theme', array( 'Fusion_Core_PageBuilder', 'get_instance' ) );
-			remove_action( 'plugins_loaded', array( 'FusionCore_Plugin', 'get_instance' ) );
 			remove_action( 'init', array( $fusion_slider, 'init' ) );
 		}
 	}
 	function plugins_loaded() {
-		global $current_user, $builder_id;
+		global $builder_id;
 
 		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $builder_id && $_REQUEST['theme'] == $this->get_builder_theme() ) {
+			//fix customizer capabilities users without possibility to use customizer
+			add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 999, 1);
+
 			add_filter( 'template', array( &$this, 'inject_builder_template'), 999 );
 			add_filter( 'stylesheet', array( &$this, 'inject_builder_stylesheet' ), 999 );
+			add_filter( 'customize_loaded_components', array( &$this, 'remove_newsletter_builder_components'),9999 );
 			add_action( 'customize_register', array( &$this, 'init_newsletter_builder'),9999 );
 			add_action( 'setup_theme' , array( &$this, 'setup_builder_header_footer' ), 999 );
 			add_filter( 'wp_default_editor', array( &$this, 'force_default_editor' ) );
 			add_filter( 'user_can_richedit', array( &$this, 'force_richedit' ) );
 
-			//fix for tinymce load problem on wp 4.1 and up?
 			add_action( 'admin_head', array( &$this, 'prepare_tinymce' ), 1 );
 
 			add_action( 'template_redirect', array( &$this, 'enable_customizer') );
-
-			//fix customizer capabilities users without possibility to use customizer
-			if(!current_user_can( 'edit_theme_options' )) {
-				add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 999, 1);
-			}
 
 			//fix for known compatibility problems
 			remove_action('media_buttons', 'new_im_media_buttons',11);
@@ -171,6 +173,10 @@ class Email_Newsletter_Builder  {
 	}
 	function customize_controls_print_footer_scripts() {
 		global $email_newsletter, $wp_version;
+
+		//this makes it load JS for TinyMce correctly for all
+		if(!did_action('admin_print_footer_scripts'))
+			do_action( 'admin_print_footer_scripts' );
 
 		// Collect other theme info so we can allow changes
 		$themes = wp_get_themes();
@@ -419,6 +425,14 @@ class Email_Newsletter_Builder  {
 		else
 			return false;
 	}
+	function remove_newsletter_builder_components( $instance ) {
+		$instance->remove_section( 'colors' );
+		//$instance->remove_panel( 'nav_menus' ); //we need it to dont get js error
+		$instance->remove_panel( 'widgets' );
+		$instance->remove_section( 'title_tagline' );
+		$instance->remove_section( 'static_front_page' );
+		$instance->remove_section( 'themes' );		
+	}
 	function init_newsletter_builder( $instance ) {
 		global $builder_id, $email_newsletter;
 		$email_data = $email_newsletter->get_newsletter_data($builder_id);
@@ -553,12 +567,7 @@ class Email_Newsletter_Builder  {
 		}
 
 		// Setup Sections
-		$instance->remove_section( 'colors' );
-		//$instance->remove_panel( 'nav_menus' ); //we need it to dont get js error
-		$instance->remove_panel( 'widgets' );
-		$instance->remove_section( 'title_tagline' );
-		$instance->remove_section( 'static_front_page' );
-		$instance->remove_section( 'themes' );
+
 		$instance->add_section( 'builder_email_settings', array(
 			'title'          => __('Settings','email-newsletter'),
 			'priority'       => 35,

@@ -118,7 +118,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_filter( 'rewrite_rules_array', array( &$this, 'insert_rewrite_rules' ) );
         add_filter( 'query_vars', array( &$this, 'insert_query_vars' ) );
 
-        add_action('plugins_loaded',array(&$this,'set_current_user'), 998);
         add_action('plugins_loaded',array(&$this,'upgrade_check'));
 
         add_action( 'email_newsletter_upgrade_cron',array( &$this, 'upgrade_cron' ) );
@@ -212,16 +211,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
         add_action( 'wp_ajax_confirm_subscibe', array( &$this, 'confirm_subscibe_ajax' ) );
         add_action( 'wp_ajax_nopriv_newsletter_unsubscribe', array( &$this, 'unsubscribe_ajax' ) );
         add_action( 'wp_ajax_newsletter_unsubscribe', array( &$this, 'unsubscribe_ajax' ) );
-    }
-
-    /**
-     * Sets current user
-     */
-    function set_current_user() {
-        global $current_user;
-
-        if(!$current_user)
-            wp_get_current_user();
     }
 
     /**
@@ -379,11 +368,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
             wp_localize_script( 'enewsletter-script', 'enewsletter', $admin_js_options );
         }
 
-        //mp6 icon load
-        if ( $wp_version >= 3.8 ) {
-            wp_register_style( 'enewsletter-mp6', $this->plugin_url . 'email-newsletter-files/css/mp6.css');
-            wp_enqueue_style('enewsletter-mp6');
-        }
+        wp_register_style( 'enewsletter-mp6', $this->plugin_url . 'email-newsletter-files/css/mp6.css');
+        wp_enqueue_style('enewsletter-mp6');
     }
 
     /**
@@ -988,7 +974,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
      *  Public Subscribe on Newsletters
      **/
     function new_subscribe() {
-        global $wpdb, $current_user;
+        global $wpdb;
 
         if(!is_email($_REQUEST['e_newsletter_email'])) {
             $data['message'] = __( 'Please use correct email!', 'email-newsletter' );
@@ -1036,8 +1022,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
      *  Subscribe on Newsletters
      **/
     function subscribe() {
-        global $wpdb, $current_user;
+        global $wpdb;
 
+        $current_user = wp_get_current_user();
         $user_id = $current_user->data->ID;
         $member_data = array();
 
@@ -1072,7 +1059,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * Save Subscribes
      **/
     function save_subscribes($type = 'both') {
-        global $current_user;
+        $current_user = wp_get_current_user();
         $member_id = $this->get_members_by_wp_user_id( $current_user->data->ID );
         $remove_old = $type == 'both' ? 1 : 0;
 
@@ -2040,8 +2027,6 @@ class Email_Newsletter extends Email_Newsletter_functions {
      * Test smtp settings
      **/
     function test_smtp_ajax(){
-        global $current_user;
-
         @set_time_limit( 0 );
 
         //Send test email on bounces address
@@ -2371,8 +2356,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
     }
 
     function subscribe_widget($show_name = false, $show_groups = true, $subscribe_to_groups = array()) {
-        global $email_newsletter, $current_user;
+        global $email_newsletter;
 
+        $current_user = wp_get_current_user();
         $groups = $this->get_groups(1);
 
         if ( isset($current_user->data->ID) ) {

@@ -9,7 +9,7 @@ class e_newsletter_subscribe extends WP_Widget {
 
     /** @see WP_Widget::widget */
     function widget( $args, $instance ) {
-        global $email_newsletter, $current_user;
+        global $email_newsletter;
 
         extract( $args );
 
