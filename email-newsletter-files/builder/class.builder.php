@@ -894,9 +894,7 @@ class Email_Newsletter_Builder  {
 	// Anything that isnt a text input has to have its own function because
 	// WordPress only gives us the $default value to match in the filter
 	function get_builder_template($default) {
-		global $wp_customize;
-
-		return $wp_customize->get_stylesheet();
+		return $this->get_customizer_theme();
 	}
 	function get_builder_bg_color($default) {
 
