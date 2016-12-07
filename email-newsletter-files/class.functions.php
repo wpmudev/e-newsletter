@@ -1375,7 +1375,7 @@ class Email_Newsletter_functions {
         }
 
         //Set up permalinks
-        $contents = str_replace( "{OPENED_TRACKER}", '<div style="font-size: 0px; line-height:0px;"><img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id . '&wp_only_user_id=' . $wp_only_user_id) . '" width="1" height="1"/></div>', $contents );
+        $contents = str_replace( "{OPENED_TRACKER}", '<div style="font-size: 0px; line-height:0px; visibility: hidden;"><img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id . '&wp_only_user_id=' . $wp_only_user_id) . '" width="1" height="1"/></div>', $contents );
 
         $unsubscribe_url = add_query_arg( array('unsubscribe_page' => '1', 'unsubscribe_code' => $unsubscribe_code, 'unsubscribe_member_id' => $id), home_url() );
         $contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", $unsubscribe_url, $contents );
@@ -1387,10 +1387,7 @@ class Email_Newsletter_functions {
         return $contents;
     }
 
-    /**
-     * Get theme details
-     **/
-    function get_selected_theme($theme_name, $newsletter_id = false) {
+    function register_enewsletter_themes() {
         global $wp_theme_directories;
 
         $added = 0;
@@ -1406,6 +1403,15 @@ class Email_Newsletter_functions {
         //cheating message fix
         if($added)
             wp_clean_themes_cache();
+    }
+
+    /**
+     * Get theme details
+     **/
+    function get_selected_theme($theme_name, $newsletter_id = false) {
+        global $wp_theme_directories;
+
+        $this->register_enewsletter_themes();
 
         $theme = wp_get_theme($theme_name);
         if($theme->exists()) {
@@ -1476,6 +1482,7 @@ class Email_Newsletter_functions {
     function make_email_values($prepare, $contents, $newsletter_id) {
         foreach ($prepare as $type => $values) {
             foreach ($values as $name => $value) {
+
                 $name = explode('=', $name);
                 $name_big = (isset($name[1])) ? strtoupper($name[1]) : strtoupper($name[0]);
                 $name = $name[0];

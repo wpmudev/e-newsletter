@@ -6,10 +6,11 @@ Contributors: Cole, Andrey
 
 == Changelog ==
 = 2.7.3.7 =
-* Mail server error handling improvements
-* Cron wait time fix
-* Missing DB table prefix fix
-* Builder issues fix
+* Added WordPress 4.7 compatibility
+* Improved mail server error handling
+* Fixed cron wait time issues
+* Fixed missing DB table prefix
+* Fixed some newsletter builder issues
 
 = 2.7.3.6 =
 * Hustle integration support

@@ -7,17 +7,18 @@ class Email_Newsletter_Builder  {
 	var $settings = array();
 
 	function __construct() {
+		add_action( 'plugins_loaded', array( &$this, 'register_stuff'), 9 );
 		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded_early'), 10 );
 		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded'), 999 );
 		add_action( 'wp_ajax_builder_do_shortcodes', array( &$this, 'ajax_do_shortcodes' ) );
 	}
-	function plugins_loaded_early() {
-		global $builder_id;
-
-		$current_user = wp_get_current_user();
+	function register_stuff() {
+		global $builder_id, $email_newsletter;
 
 		//Set up builder id as global
 		if(isset($_REQUEST['newsletter_id'])) {
+			$current_user = wp_get_current_user();
+
 			if(is_numeric($_REQUEST['newsletter_id'])){
 				$builder_id = $_REQUEST['newsletter_id'];
 				delete_transient('builder_email_id_'.$current_user->ID);
@@ -30,6 +31,31 @@ class Email_Newsletter_Builder  {
 		if(!$builder_id) {
 			$builder_id = $this->get_builder_email_id();
 		}
+
+		if($this->get_customizer_theme() && $builder_id) {
+			$theme_exists = wp_get_theme($this->get_customizer_theme())->exists();
+			if(!$theme_exists) {
+				$email_newsletter->register_enewsletter_themes();
+				add_filter( 'allowed_themes', array( &$this, 'allow_enewsletter_themes'));		
+
+				add_filter( 'template', array( &$this, 'inject_builder_template'), 999 );
+				add_filter( 'stylesheet', array( &$this, 'inject_builder_stylesheet' ), 999 );
+				add_filter( 'customize_loaded_components', array( &$this, 'customizer_remove_panels') );
+			}
+		}
+	}
+    function allow_enewsletter_themes($themes) {
+        $builder_theme = $this->get_builder_theme();
+
+        $themes[$builder_theme] = true;
+
+        return $themes;
+    }
+
+	function plugins_loaded_early() {
+		global $builder_id, $wp_customize;
+
+		$current_user = wp_get_current_user();
 
 		//lets handle newsletter action
 		if ( isset( $_REQUEST['newsletter_builder_action'] ) ) {
@@ -61,49 +87,67 @@ class Email_Newsletter_Builder  {
 			}
 		}
 
-		//lets allow customizer on newsletter editing as early as we can
-		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $builder_id && $_REQUEST['theme'] == $this->get_builder_theme() ) {
+		//lets do some stuff on customizer as early as we can
+		if(isset($wp_customize)) {
+			$customizer_theme = $this->get_customizer_theme();
+			$builder_theme = $this->get_builder_theme();
 
-			//fix customizer capabilities users without possibility to use customizer - this is for tinymce
-			if(!current_user_can( 'edit_theme_options' )) {
-				add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 999, 1);
+			if($builder_id && $customizer_theme == $builder_theme) {
+				//fix customizer capabilities users without possibility to use customizer - this is for tinymce
+				if(!current_user_can( 'edit_theme_options' )) {
+					add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 999, 1);
+				}
+
+				//fix for known compatibility problems
+				global $fusion_slider;
+				if(isset($fusion_slider)) {
+					remove_action( 'plugins_loaded', array( 'FusionCore_Plugin', 'get_instance' ) ); //it might be too late
+					remove_action( 'after_setup_theme', array( 'Fusion_Core_PageBuilder', 'get_instance' ) );
+					remove_action( 'init', array( $fusion_slider, 'init' ) );
+				}
 			}
-
-			//fix for known compatibility problems
-			global $fusion_slider;
-			remove_action( 'plugins_loaded', array( 'FusionCore_Plugin', 'get_instance' ) ); //it might be too late
-			remove_action( 'after_setup_theme', array( 'Fusion_Core_PageBuilder', 'get_instance' ) );
-			remove_action( 'init', array( $fusion_slider, 'init' ) );
 		}
 	}
 	function plugins_loaded() {
-		global $builder_id;
+		global $builder_id, $email_newsletter, $wp_customize;
 
-		if( isset( $_REQUEST['wp_customize'] ) && 'on' == $_REQUEST['wp_customize'] && $builder_id && $_REQUEST['theme'] == $this->get_builder_theme() ) {
-			//fix customizer capabilities users without possibility to use customizer
-			add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 999, 1);
+		if(isset($wp_customize)) {
+			$customizer_theme = $this->get_customizer_theme();
+			$builder_theme = $this->get_builder_theme();
+			if($builder_id && $customizer_theme == $builder_theme) {
+				add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 999, 1);
 
-			add_filter( 'template', array( &$this, 'inject_builder_template'), 999 );
-			add_filter( 'stylesheet', array( &$this, 'inject_builder_stylesheet' ), 999 );
-			add_filter( 'customize_loaded_components', array( &$this, 'remove_newsletter_builder_components'),9999 );
-			add_action( 'customize_register', array( &$this, 'init_newsletter_builder'),9999 );
-			add_action( 'setup_theme' , array( &$this, 'setup_builder_header_footer' ), 999 );
-			add_filter( 'wp_default_editor', array( &$this, 'force_default_editor' ) );
-			add_filter( 'user_can_richedit', array( &$this, 'force_richedit' ) );
+				add_action( 'customize_register', array( &$this, 'init_newsletter_builder'),9999 );
+				add_action( 'setup_theme' , array( &$this, 'setup_builder_header_footer' ), 999 );
+				add_filter( 'wp_default_editor', array( &$this, 'force_default_editor' ) );
+				add_filter( 'user_can_richedit', array( &$this, 'force_richedit' ) );
 
-			add_action( 'admin_head', array( &$this, 'prepare_tinymce' ), 1 );
+				add_action( 'admin_head', array( &$this, 'prepare_tinymce' ), 1 );
 
-			add_action( 'template_redirect', array( &$this, 'enable_customizer') );
+				add_action( 'template_redirect', array( &$this, 'enable_customizer') );
 
-			//fix for known compatibility problems
-			remove_action('media_buttons', 'new_im_media_buttons',11);
-			remove_action('init', 'new_im_tinymce_addbuttons');
+				//fix for known compatibility problems
+				remove_action('media_buttons', 'new_im_media_buttons',11);
+				remove_action('init', 'new_im_tinymce_addbuttons');
+			}
 		}
 	}
 	function fix_capabilities($allcaps) {
 		$allcaps['edit_theme_options'] = true;
 
 		return $allcaps;
+	}
+	function get_customizer_theme() {
+		global $wp_customize;
+
+		if(isset($_REQUEST['theme']))
+			return $_REQUEST['theme'];
+		elseif(isset($_REQUEST['customize_theme']))
+			return $_REQUEST['customize_theme'];
+		elseif(isset($wp_customize))
+			return $wp_customize->get_stylesheet();
+		else
+			false;
 	}
 	function generate_builder_link($id=false, $theme=false, $return_url=NULL, $url=false) {
 		if(is_numeric($id)) {
@@ -190,7 +234,7 @@ class Email_Newsletter_Builder  {
 		<script type="text/javascript">
 			_wpCustomizeControlsL10n.save = "<?php _e('Save Newsletter','email-newsletter'); ?>";
 			var activate_theme = "<?php _e('Activate Theme','email-newsletter'); ?>";
-			var current_theme = "<?php echo $_GET['theme']; ?>";
+			var current_theme = "<?php echo $this->get_customizer_theme(); ?>";
 			var wp_version = <?php echo floatval($wp_version); ?>;
 
 			email_templates = [
@@ -219,6 +263,8 @@ class Email_Newsletter_Builder  {
 				current = jQuery('#customize-info .accordion-section-content');
 			}
 
+			jQuery('#save').val(_wpCustomizeControlsL10n.save);
+			
 			jQuery.each(email_templates, function(i,e) {
 				var clone = copy.clone();
 
@@ -425,14 +471,6 @@ class Email_Newsletter_Builder  {
 		else
 			return false;
 	}
-	function remove_newsletter_builder_components( $instance ) {
-		$instance->remove_section( 'colors' );
-		//$instance->remove_panel( 'nav_menus' ); //we need it to dont get js error
-		$instance->remove_panel( 'widgets' );
-		$instance->remove_section( 'title_tagline' );
-		$instance->remove_section( 'static_front_page' );
-		$instance->remove_section( 'themes' );		
-	}
 	function init_newsletter_builder( $instance ) {
 		global $builder_id, $email_newsletter;
 		$email_data = $email_newsletter->get_newsletter_data($builder_id);
@@ -584,7 +622,7 @@ class Email_Newsletter_Builder  {
 
 		// Setup Settings
 		$instance->add_setting( 'template', array(
-			'default' => $_REQUEST['theme'],
+			'default' => $instance->get_stylesheet(),
 			'type' => 'newsletter_save'
 		) );
 		$instance->add_setting( 'subject', array(
@@ -680,6 +718,16 @@ class Email_Newsletter_Builder  {
 			add_filter( 'customize_value_'.$value, array( &$this, 'get_builder_'.$value) );
 
 		add_action( 'customize_save', array( &$this, 'save_builder'), 10, 0 );
+
+		//remove default sections and panels
+		$instance->remove_section( 'colors' );
+		$instance->remove_section( 'title_tagline' );
+		$instance->remove_section( 'static_front_page' );
+		$instance->remove_section( 'themes' );
+		$instance->remove_section( 'custom_css' );		
+	}
+	function customizer_remove_panels() {
+		return array();
 	}
 
 	//this function needs cleaning up - its encoding and decoding for no good reason
@@ -846,7 +894,9 @@ class Email_Newsletter_Builder  {
 	// Anything that isnt a text input has to have its own function because
 	// WordPress only gives us the $default value to match in the filter
 	function get_builder_template($default) {
-		return $_REQUEST['theme'];
+		global $wp_customize;
+
+		return $wp_customize->get_stylesheet();
 	}
 	function get_builder_bg_color($default) {
 
