@@ -123,29 +123,30 @@ class Email_Newsletter_Builder  {
 			$builder_theme = $this->get_builder_theme();
 			if($builder_id && $customizer_theme == $builder_theme) {
 				//fix for known compatibility problems
-				remove_all_actions('customize_controls_enqueue_scripts');
-				add_action( 'customize_controls_enqueue_scripts', array( $wp_customize, 'enqueue_control_scripts' ) );
-
-				remove_all_actions('customize_register');
-				add_action('customize_register', array( $wp_customize, 'register_controls' ) );
-				add_action('customize_register', array( $wp_customize, 'register_dynamic_settings' ), 11 );
-
-				add_action( 'customize_register', array( &$this, 'init_newsletter_builder'),9999 );	
-
-				add_action( 'admin_init', array( &$this, 'cleanup_customizer'), 1 );
+				add_action( 'init', array( &$this, 'cleanup_customizer'), 1 );
 
 				add_action( 'setup_theme' , array( &$this, 'setup_builder_header_footer' ), 999 );
 				add_filter( 'wp_default_editor', array( &$this, 'force_default_editor' ) );
 				add_filter( 'user_can_richedit', array( &$this, 'force_richedit' ) );
 
-				add_action( 'admin_head', array( &$this, 'prepare_tinymce' ), 1 );
+				add_action( 'admin_head', array( &$this, 'prepare_tinymce' ), 999 );
 
 				add_action( 'template_redirect', array( &$this, 'enable_customizer') );
 			}
 		}
 	}
 	function cleanup_customizer() {
+		global $wp_customize;
+
+		remove_all_actions('customize_controls_enqueue_scripts');
+		add_action( 'customize_controls_enqueue_scripts', array( $wp_customize, 'enqueue_control_scripts' ) );
+
 		remove_all_actions('customize_register');
+		add_action('customize_register', array( $wp_customize, 'register_controls' ) );
+		add_action('customize_register', array( $wp_customize, 'register_dynamic_settings' ), 11 );
+
+		add_action( 'customize_register', array( &$this, 'init_newsletter_builder'),9999 );	
+
 		remove_action('media_buttons', 'new_im_media_buttons',11);
 		remove_action('init', 'new_im_tinymce_addbuttons');	
 	}
