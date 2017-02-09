@@ -10,7 +10,7 @@
     }
     $args = array('order' => $order, 'orderby' => false);
 
-    $url_orginal = esc_url(add_query_arg( $args ));
+    $url_orginal = add_query_arg( $args );
 
     if ( isset( $_REQUEST['orderby'] ) )
         $arg['orderby'] = $_REQUEST['orderby'];
@@ -46,28 +46,28 @@
                 <tr>
                     <th <?php echo (isset($arg['orderby']) && "newsletter_id" == $arg['orderby']) ? 'class="newsletter-id sorted '. $arg['order'].'"' : 'class="newsletter-id sortable desc"';?>>
                         <?php $url = add_query_arg( array('orderby' => 'newsletter_id'), $url_orginal ); ?>
-                        <a href="<?php echo $url; ?>">
+                        <a href="<?php echo esc_url( $url ); ?>">
                             <span><?php _e( 'ID', 'email-newsletter' ) ?></span>
                             <span class="sorting-indicator"></span>
                         </a>
                     </th>
                     <th <?php echo (isset($arg['orderby']) && "create_date" == $arg['orderby']) ? 'class="sorted '. $arg['order'].'"' : 'class="sortable desc"';?>>
                         <?php $url = add_query_arg( array('orderby' => 'create_date'), $url_orginal ); ?>
-                        <a href="<?php echo $url; ?>">
+                        <a href="<?php echo esc_url( $url ); ?>">
                             <span><?php _e( 'Create Date', 'email-newsletter' ) ?></span>
                             <span class="sorting-indicator"></span>
                         </a>
                     </th>
                     <th <?php echo (isset($arg['orderby']) && "subject" == $arg['orderby']) ? 'class="newsletter-subject sorted '. $arg['order'].'"' : 'class="newsletter-subject sortable desc"';?>>
                         <?php $url = add_query_arg( array('orderby' => 'subject'), $url_orginal ); ?>
-                        <a href="<?php echo $url; ?>">
+                        <a href="<?php echo esc_url( $url ); ?>">
                             <span><?php _e( 'Email Subject', 'email-newsletter' ) ?></span>
                             <span class="sorting-indicator"></span>
                         </a>
                     </th>
                     <th <?php echo (isset($arg['orderby']) && "template" == $arg['orderby']) ? 'class="newsletter-template sorted '. $arg['order'].'"' : 'class="newsletter-template sortable desc"';?>>
                         <?php $url = add_query_arg( array('orderby' => 'template'), $url_orginal ); ?>
-                        <a href="<?php echo $url; ?>">
+                        <a href="<?php echo esc_url( $url ); ?>">
                             <span><?php _e( 'Template', 'email-newsletter' ) ?></span>
                             <span class="sorting-indicator"></span>
                         </a>

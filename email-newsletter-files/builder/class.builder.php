@@ -112,6 +112,8 @@ class Email_Newsletter_Builder  {
 					remove_action( 'after_setup_theme', array( 'Fusion_Core_PageBuilder', 'get_instance' ) );
 					remove_action( 'init', array( $fusion_slider, 'init' ) );
 				}
+				add_filter( 'black_studio_tinymce_enable', '__return_false' );
+				remove_action( 'init', 'wp_widgets_init', 1 );
 			}
 		}
 	}
