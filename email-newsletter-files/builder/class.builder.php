@@ -46,6 +46,16 @@ class Email_Newsletter_Builder  {
 				add_filter( 'template', array( &$this, 'inject_builder_template'), 999 );
 				add_filter( 'stylesheet', array( &$this, 'inject_builder_stylesheet' ), 999 );
 				add_filter( 'customize_loaded_components', array( &$this, 'customizer_remove_panels') );
+
+				//fix for known compatibility problems
+				global $fusion_slider;
+				if(isset($fusion_slider)) {
+					remove_action( 'plugins_loaded', array( 'FusionCore_Plugin', 'get_instance' ) ); //it might be too late
+					remove_action( 'after_setup_theme', array( 'Fusion_Core_PageBuilder', 'get_instance' ) );
+					remove_action( 'init', array( $fusion_slider, 'init' ) );
+				}
+				add_filter( 'black_studio_tinymce_enable', '__return_false' );
+				remove_action( 'init', 'wp_widgets_init', 1 );
 			}
 		}
 
@@ -96,24 +106,6 @@ class Email_Newsletter_Builder  {
 					wp_redirect( $this->generate_builder_link($builder_id, $template, $return) );
 					exit();
 				break;
-			}
-		}
-
-		//lets do some stuff on customizer as early as we can
-		if(isset($wp_customize)) {
-			$customizer_theme = $this->get_customizer_theme();
-			$builder_theme = $this->get_builder_theme();
-
-			if($builder_id && $customizer_theme == $builder_theme) {
-				//fix for known compatibility problems
-				global $fusion_slider;
-				if(isset($fusion_slider)) {
-					remove_action( 'plugins_loaded', array( 'FusionCore_Plugin', 'get_instance' ) ); //it might be too late
-					remove_action( 'after_setup_theme', array( 'Fusion_Core_PageBuilder', 'get_instance' ) );
-					remove_action( 'init', array( $fusion_slider, 'init' ) );
-				}
-				add_filter( 'black_studio_tinymce_enable', '__return_false' );
-				remove_action( 'init', 'wp_widgets_init', 1 );
 			}
 		}
 	}

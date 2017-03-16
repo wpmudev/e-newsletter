@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.3.9
+Version: 2.7.4.0
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -332,12 +332,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
             wp_enqueue_script( 'jquery_tooltips' );
 
             //including JS scripts for progressbar
-            wp_register_script( 'jquery_ui_widget', $this->plugin_url . 'email-newsletter-files/js/ui.widget.js' );
-            wp_enqueue_script( 'jquery_ui_widget' );
+            //wp_register_script( 'jquery_ui_widget', $this->plugin_url . 'email-newsletter-files/js/ui.widget.js' );
+            wp_enqueue_script( 'jquery-ui-widget' );
 
             //including JS scripts for progressbar
-            wp_register_script( 'jquery_progressbar', $this->plugin_url . 'email-newsletter-files/js/jquery.ui.progressbar.js' );
-            wp_enqueue_script( 'jquery_progressbar' );
+            //wp_register_script( 'jquery_progressbar', $this->plugin_url . 'email-newsletter-files/js/jquery.ui.progressbar.js' );
+            wp_enqueue_script( 'jquery-ui-progressbar' );
 
             // Including CSS file
             wp_register_style( 'enewsletter-style', $this->plugin_url . 'email-newsletter-files/css/admin.css' );
@@ -978,7 +978,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         if(!is_email($_REQUEST['e_newsletter_email'])) {
             $data['message'] = __( 'Please use correct email!', 'email-newsletter' );
-            
+
             return array('action' => 'new_subscribed', 'error' => true, 'message' => $data['message']);
         }
 
@@ -1012,10 +1012,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
             else
                 $data['message'] = __( 'You have been successfully subscribed!', 'email-newsletter' );
 
-            return array('action' => 'new_subscribed', 'error' => false, 'message' => $data['message'], 'data' => array('redirect' => $data['redirect']));  
+            return array('action' => 'new_subscribed', 'error' => false, 'message' => $data['message'], 'data' => array('redirect' => $data['redirect']));
         }
         else
-            return array('action' => 'new_subscribed', 'error' => true, 'message' => $result['message']);  
+            return array('action' => 'new_subscribed', 'error' => true, 'message' => $result['message']);
     }
 
     /**
@@ -1471,12 +1471,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
         $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_send_members a LEFT JOIN {$this->tb_prefix}enewsletter_send b ON (a.send_id = b.send_id) SET opened_time = %d WHERE (a.send_id = %d OR b.start_time = %d) AND a.member_id = %d AND a.wp_only_user_id = %d AND a.opened_time = 0" , time(), $_REQUEST['send_id'], $_REQUEST['send_id'], $_REQUEST['member_id'], $_REQUEST['wp_only_user_id'] ) );
         if($result) {
             $this->plus_one_member_stats($_REQUEST['member_id'], 'opened');
-            $newsletter = $wpdb->get_row( $wpdb->prepare( 
+            $newsletter = $wpdb->get_row( $wpdb->prepare(
                 "SELECT b.newsletter_id AS newsletter_id
-                FROM {$this->tb_prefix}enewsletter_send_members a 
+                FROM {$this->tb_prefix}enewsletter_send_members a
                 LEFT JOIN {$this->tb_prefix}enewsletter_send b ON (a.send_id = b.send_id)
-                WHERE (a.send_id = %d OR b.start_time = %d)", 
-                $_REQUEST['send_id'], $_REQUEST['send_id'] 
+                WHERE (a.send_id = %d OR b.start_time = %d)",
+                $_REQUEST['send_id'], $_REQUEST['send_id']
             ), "ARRAY_A" );
 
             if(isset($newsletter['newsletter_id']) && $newsletter['newsletter_id'])
@@ -1651,7 +1651,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             if( !empty($member_data["member_email"]) && is_email($member_data["member_email"]) ) {
                 //get data of newsletter
-                
+
                 $newsletter_data = $this->get_newsletter_data( $send_data['newsletter_id'] );
 
                 $contents = $send_data['email_body'];
@@ -1798,12 +1798,12 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     if($send_member['member_id']) {
                         $member_data = $this->get_member( $send_member['member_id'] );
                         $bounce_id = $send_member['member_id'];
-                        $bounce_hash = md5( 'Hash of bounce member_id='. $bounce_id . ', send_id='. $send_id );
+                        $bounce_hash = md5( 'Hash of bounce member_id='. $bounce_id . ', send_id='. $send_member['send_id'] );
                     }
                     elseif($send_member['wp_only_user_id']) {
                         $member_data = $this->get_wp_user_only( $send_member['wp_only_user_id'] );
                         $bounce_id = $send_member['wp_only_user_id'];
-                        $bounce_hash = md5( 'Hash of bounce wp_only_user_id='. $bounce_id . ', send_id='. $send_id );
+                        $bounce_hash = md5( 'Hash of bounce wp_only_user_id='. $bounce_id . ', send_id='. $send_member['send_id'] );
                     }
 
                     $send_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->tb_prefix}enewsletter_send WHERE send_id = %d",  $send_member['send_id'] ), "ARRAY_A");
@@ -1828,7 +1828,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                             $from_domain = explode('@',$newsletter_data['from_email']);
                             $from_domain = isset($from_domain[1]) ? '@'.$from_domain : '';
-                            $options['message_id'] = 'Newsletters-' . $bounce_id . '-' . $send_id . '-'. $bounce_hash;
+                            $options['message_id'] = 'Newsletters-' . $bounce_id . '-' . $send_member['send_id'] . '-'. $bounce_hash;
 
                             $sent_status = $this->send_email( $newsletter_data['from_name'], $newsletter_data['from_email'], $member_data["member_email"], $newsletter_data["subject"], $contents, $options );
                             if( $sent_status === true ) {
@@ -1928,11 +1928,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
                 if(
                     strpos($mail->from,'MAILER-DAEMON') !== FALSE ||
-                    strpos($mail->from,'mailer-daemon') !== FALSE 
+                    strpos($mail->from,'mailer-daemon') !== FALSE
                 ){
                     $body = imap_body ( $mbox, $mail->msgno );
 
-                    if( 
+                    if(
                         preg_match( '/X-Mailer:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ||
                         preg_match( '/X-Mailer:\s*<?newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches) ||
                         preg_match( '/Message-ID:\s*<?Newsletters-(\d+)-(\d+)-([A-Fa-f0-9]{32})/i', $body, $matches)  ||
@@ -2373,8 +2373,8 @@ class Email_Newsletter extends Email_Newsletter_functions {
             if ( !isset($member_groups) || ! is_array( $member_groups ) )
                 $member_groups = array();
 
-            if(!$subscribe_to_groups) 
-                $show_groups = true;         
+            if(!$subscribe_to_groups)
+                $show_groups = true;
         }
         else
             $groups = $this->get_groups(1);

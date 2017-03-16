@@ -1151,7 +1151,7 @@ class Email_Newsletter_functions {
 
 	        $sent_status = $mail->Send();
 	        if( !$sent_status ) {
-	            $this->write_log( 'Send email error: '.$mail->ErrorInfo.'['.$mail->ErrorInfoRaw.']');
+	            $this->write_log( 'Send email error: '.$mail->ErrorInfo.'['.json_encode($mail->ErrorInfoRaw).']');
 	            return $mail->ErrorInfoRaw;
 	        }
 	    }
@@ -1676,7 +1676,7 @@ class Email_Newsletter_functions {
                     '/norsh/novalidate-cert/tls'
                 );
             foreach ($combinations as $combination) {
-                $connection = imap_open( '{'.$email_host.':'.$email_port.'/pop3'.$combination.$email_security.'}INBOX', $email_username, $email_password );
+                $connection = @imap_open( '{'.$email_host.':'.$email_port.'/pop3'.$combination.$email_security.'}INBOX', $email_username, $email_password );
                 if($connection) {
                     $this->write_log( "Bounce: detected advanced settings: ".$combination );
                     $this->save_settings_array(array('bounce_advanced_options' => $combination));

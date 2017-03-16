@@ -5,6 +5,11 @@ Lead developer: Maniu
 Contributors: Cole, Andrey
 
 == Changelog ==
+= 2.7.4.0 =
+* Fixed possible JS conflicts on admin page
+* Fixed compatibility with Fusion Core
+* Fixed some warnings
+
 = 2.7.3.9 =
 * Fixed sorting issue on newsletter page
 * Fixed compatibility with Black Studio TinyMCE widget
