@@ -1185,7 +1185,14 @@ class Email_Newsletter_Builder  {
 			die();
 
 		$content = $email_newsletter->make_email_body($builder_id, 1);
-		$content = $email_newsletter->personalise_email_body($content, 0, 0, 0, 0, 0, $changes = array('user_name' => '{USER_NAME}', 'first_name' => '{FIRST_NAME}', 'to_email'=> '{TO_EMAIL}'));
+
+		$replacements = array(
+			'user_name' => '{USER_NAME}',
+			'first_name' => '{FIRST_NAME}',
+			'last_name' => '{LAST_NAME}',
+			'to_email'=> '{TO_EMAIL}'
+		);
+		$content = $email_newsletter->personalise_email_body( $content, 0, 0, 0, 0, 0, $changes = $replacements );
 
 		echo $content;
 

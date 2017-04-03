@@ -1358,13 +1358,15 @@ class Email_Newsletter_functions {
     /**
      * Personalize email
      **/
-    function personalise_email_body($contents, $member_id, $wp_only_user_id, $join_date, $unsubscribe_code, $send_id, $changes = array()) {
+    function personalise_email_body( $contents, $member_id, $wp_only_user_id, $join_date, $unsubscribe_code, $send_id, $changes = array() ) {
         if($member_id)
             $id = $member_id;
         elseif($wp_only_user_id)
             $id = $wp_only_user_id;
         else
             $id = 0;
+
+        $changes = apply_filters( 'email_newsletter/personalise_email_body', $changes, $member_id, $send_id );
 
         //apply all dynamic replcements to content
         foreach ($changes as $key => $value) {
@@ -1637,20 +1639,41 @@ class Email_Newsletter_functions {
     /**
      * Choose firstname
      **/
-    function get_firstname($wp_user_id, $user_nicename) {
+    function get_firstname( $wp_user_id, $user_nicename ) {
         if($wp_user_id == 0 ) {
-            $user_name = explode(' ', $user_nicename);
+            $user_name = explode( ' ', $user_nicename );
             $user_name = $user_name[0];
         }
         else {
-            $wp_user = ($wp_user_id == 0 ? false : get_user_by('id', $wp_user_id));
+            $wp_user = ( $wp_user_id == 0 ? false : get_user_by('id', $wp_user_id ) );
 
-            if(is_a($wp_user,'WP_User'))
-                $user_name = !empty($wp_user->first_name) ? $wp_user->first_name : $wp_user->display_name;
+            if( is_a( $wp_user,'WP_User' ) )
+                $user_name = !empty( $wp_user->first_name ) ? $wp_user->first_name : $wp_user->display_name;
             else
                 $user_name = '';
         }
         return $user_name;
+    }
+
+    /**
+     * Choose lasttname
+     **/
+    function get_lastname($wp_user_id, $user_nicename) {
+        $last_name = '';
+
+        if( $wp_user_id == 0 ) {
+            $last_name = explode( ' ', $user_nicename );
+            $last_name = $last_name[1];
+        }
+        else {
+            $wp_user = ( $wp_user_id == 0 ? false : get_user_by( 'id', $wp_user_id ) );
+
+            if(is_a($wp_user,'WP_User'))
+                $last_name = !empty( $wp_user->last_name ) ? $wp_user->last_name : $wp_user->display_name;
+            else
+                $last_name = '';
+        }
+        return $last_name;
     }
 
     function pop3_connet($email_host, $email_port = 110, $email_security = '', $email_username = '', $email_password = '' ) {
@@ -2599,3 +2622,4 @@ class Email_Newsletter_functions {
     }
 }
 ?>
+
