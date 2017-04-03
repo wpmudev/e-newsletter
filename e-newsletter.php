@@ -1659,7 +1659,17 @@ class Email_Newsletter extends Email_Newsletter_functions {
                 //Replace some content inside the email body
                 $user_name = $this->get_nicename($member_data['wp_user_id'], $member_data['member_nicename']);
                 $first_name = $this->get_firstname($member_data['wp_user_id'], $member_data['member_nicename']);
-                $contents = $this->personalise_email_body($contents, $send_member['member_id'], $send_member['wp_only_user_id'], $member_data['join_date'], $member_data['unsubscribe_code'], $send_data['start_time'], array('user_name' => $user_name, 'first_name' => $first_name, 'to_email' => $member_data["member_email"]));
+                $last_name = $this->get_lastname($member_data['wp_user_id'], $member_data['member_nicename']);
+
+                $replacements = array(
+                    'user_name' => $user_name,
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'to_email' => $member_data["member_email"]
+                );
+
+
+                $contents = $this->personalise_email_body( $contents, $send_member['member_id'], $send_member['wp_only_user_id'], $member_data['join_date'], $member_data['unsubscribe_code'], $send_data['start_time'], $replacements );
 
                 $newsletter_data["subject"] = $this->personalise_email_body($newsletter_data["subject"], $send_member['member_id'], $send_member['wp_only_user_id'], $member_data['join_date'], $member_data['unsubscribe_code'], $send_data['start_time'], array('user_name' => $user_name, 'first_name' => $first_name, 'to_email' => $member_data["member_email"]));
 
