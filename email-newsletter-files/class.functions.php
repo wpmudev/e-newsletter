@@ -1993,6 +1993,9 @@ class Email_Newsletter_functions {
 
         if (isset( $settings['subscribe_groups']))
             $settings['subscribe_groups'] = implode(',', $settings['subscribe_groups']);
+        else {
+            $settings['subscribe_groups'] = '';
+        }
 
 
         foreach( $settings as $key => $item )

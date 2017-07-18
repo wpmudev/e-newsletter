@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.4.1
+Version: 2.7.4.2
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -2132,7 +2132,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if( ! $email_host )
             return true;
 
-        sleep( 5 );
+        sleep( 20 );
 
         $email_security = isset($_REQUEST['bounce_security']) ? $_REQUEST['bounce_security'] : '';
 

@@ -5,6 +5,10 @@ Lead developer: Maniu
 Contributors: Cole, Andrey
 
 == Changelog ==
+= 2.7.4.2 =
+* Increased bounce check wait time
+* Fixes default groups setting saving issue
+
 = 2.7.4.1 =
 * Added ability to filter placeholders with 'email_newsletter/personalise_email_body'
 * Fixed compatibility with CoursePress
