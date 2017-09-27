@@ -5,6 +5,9 @@ Lead developer: Maniu
 Contributors: Cole, Andrey
 
 == Changelog ==
+= 2.7.4.3 =
+* Fixes WP theme customizing issue
+
 = 2.7.4.2 =
 * Increased bounce check wait time
 * Fixes default groups setting saving issue

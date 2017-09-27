@@ -32,7 +32,9 @@ class Email_Newsletter_Builder  {
 			$builder_id = $this->get_builder_email_id();
 		}
 
-		if($this->get_customizer_theme() && $builder_id) {
+		$customizer_theme = $this->get_customizer_theme();
+		$builder_theme = $this->get_builder_theme();
+		if($builder_id && $customizer_theme == $builder_theme) {
 			//fix customizer capabilities users without possibility to use customizer
 			if(!current_user_can( 'edit_theme_options' )) {
 				add_filter('user_has_cap', array( &$this, 'fix_capabilities'), 999, 1);
@@ -88,8 +90,6 @@ class Email_Newsletter_Builder  {
 
 					$builder_id = false;
 					$builder_id = $this->create_newsletter(array('template' => $this->get_builder_theme()));
-					delete_transient('builder_email_id_'.$current_user->ID);
-					set_transient('builder_email_id_'.$current_user->ID, $builder_id);
 
 					$return = (isset($_REQUEST['return'])) ? $_GET['return'] : false;
 					wp_redirect( $this->generate_builder_link($builder_id, false, $return) );
