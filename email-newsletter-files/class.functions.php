@@ -1152,7 +1152,7 @@ class Email_Newsletter_functions {
 	        $sent_status = $mail->Send();
 	        if( !$sent_status ) {
 	            $this->write_log( 'Send email error: '.$mail->ErrorInfo.'['.json_encode($mail->ErrorInfoRaw).']');
-	            return $mail->ErrorInfoRaw;
+	            return !empty( $mail->ErrorInfoRaw ) ? $mail->ErrorInfoRaw : $mail->ErrorInfo;
 	        }
 	    }
 
