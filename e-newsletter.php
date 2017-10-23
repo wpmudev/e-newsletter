@@ -1690,7 +1690,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
                     else
                         $message = __( 'Error when updating DB.', 'email-newsletter' );
                 } else {
-                    if( $sent_status == 'recipients_failed' || $sent_status == 'invalid_address' || !is_array( $sent_status ) && strpos( strtolower( $sent_status ), 'recipient') !== false ) {
+                    if( $sent_status == 'recipients_failed' || $sent_status == 'invalid_address' || strpos( strtolower( $sent_status ), 'recipient') !== false ) {
                         $result = $this->set_send_email_status( 'bounced', $send_id, $send_member['member_id'], $send_member['wp_only_user_id'], $send_data['newsletter_id'] );
                         if ( $result )
                             $message = 'ok';
