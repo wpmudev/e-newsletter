@@ -36,8 +36,9 @@
 						<a href="#tabs-2" class="nav-tab"><?php _e( 'Outgoing Email Settings', 'email-newsletter' ) ?></a>
 						<a href="#tabs-3" class="nav-tab"><?php _e( 'Bounce Settings', 'email-newsletter' ) ?></a>
 						<a href="#tabs-4" class="nav-tab"><?php _e( 'User Permissions', 'email-newsletter' ) ?></a>
-						 <?php if ( ! isset( $mode ) || "install" != $mode ): ?>
-						 	<a class="nav-tab" href="#tabs-5"><?php _e( 'Uninstall', 'email-newsletter' ) ?></a>
+						<a href="#tabs-5" class="nav-tab"><?php _e( 'Shortcodes', 'email-newsletter' ) ?></a>
+                        <?php if ( ! isset( $mode ) || "install" != $mode ): ?>
+                            <a class="nav-tab" href="#tabs-6"><?php _e( 'Uninstall', 'email-newsletter' ) ?></a>
 						 <?php endif; ?>
 					</h3>
                     <div id="tabs-1" class="tab">
@@ -474,8 +475,29 @@
                             </tbody>
                         </table>
 					</div>
-                    <?php if ( ! isset( $mode ) || "install" != $mode ): ?>
                     <div id="tabs-5" class="tab">
+                    <h3><?php _e( 'Shortcode Usage', 'email-newsletter' ) ?></h3>
+                    <p><?php _e('Here you can learn how to add e-Newsletter shortcodes to your posts, pages and theme templates.','email-newsletter'); ?></p>
+                    <div class="shortcode-help">
+                        <p><?php _e('You can use the following shortcode to include the subscription form wherever you need it.'); ?></p>
+                        <p><code>[enewsletter_subscribe]</code></p>
+                        <p><?php _e('The shortcode has 3 parameters that you can customize.'); ?></p>
+                        <ul>
+                            <li><strong>show_name</strong> <?php _e('enables/disables the "Name" field in the form for site visitors.'); ?></li>
+                            <li><strong>show_groups</strong> <?php _e('enables/disables the group selection for site visitors.'); ?></li>
+                            <li><strong>subscribe_to_groups</strong> <?php _e('auto-subscribes users to the groups specified by ID.'); ?></li>
+                        </ul>
+                        <p><?php _e('For example, the shortcode configured as follows would hide the group selection checkboxes, automatically subscribe the user to groups with the specified IDs, and ask for the visitor\'s name.'); ?>
+                            <p><code>[enewsletter_subscribe show_name="1" show_groups="0" subscribe_to_groups="1,5"]</code></p>
+                        <p><?php _e('Use the shortcode to add the subscription form to any post or page content, or even include it in custom page templates using the'); ?> <a href="https://developer.wordpress.org/reference/functions/do_shortcode/" target="_blank">do_shortcode function</a>.</p>
+                        <p><?php _e('Use the following shortcode to display the <em>subscribed</em> confirmation message on the page defined in <strong>General Settings -> Subscribed Page ID</strong>.'); ?></p>
+                        <p><code>[enewsletter_subscribe_message]</code></p>
+                        <p><?php _e('Use the following shortcode to display the <em>unsubscribed</em> confirmation message on the page defined in <strong>General Settings -> Unsubscribe Page ID</strong>.'); ?></p>
+                        <p><code>[enewsletter_unsubscribe_message]</code></p>
+                    </div>
+                    </div>
+                    <?php if ( ! isset( $mode ) || "install" != $mode ): ?>
+                    <div id="tabs-6" class="tab">
                         <h3><?php _e( 'Uninstall', 'email-newsletter' ) ?></h3>
                         <p><?php _e( 'Here you can delete all data associated with the plugin from the database.', 'email-newsletter' ) ?></p>
                         <p>
