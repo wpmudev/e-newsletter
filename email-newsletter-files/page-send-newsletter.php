@@ -92,7 +92,7 @@
                             url: ajaxurl,
                             data: 'action=send_email_to_member&send_id=<?php echo $send_id ; ?>&check_key=<?php echo $_REQUEST["check_key"] ; ?>',
                             success: function( html ){
-                                if ( 'ok' == html ) {
+                                if ( 'ok' == html.trim() ) {
 
                                     jQuery( '#count_sent' ).html( send );
 
@@ -105,7 +105,7 @@
                                         jQuery( this ).send_email();
 
 
-                                } else if ( 'end' == html) {
+                                } else if ( 'end' == html.trim()) {
                                      jQuery( "#send_pause" ).hide();
                                      jQuery( "#send_cron" ).hide();
                                      jQuery( "#progressbar_text" ).html( '<?php echo _e( 'Done', 'email-newsletter' ) ?>' );
