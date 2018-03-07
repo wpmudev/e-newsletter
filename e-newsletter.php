@@ -1131,7 +1131,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             if ( 0 < $member['member_id'] ) {
                 //delete unsubscribe_code of member
                 $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '' WHERE unsubscribe_code = '%s'", $unsubscribe_code ) );
-
+                update_user_meta( $member['member_id'], 'email_newsletter_unsubscribe_code', 'unsubscribed' );
                 return array('action' => 'unsubscribed', 'error' => false, 'message' => __( 'You are unsubscribed!', 'email-newsletter' ));
             }
             elseif( 0 < $member['wp_only_user_id'] ) {
@@ -1154,6 +1154,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
             foreach( ( array ) $members_id as $member_id ) {
                 $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_member_group WHERE member_id = %d", $member_id ) );
                 $wpdb->query( $wpdb->prepare( "DELETE FROM {$this->tb_prefix}enewsletter_members WHERE member_id = %d", $member_id ) );
+                update_user_meta( $member_id, 'email_newsletter_unsubscribe_code', 'unsubscribed' );
             }
 
             if(count($members_id) == 1)
