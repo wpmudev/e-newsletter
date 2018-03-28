@@ -2629,5 +2629,3 @@ class Email_Newsletter_functions {
         fclose($handle);
     }
 }
-?>
-

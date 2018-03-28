@@ -9,6 +9,8 @@ Contributors: Cole, Andrey
 * Removed support for 3rd party TinyMCE media buttons
 * Fixed DB related warnings when plugin is not fully installed
 * Improved Membership 2 integration performance
+* Removed wrong "Themes" panel from customizer
+* Fixed typo
 
 = 2.7.4.3 =
 * Fixes WP theme customizing issue

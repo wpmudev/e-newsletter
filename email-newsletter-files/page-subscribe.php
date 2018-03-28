@@ -27,7 +27,7 @@
 ?>
     <div class="wrap">
         <h2><?php _e( 'My Subscriptions', 'email-newsletter' ) ?></h2>
-        <p><?php _e( 'At this page you can Subscribe or Unsubcribe to Newsletters', 'email-newsletter' ) ?></p>
+        <p><?php _e( 'At this page you can Subscribe or Unsubscribe to Newsletters', 'email-newsletter' ) ?></p>
         <?php
         if ( "" != $member_data['unsubscribe_code']) {
         ?>

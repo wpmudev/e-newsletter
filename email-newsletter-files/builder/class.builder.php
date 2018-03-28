@@ -749,6 +749,7 @@ class Email_Newsletter_Builder  {
 		add_action( 'customize_save', array( &$this, 'save_builder'), 10, 0 );
 
 		//remove default sections and panels
+		$instance->remove_panel( 'themes' );
 		$instance->remove_section( 'colors' );
 		$instance->remove_section( 'title_tagline' );
 		$instance->remove_section( 'static_front_page' );
