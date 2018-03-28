@@ -5,6 +5,9 @@ Lead developer: Maniu
 Contributors: Cole, Andrey
 
 == Changelog ==
+= 2.7.4.5 =
+* Fixed NextGEN Gallery compatibility 
+
 = 2.7.4.4 =
 * Removed support for 3rd party TinyMCE media buttons
 * Fixed DB related warnings when plugin is not fully installed
