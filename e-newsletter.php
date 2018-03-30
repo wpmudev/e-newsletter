@@ -2014,9 +2014,15 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
         $newsletter_data = $this->get_newsletter_data( $newsletter_id );
         $content = $this->make_email_body($newsletter_id);
-        $content = str_replace( "{VIEW_LINK}", '#', $content );
-        $content = str_replace( "{UNSUBSCRIBE_URL}", '#', $content );
-        $content = str_replace( "{OPENED_TRACKER}", '<div style="font-size: 0px; line-height:0px; display:none; visibility: hidden;"><img src="#" width="1" height="1"/></div>', $content );
+        $links = array(
+            '{VIEW_LINK}',
+            '%7BVIEW_LINK%7D',
+            '{UNSUBSCRIBE_URL}',
+            '%7BUNSUBSCRIBE_URL%7D',
+        );
+        $content = str_replace( $links, '#', $content );
+        $content = str_replace( array( '{OPENED_TRACKER}', '%7BOPENED_TRACKER%7D', ),
+            '<div style="font-size: 0px; line-height:0px; display:none; visibility: hidden;"><img src="#" width="1" height="1"/></div>', $content );
         if($newsletter_data && $content) {
             $subject = '(PREVIEW) '.$newsletter_data['subject'];
             if( $this->settings['bounce_email'] ) {

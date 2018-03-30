@@ -1371,6 +1371,13 @@ class Email_Newsletter_functions {
         else
             $id = 0;
 
+        //Set up permalinks
+        $changes['OPENED_TRACKER'] = '<div style="font-size: 0px; line-height:0px; visibility: hidden;"><img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id . '&wp_only_user_id=' . $wp_only_user_id) . '" width="1" height="1"/></div>';
+        $unsubscribe_url = add_query_arg( array('unsubscribe_page' => '1', 'unsubscribe_code' => $unsubscribe_code, 'unsubscribe_member_id' => $id), home_url() );
+        $changes['UNSUBSCRIBE_URL'] = $unsubscribe_url;
+        $view_browser_url = add_query_arg( array('view_newsletter' => '1', 'view_newsletter_code' => $join_date, 'view_newsletter_send_id' => $send_id), home_url() );
+        $changes['VIEW_LINK'] = $view_browser_url;
+
         $changes = apply_filters( 'email_newsletter/personalise_email_body', $changes, $member_id, $send_id );
 
         //apply all dynamic replcements to content
@@ -1380,16 +1387,6 @@ class Email_Newsletter_functions {
                 $contents = str_replace( "%7B".strtoupper($key)."%7D", $value, $contents );
             }
         }
-
-        //Set up permalinks
-        $contents = str_replace( "{OPENED_TRACKER}", '<div style="font-size: 0px; line-height:0px; visibility: hidden;"><img src="' . admin_url('admin-ajax.php?action=check_email_opened&send_id=' . $send_id . '&member_id=' . $member_id . '&wp_only_user_id=' . $wp_only_user_id) . '" width="1" height="1"/></div>', $contents );
-
-        $unsubscribe_url = add_query_arg( array('unsubscribe_page' => '1', 'unsubscribe_code' => $unsubscribe_code, 'unsubscribe_member_id' => $id), home_url() );
-        $contents = str_replace( "%7BUNSUBSCRIBE_URL%7D", $unsubscribe_url, $contents );
-
-        $view_browser_url = add_query_arg( array('view_newsletter' => '1', 'view_newsletter_code' => $join_date, 'view_newsletter_send_id' => $send_id), home_url() );
-        $contents = str_replace( "{VIEW_LINK}", $view_browser_url, $contents );
-        $contents = str_replace( "%7BVIEW_LINK%7D", $view_browser_url, $contents );
 
         return $contents;
     }
