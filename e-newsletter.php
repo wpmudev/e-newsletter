@@ -2190,8 +2190,9 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             // Determine our locale to check for a specific template
             $locale = get_locale();
-            if( file_exists($this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html') ) {
-                $email_contents     = file_get_contents( $this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html' );
+			$template = apply_filters( 'email_newsletter_email_double_optin_template', $this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html', $locale );
+            if( file_exists( $template ) ) {
+                $email_contents     = file_get_contents( $template );
             } else {
                 ob_start();
                 include($this->plugin_dir . "email-newsletter-files/emails/double_optin.php");
