@@ -1154,6 +1154,13 @@ class Email_Newsletter_functions {
 	            $mail->MessageID = $options['message_id'];
 	        }
 
+			/**
+			 * Fires after ePHPMailer is initialized.
+			 *
+			 * @param ePHPMailer $mail The ePHPMailer instance (passed by reference).
+			*/
+			do_action_ref_array( 'ephpmailer_init', array( &$mail ) );
+			
 	        $sent_status = $mail->Send();
 	        if( !$sent_status ) {
 	            $this->write_log( 'Send email error: '.$mail->ErrorInfo.'['.json_encode($mail->ErrorInfoRaw).']');
