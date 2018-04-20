@@ -93,4 +93,6 @@ class e_newsletter_subscribe extends WP_Widget {
     }
 } // class e_newsletter_subscribe
 
-add_action( 'widgets_init', create_function( '', 'return register_widget("e_newsletter_subscribe");' ) );
+add_action( 'widgets_init', function() {
+	return register_widget("e_newsletter_subscribe");
+});

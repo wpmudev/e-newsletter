@@ -1075,11 +1075,17 @@ class Email_Newsletter_functions {
 
         $email_contents = wordwrap($email_contents, 50);
 
-    	if($this->settings['outbound_type'] == 'wpmail') {
-    		add_filter('wp_mail_content_type', create_function('', 'return "text/html"; '));
-    		add_filter( 'wp_mail_from', create_function('', 'return "'.$email_from.'"; ') );
+		if($this->settings['outbound_type'] == 'wpmail') {
+			add_filter('wp_mail_content_type', function() {
+				return "text/html";
+			});
+			add_filter( 'wp_mail_from', function() use ( $email_from ) {
+				return  $email_from;
+			});
     		if( $email_from_name )
-    			add_filter( 'wp_mail_from_name', create_function('', 'return "'.$email_from_name.'"; ') );
+				add_filter( 'wp_mail_from_name', function() use ( $email_from_name ) {
+					return $email_from_name;
+				});
     		add_action( 'phpmailer_init', array($this, 'wp_mail_phpmailer_init'));
 
     		$this->send_options = $enewsletter_send_options;
@@ -1221,10 +1227,12 @@ class Email_Newsletter_functions {
         }
 
         if(strpos($contents,'{VIEW_LINK_TEXT}') === false)
-            add_filter( 'email_newsletter_make_email_content_header', create_function('$a, $b', 'return "{VIEW_LINK_TEXT}".$a;'), 10, 2 );
+			add_filter( 'email_newsletter_make_email_content_header', function( $a, $b ) {
+				return "{VIEW_LINK_TEXT}" . $a;
+			}, 10, 2 );
 
         $date_format = (isset($settings['date_format']) ? $settings['date_format'] : "F j, Y");
-        
+
         //Prepare newsletter body
         $body_prepare =
         array(
