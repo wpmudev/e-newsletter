@@ -3,7 +3,7 @@
 Plugin Name: E-Newsletter
 Plugin URI: http://premium.wpmudev.org/project/e-newsletter
 Description: The ultimate WordPress email newsletter plugin for WordPress
-Version: 2.7.4.5
+Version: 2.7.4.6
 Text Domain: email-newsletter
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org
@@ -204,6 +204,11 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
 
         add_action( 'template_redirect', array( &$this, 'template_redirect' ), 12 );
+
+
+        //privacy
+        add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'register_plugin_exporter' ), 10 );
+        add_filter( 'wp_privacy_personal_data_erasers', array( $this, 'register_plugin_eraser' ), 10 );
 
 
         //depraciated
@@ -744,6 +749,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
         }
         if(!$this->settings && get_option('email_newsletter_install_dismissed', 0) == 0 && current_user_can($mu_cap))
             add_action( 'all_admin_notices', array( &$this, 'install_notice' ), 5 );
+
+        //privacy stuff
+        $privacy_text = __( "This website has newsletter subscription form that collects: visitors name, email, join time and subscription groups. Those details are later used to send newsletters to subscribers. Statistics related to newsletter (sent, opened and bounced) are also being collected. Users can unsubscribe at any moment with link in each newsletter.", 'email-newsletter' );
+        wp_add_privacy_policy_content('E-Newsletter', $privacy_text);
     }
 
     function install_notice() {
@@ -1129,8 +1138,13 @@ class Email_Newsletter extends Email_Newsletter_functions {
         if ($unsubscribe_code) {
             $member =  $this->get_member_id_by_code($unsubscribe_code);
             if ( 0 < $member['member_id'] ) {
-                //delete unsubscribe_code of member
-                $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '' WHERE unsubscribe_code = '%s'", $unsubscribe_code ) );
+                if(apply_filters('email_newsletter_keep_unsubscribed', false)) {
+                    //delete unsubscribe_code of member
+                    $result = $wpdb->query( $wpdb->prepare( "UPDATE {$this->tb_prefix}enewsletter_members SET unsubscribe_code = '' WHERE unsubscribe_code = '%s'", $unsubscribe_code ) );
+                }
+                else {
+                    $result = $this->delete_members( array($member['member_id']) );
+                }
 
                 return array('action' => 'unsubscribed', 'error' => false, 'message' => __( 'You are unsubscribed!', 'email-newsletter' ));
             }
@@ -2196,7 +2210,7 @@ class Email_Newsletter extends Email_Newsletter_functions {
 
             // Determine our locale to check for a specific template
             $locale = get_locale();
-			$template = apply_filters( 'email_newsletter_email_double_optin_template', $this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html', $locale );
+            $template = apply_filters( 'email_newsletter_email_double_optin_template', $this->plugin_dir . 'email-newsletter-files/emails/double_optin-'.$locale.'.html', $locale );
             if( file_exists( $template ) ) {
                 $email_contents     = file_get_contents( $template );
             } else {
@@ -2600,6 +2614,88 @@ class Email_Newsletter extends Email_Newsletter_functions {
             return $_REQUEST['message'];
         else
             return '';
+    }
+
+
+    function register_plugin_exporter($exporters) {
+		$exporters['e-newsletter'] = array(
+			'exporter_friendly_name' => 'E-Newsletter',
+			'callback' => array( $this, 'plugin_exporter' ),
+		);
+		return $exporters;
+    }
+    function plugin_exporter($email) {
+        $member = $this->get_member_by_email($email);
+        if($member) {
+            $member_groups = array();
+            $groups_id = $this->get_memeber_groups( $member['member_id'] );
+            if($groups_id) {
+                foreach ( $groups_id as $group_id) {
+                    $group = $this->get_group_by_id( $group_id );
+                    $member_groups[] = $group['group_name'];
+                }
+            }
+            $export_items = array();
+            $export_items[] = array(
+                'group_id' => 'enewsletter',
+                'group_label' => 'E-Newsletter Subscription',
+                'item_id' => 'user',
+                'data' => array(
+                    array(
+                        'name' => __( 'First Name', 'appointments' ),
+                        'value' => $member['member_fname'],
+                    ),
+                    array(
+                        'name' => __( 'Last Name', 'appointments' ),
+                        'value' => $member['member_lname'],
+                    ),
+                    array(
+                        'name' => __( 'Email', 'appointments' ),
+                        'value' => $member['member_email'],
+                    ),
+                    array(
+                        'name' => __( 'Join Date', 'appointments' ),
+                        'value' => get_date_from_gmt(date('Y-m-d H:i:s', $member['join_date'])),
+                    ),
+                    array(
+                        'name' => __( 'Groups', 'appointments' ),
+                        'value' => implode(', ', $member_groups),
+                    ),
+                ),
+            );
+
+            return array(
+                'data' => $export_items,
+                'done' => true,
+            );
+        }
+        else {
+            return;
+        }
+    }
+
+    function register_plugin_eraser($erasers) {
+		$erasers['e-newsletter'] = array(
+			'eraser_friendly_name' => 'E-Newsletter',
+			'callback' => array( $this, 'plugin_eraser' ),
+		);
+		return $erasers;
+    }
+    function plugin_eraser($email) {
+        $member = $this->get_member_by_email($email);
+        if($member) {
+            $result = $this->delete_members(array($member['member_id']));
+
+            return array(
+                'items_removed' => 1,
+                'items_retained' => 0,
+                'messages' => array(__('E-Newsletter Subscriber data removed.', 'email-newsletter')),
+                'done' => true,
+            );
+        }
+        else {
+            return;
+        }
     }
 
 
