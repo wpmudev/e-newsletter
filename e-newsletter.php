@@ -751,8 +751,10 @@ class Email_Newsletter extends Email_Newsletter_functions {
             add_action( 'all_admin_notices', array( &$this, 'install_notice' ), 5 );
 
         //privacy stuff
-        $privacy_text = __( "This website has newsletter subscription form that collects: visitors name, email, join time and subscription groups. Those details are later used to send newsletters to subscribers. Statistics related to newsletter (sent, opened and bounced) are also being collected. Users can unsubscribe at any moment with link in each newsletter.", 'email-newsletter' );
-        wp_add_privacy_policy_content('E-Newsletter', $privacy_text);
+        if(function_exists('wp_add_privacy_policy_content')) {
+            $privacy_text = __( "This website has newsletter subscription form that collects: visitors name, email, join time and subscription groups. Those details are later used to send newsletters to subscribers. Statistics related to newsletter (sent, opened and bounced) are also being collected. Users can unsubscribe at any moment with link in each newsletter.", 'email-newsletter' );
+            wp_add_privacy_policy_content('E-Newsletter', $privacy_text);
+        }
     }
 
     function install_notice() {
